@@ -91,6 +91,10 @@ public class Unit {
 	 */
 	private static int maxInitialAttributeValue = 100;
 	
+	/**
+	 * Variable registering the orientation of this unit. 
+	 */
+	private double orientation = Math.PI/2;
 	
 	
 	
@@ -101,8 +105,6 @@ public class Unit {
 
 	private String status;
 	private boolean isSprinting = false;
-
-	private double orientation = Math.PI / 2;// totaal
 
 	/**
 	 * Initialize this unit with given name, given strength, given agility, given weight, given toughness
@@ -138,7 +140,8 @@ public class Unit {
 	 * @throws 
 	 */
 	@Raw
-	public Unit(String name, int strength, int agility, int weight, int toughness)
+	public Unit(String name, int strength, int agility, int weight, int toughness, 
+				   double orientation)
 			throws IllegalArgumentException {
 		// TODO x,y,z defensief, exception
 
@@ -662,6 +665,7 @@ public class Unit {
 	 *         | else
 	 *         |	result == attribute
 	 */
+	@Raw
 	public static int makeValidInitialAttribute(int attribute) {
 		if (attribute > getMaxInitialAttributeValue()) {
 			attribute = getMaxInitialAttributeValue();
@@ -712,7 +716,7 @@ public class Unit {
 	 * @pre    The given number of hitpoints must be a valid number of hitpoints for any
 	 *         unit.
 	 *       | isValidNbHitPoints(nbHitPoints)
-	 * @post   The number of hitpoints of this unit is equal to the given
+	 * @post   The number of hitpoints  of this unit is equal to the given
 	 *         number of hitpoints.
 	 *       | new.getNbHitPoints() == nbHitPoints
 	 */
@@ -773,19 +777,55 @@ public class Unit {
 		assert isValidNbStaminaPoints(nbStaminaPoints);
 		this.nbStaminaPoints = nbStaminaPoints;
 	}
+	
+	/**
+	 * Return the orientation of this unit in radians.
+	 */
+	@Basic @Raw
+	public double getOrientation() {
+		return this.orientation;
+	}
+	
+	/**
+	 * Set the orientation of this unit to the given orientation.
+	 * 
+	 * @param orientation
+	 *        The new orientation for this unit.
+	 * @post The new orientation for this unit is equal to the given orientation.
+	 *       new.getOrientation() == orientation
+	 */
+	public void setOrientation(double orientation) {
+		this.orientation = orientation;
+	}
 
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 
+	/**
+	 * Return the base speed of this unit in meters per second.
+	 * 
+	 * @return 1.5 times the sum of the strength of this unit and the agility of this unit, 
+	 *         divided by 200 times the weight of this unit divided by 100.
+	 * 		   | result == 1.5 * (getStrength() + getAgility())/(200 * getWeight() / 100)
+	 */
+	@Raw
 	public double getBaseSpeed() {
 		return 1.5 * (getStrength() + getAgility()) / (200d * getWeight() / 100d);
 	}
 
+	/**
+	 * Return the walking speed of this unit in meters per second.
+	 * 
+	 * @param z
+	 *        The z-coordinate of the cube that the unit currently occupies.
+	 * @param targZ
+	 *        The
+	 * @return
+	 */
 	public double getWalkingSpeed(double z, double targZ) {
 		double walkingSpeed = getBaseSpeed();
 		double delta = z - targZ;
-
 		if (Util.fuzzyEquals(delta, -1)) {
 			walkingSpeed *= 0.5;
 		} else if (Util.fuzzyEquals(delta, 1)) {
@@ -794,8 +834,17 @@ public class Unit {
 		return walkingSpeed;
 	}
 
+	/**
+	 * Return the sprinting speed of this unit in meters per second.
+	 * 
+	 * @param z
+	 *        The z-coordinate of the cube that the unit currently occupies.
+	 * @param targZ
+	 * @return Two times the walking speed of this unit.
+	 *         | result == 2 * getWalkingSpeed(z, targZ)
+	 */
 	public double getSprintingSpeed(double z, double targZ) {
-		return 2 * getWalkingSpeed(z, targZ);
+		return 2d * getWalkingSpeed(z, targZ);
 	}
 
 	public void startSprinting() {
