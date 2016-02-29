@@ -1,9 +1,9 @@
 package hillbillies.model;
-import ogp.framework.util.*;
-import java.io.ObjectInputStream.GetField;
-import javax.naming.InvalidNameException;
-import be.kuleuven.cs.som.annotate.*;
-import be.kuleuven.cs.som.taglet.ReturnTaglet;
+import java.util.Arrays;
+import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Model;
+import be.kuleuven.cs.som.annotate.Raw;
+import ogp.framework.util.Util;
 
 /**
  * A class of units involving a name, a weight, a strength, an agility, a toughness,
@@ -28,6 +28,9 @@ import be.kuleuven.cs.som.taglet.ReturnTaglet;
  * @invar  The number of stamina points of each unit must be a valid number of stamina points for any
  *         unit.
  *       | isValidNbStaminaPoints(getNbStaminaPoints())
+ * @invar  The position of each unit must be a valid position for any
+ *         unit.
+ *       | isValidPosition(getPosition())
  */
 
 public class Unit {
@@ -96,14 +99,33 @@ public class Unit {
 	 */
 	private double orientation = Math.PI/2;
 	
+	/**
+	 * Variable referencing an array assembling the position coordinates of this unit.
+	 */
+	private double[] unitPosition = new double[3];
 	
-	
-	private double[] unitPosition = new double[3]; // defensief
-	private double[] centrePosition = new double[3]; // tussen 0 en 50
+	/**
+	 * Variable referencing an array storing the (intermediate) target position of this moving unit.
+	 */
 	private double[] targetPosition = new double[3];
-	// private double[] unitSpeed = new double[3];
+	
+	/**
+	 * Variable referencing an array storing the (final) objective position of this moving unit.
+	 */
+	private double[] objectivePosition = new double[3];
+	
+	/**
+	 * Variable referencing an array storing the start position of this moving unit.
+	 */
+	private double[] startPosition = new double[3];
+	
+	/**
+	 * Variable referencing an array storing the overshoot position of this moving unit.
+	 */
+	private double[] overshootPosition = new double[3];
+	
 
-	private String status;
+	private int status;
 	private boolean isSprinting = false;
 
 	/**
@@ -141,7 +163,7 @@ public class Unit {
 	 */
 	@Raw
 	public Unit(String name, int strength, int agility, int weight, int toughness, 
-				   double orientation)
+				   double[] position, double orientation)
 			throws IllegalArgumentException {
 		// TODO x,y,z defensief, exception
 
@@ -152,6 +174,7 @@ public class Unit {
 		setInitialToughness(toughness);
 		setNbHitPoints(getMaxNbHitPoints());
 		setNbStaminaPoints(getMaxNbStaminaPoints());
+		setUnitPosition(position);
 	}
 
 	/**
@@ -197,8 +220,7 @@ public class Unit {
 	 *         | ! isValidName(name)
 	 */
 	@Raw
-	public void setName(String name) 
-			throws NullPointerException, IllegalArgumentException {
+	public void setName(String name) throws NullPointerException, IllegalArgumentException {
 		if (name == null) {
 			throw new NullPointerException();
 		} else if (! isValidName(name)) {
@@ -798,9 +820,177 @@ public class Unit {
 		this.orientation = orientation;
 	}
 
-///////////////////////////////////////////////////
-///////////////////////////////////////////////////
-///////////////////////////////////////////////////
+	/**
+	 * Return the position of this unit.
+	 */
+	@Basic @Raw
+	public double[] getUnitPosition() {
+		return this.unitPosition;
+	}
+	
+	/**
+	 * Check whether the given position is a valid position for
+	 * any unit.
+	 *  
+	 * @param  position
+	 *         The position to check.
+	 * @return True if and only if the length of the position array is equal to 3, 
+	 *         and if each element of the position array is greater than or equal to the minimum
+	 *         cube coordinate of the game world and smaller than the maximum cube coordinate of
+	 *         the game world.
+	 *       | result == (position.length == 3) &&
+	 *       | for each element in position
+	 *       |   (element >= GameWorld.MIN_X) && (element < GameWorld.MAX_X)
+	*/
+	public static boolean isValidPosition(double[] position) {
+		if (position.length != 3) {
+			return false;
+		}
+		for (double value : position) {
+			if (value < GameWorld.MIN_X || value >= GameWorld.MAX_X) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Set the position of this unit to the given position.
+	 * 
+	 * @param  position
+	 *         The new position for this unit.
+	 * @post   The position of this new unit is equal to
+	 *         the given position.
+	 *       | new.getUnitPosition() == position
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any
+	 *         unit.
+	 *       | ! isValidPosition(position)
+	 */
+	@Raw @Model
+	private void setUnitPosition(double[] position) 
+			throws IllegalArgumentException {
+		if (! isValidPosition(position))
+			throw new IllegalArgumentException();
+		this.unitPosition = position;
+	}
+	
+	/**
+	 * Return the target position of this unit.
+	 *    The target position of a unit is the center position of one of the neighbouring 
+	 *    (horizontally, vertically and diagonally) cubes of this unit.
+	 */
+	@Basic @Raw
+	public double[] getTargetPosition() {
+		return this.targetPosition;
+	}
+
+	/**
+	 * Set the target position of this unit to the given position.
+	 * 
+	 * @param  position
+	 *         The new target position for this unit.
+	 * @post   The new target position of this unit is equal to
+	 *         the given position.
+	 *       | new.getTargetPosition() == position
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any
+	 *         unit.
+	 *       | ! isValidPosition(position)
+	 */
+	@Raw @Model
+	private void setTargetPosition(double[] position) 
+			throws IllegalArgumentException {
+		if (! isValidPosition(position))
+			throw new IllegalArgumentException();
+		this.targetPosition = position;
+	}
+	
+	/**
+	 * Return the objective position of this unit.
+	 *    The objective position of a unit is the center of any cube in the game world this unit
+	 *    is moving to.
+	 */
+	@Basic @Raw
+	public double[] getObjectivePosition() {
+		return this.objectivePosition;
+	}
+	
+	/**
+	 * Set the objective position of this unit to the given position.
+	 * 
+	 * @param position
+	 *        The new objective position of this unit.
+	 * @post The new objective position of this unit is equal to the given position.
+	 *       | new.getObjectivePosition() == position
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any unit.
+	 *         | ! isValidPosition(position) 
+	 */
+	@Raw
+	public void setObjectivePosition(double[] position) throws IllegalArgumentException {
+		if (! isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
+		this.objectivePosition = position;
+	}
+	
+	/**
+	 * Return the start position of this unit.
+	 *    The start position of a unit is the center of that cube from where the unit started moving.
+	 */
+	@Basic @Raw
+	public double[] getStartPosition() {
+		return this.startPosition;
+	}
+	
+	/**
+	 * Set the start position of this unit to the given position.
+	 * 
+	 * @param position
+	 *        The new start position of this unit.
+	 * @post The new start position of this unit is equal to the given position.
+	 *       | new.getStartPosition() == position
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any unit.
+	 *         | ! isValidPosition(position)
+	 */
+	@Raw @Model
+	private void setStartPosition(double[] position) throws IllegalArgumentException {
+		if (! isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
+		this.startPosition = position;
+	}
+	
+	/**
+	 * Return the overshoot position of this unit.
+	 *    The overshoot position of a unit is used to check whether the unit has reached its target position.
+	 */
+	@Basic @Raw
+	public double[] getOvershootPosition() {
+		return this.overshootPosition;
+	}
+	
+	/**
+	 * Set the overshoot position of this unit to the right position.
+	 * 
+	 * @param start
+	 *        The start position of this unit.
+	 * @param target
+	 *        The target position of this unit.
+	 * @post The overshoot position of this unit is set to 2 times the target position of this unit
+	 *       subtracted by the start position of this unit.
+	 *       | new.getOvershootPosition() == 2 * getTargetPosition() - getStartPosition()
+	 */
+	@Raw @Model
+	private void setOvershootPosition(double[] start, double[] target) {
+		double[] overshootPosition = new double[3];
+		for (int i = 0; i < overshootPosition.length; i++) {
+			overshootPosition[i] = 2 * target[i] - start[i];
+		}
+		this.overshootPosition = overshootPosition;
+	}
 
 	/**
 	 * Return the base speed of this unit in meters per second.
@@ -811,7 +1001,7 @@ public class Unit {
 	 */
 	@Raw
 	public double getBaseSpeed() {
-		return 1.5 * (getStrength() + getAgility()) / (200d * getWeight() / 100d);
+		return 1.5 * (getStrength() + getAgility()) / (200 * getWeight() / 100);
 	}
 
 	/**
@@ -820,9 +1010,21 @@ public class Unit {
 	 * @param z
 	 *        The z-coordinate of the cube that the unit currently occupies.
 	 * @param targZ
-	 *        The
-	 * @return
+	 *        The z-coordinate of the cube the unit is moving to.
+	 * @return The base speed if the current cube and the cube the unit is moving to is on the same
+	 *         z-level.
+	 *         | if z == targZ
+	 *         |   result == getBaseSpeed()
+	 * @return Half the base speed if the z-level of the current cube is one level lower than the
+	 *         z-level of the cube the unit is moving to.
+	 *         | if z - targZ == -1
+	 *         |   result == 0.5 * getBaseSpeed()
+	 * @return 1.2 times the base speed if the z-level of the current cube is one level higher than the
+	 *         z-level of the cube the unit is moving to.
+	 *         | if z - targZ == 1
+	 *         |   result == 1.2 * getBaseSpeed()
 	 */
+	@Raw
 	public double getWalkingSpeed(double z, double targZ) {
 		double walkingSpeed = getBaseSpeed();
 		double delta = z - targZ;
@@ -840,93 +1042,251 @@ public class Unit {
 	 * @param z
 	 *        The z-coordinate of the cube that the unit currently occupies.
 	 * @param targZ
+	 *        The z-coordinate of the cube the unit is moving to.
 	 * @return Two times the walking speed of this unit.
 	 *         | result == 2 * getWalkingSpeed(z, targZ)
 	 */
+	@Raw
 	public double getSprintingSpeed(double z, double targZ) {
 		return 2d * getWalkingSpeed(z, targZ);
 	}
+
 
 	public void startSprinting() {
 		isSprinting = true;
 	}
 
+
 	public void stopSprinting() {
 		isSprinting = false;
 	}
 
-	public String getMovementStatus() {
-		return this.movementStatus;
+
+	public int getStatus() {
+		return status;
 	}
 
-	public void setMovementStatus(String movementStatus) {
-		this.movementStatus = movementStatus;
+
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
-	public void advanceTime(double deltaTime) {
-		// deltaTime tussen 0 en 0.2
-		// geen formele documentatie
-		// defensief
+	/**
+	 * Move this unit to the objective position.
+	 * 
+	 * @param objective
+	 *        The objective position of this unit.
+	 * @post The new position of this unit is equal to the given objective.
+	 *       | new.getUnitPosition() == objective
+	 * @throws IllegalArgumentException
+	 *         Objective is null or the length of objective is not equal to 3.
+	 *         | ((objective == null) || (objective.length != 3)
+	 * @throws IllegalArgumentException
+	 *         The objective is an invalid position for any unit.
+	 *         | ! isValidPosition(objective)
+	 */
+	@Raw
+	public void moveTo(double[] objective) throws IllegalArgumentException {
 
-		if (status.equals(Status.MOVING)) {
-			if (isSprinting) {
-				updatePosition(deltaTime, getSprintingSpeed(unitPosition[2], targetPosition[2]));
-				// staminaDrain();
+		if ((objective == null) || (objective.length != 3) || (! isValidPosition(objective))) {
+			throw new IllegalArgumentException();
+		}
+		int x,y,z;
+		setObjectivePosition(objective);
+		while (! Arrays.equals(getCubePosition(getUnitPosition()), getCubePosition(getObjectivePosition()))) {
+			if (getCubePosition(getUnitPosition())[0] == getCubePosition(getObjectivePosition())[0]) {
+				x = 0;
+			} else if (getCubePosition(getUnitPosition())[0] < getCubePosition(getObjectivePosition())[0]) {
+				x = 1;
 			} else {
-				updatePosition(deltaTime, getWalkingSpeed(unitPosition[2], targetPosition[2]));
+				x = -1;
 			}
-			// hasReachedTarget();
+			if (getCubePosition(getUnitPosition())[1] == getCubePosition(getObjectivePosition())[1]) {
+				y = 0;
+			} else if (getCubePosition(getUnitPosition())[1] < getCubePosition(getObjectivePosition())[1]) {
+				y = 1;
+			} else {
+				y = -1;
+			}
+			if (getCubePosition(getUnitPosition())[2] == getCubePosition(getObjectivePosition())[2]) {
+				z = 0;
+			} else if (getCubePosition(getUnitPosition())[2] < getCubePosition(getObjectivePosition())[2]) {
+				z = 1;
+			} else {
+				z = -1;
+			}
+			moveToAdjacent(x,y,z);
+		}
+	}
+
+	/**
+	 * Move this unit to an adjacent cube.
+	 * 
+	 * @param x
+	 *        The amount of cubes to move in the x-direction (-1, 0 or +1).
+	 * @param y
+	 * 		  The amount of cubes to move in the y-direction (-1, 0 or +1).
+	 * @param z
+	 *        The amount of cubes to move in the z-direction (-1, 0 or +1).
+	 * @post The new position of this unit is equal to the sum of the coordinates of this position
+	 *       and x,y,z respectively.
+	 *       | new.getUnitPosition()[0] == this.getUnitPostition()[0] + x
+	 *       | new.getUnitPosition()[1] == this.getUnitPostition()[1] + y
+	 *       | new.getUnitPosition()[2] == this.getUnitPostition()[2] + z
+	 */
+	@Raw @Model
+	private void moveToAdjacent(int x, int y, int z) {
+		// defensief
+		double[] targetPosition = new double[3];
+		targetPosition[0] = getUnitPosition()[0] + x;
+		targetPosition[1] = getUnitPosition()[1] + y;
+		targetPosition[2] = getUnitPosition()[2] + z;
+		setStartPosition(getUnitPosition());
+		setTargetPosition(targetPosition);
+		while (! hasReachedTarget()) {
+			advanceTime(0.1);
+		}
+		setUnitPosition(getCenterPosition(getTargetPosition()));
+	}
+	
+	/**
+	 * Advance the state of the given unit by the given time period.
+     *
+	 * @param deltaTime
+	 *        The time period, in seconds, by which to advance the unit's state.
+	 * @post The new state of this unit is equal to this state of this unit advanced by the given time period.
+	 *       | ...
+	 */
+	@Raw @Model
+	private void advanceTime(double deltaTime) {
+		// deltaTime tussen 0 en 0.2
+		// defensief
+		
+//		if (targetPosition != null) {
+//			if (isSprinting) {
+//				updatePosition(deltaTime, getSprintingSpeed(unitPosition[2], targetPosition[2]));
+//				// staminaDrain();
+//			} else {
+//				updatePosition(deltaTime, getWalkingSpeed(unitPosition[2], targetPosition[2]));
+//			}
+//			
+//			if (hasReachedTarget()) {
+//				unitPosition = getCenterPosition(targetPosition);
+//				startPosition = unitPosition;
+//				overshootPosition = unitPosition;
+//				targetPosition = null;
+//				
+//				if (hasReachedObjective()) {
+//					objectivePosition = null;
+//				}
+//			}
+//		}
+//		else if (objectivePosition != null) {
+//			moveToNext();
+//		}
+		
+		if (isSprinting) {
+			updatePosition(deltaTime, getSprintingSpeed(getCubePosition(getUnitPosition())[2], 
+					                      getCubePosition(getTargetPosition())[2]));
+		} else {
+			updatePosition(deltaTime, getWalkingSpeed(getCubePosition(getUnitPosition())[2], 
+					                      getCubePosition(getTargetPosition())[2]));
 		}
 	}
 
 	public void updatePosition(double deltaTime, double speed) {
 		double[] unitSpeed = getUnitSpeed(speed);
 		double[] updatedUnitPosition = new double[3];
-
-		updatedUnitPosition[0] = unitPosition[0] + unitSpeed[0] * deltaTime;
-		updatedUnitPosition[1] = unitPosition[1] + unitSpeed[1] * deltaTime;
-		updatedUnitPosition[2] = unitPosition[2] + unitSpeed[2] * deltaTime;
-
-		unitPosition = updatedUnitPosition;
+		for (int i = 0; i < updatedUnitPosition.length; i++) {
+			updatedUnitPosition[i] = getUnitPosition()[i] + unitSpeed[i] * deltaTime;
+		}
+		setUnitPosition(updatedUnitPosition);
 	}
-
-	public void moveToAdjacent(double[] target) {
-		// defensief
-		targetPosition = target;
-	}
-
-	public boolean isAdjacentTo() {
-
-	}
-
-	public void moveTo() {
-		// multiple moveToAdjacent-steps
-		// Zie algorithme
-		// defensief
-	}
-
-	public double getDistance() {
-		return Math.sqrt(Math.pow(targetPosition[0] - unitPosition[0], 2)
-				+ Math.pow(targetPosition[1] - unitPosition[1], 2) + Math.pow(targetPosition[2] - unitPosition[2], 2));
+	
+	public double getDistance(double[] a, double[] b) throws IllegalArgumentException {
+		if (a.length != 3 || b.length != 3) {
+			throw new IllegalArgumentException();
+		}
+		return Math.sqrt(Math.pow(a[0] - b[0], 2)
+			           + Math.pow(a[1] - b[1], 2) 
+			           + Math.pow(a[2] - b[2], 2));
 	}
 
 	public double[] getUnitSpeed(double speed) {
 		double[] unitSpeed = new double[3];
-		double distance = getDistance();
-
-		unitSpeed[0] = speed * (targetPosition[0] - unitPosition[0]) / distance;
-		unitSpeed[1] = speed * (targetPosition[1] - unitPosition[1]) / distance;
-		unitSpeed[2] = speed * (targetPosition[2] - unitPosition[2]) / distance;
-
+		double distance = getDistance(getTargetPosition(), getUnitPosition());
+		for (int i = 0; i < unitSpeed.length; i++) {
+			unitSpeed[i] = speed * (targetPosition[i] - unitPosition[i]) / distance;
+		}
 		return unitSpeed;
 	}
-
+	
+	public int[] getCubePosition(double[] position) {
+		int[] cubePosition = new int[3];
+		for (int i = 0; i < cubePosition.length; i++) {
+			cubePosition[i] = (int) position[i];
+		}
+		return cubePosition;
+	}
+	
+	public double[] getCenterPosition(double[] position) {
+		int[] cubePosition = getCubePosition(position);
+		double[] centerPosition = new double[3];
+		for (int i = 0; i < centerPosition.length; i++) {
+			centerPosition[i] = cubePosition[i] + GameWorld.CUBE_LENGTH / 2;
+		}
+		return centerPosition;
+	}
+	
+	private boolean hasReachedTarget() {
+		setOvershootPosition(getStartPosition(), getTargetPosition());
+		double startToUnit = getDistance(getStartPosition(), getUnitPosition());
+		double unitToOvershoot = getDistance(getUnitPosition(), getOvershootPosition());	
+		return startToUnit >= unitToOvershoot;
+	}
+	
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////	
+/////////////////////////////////////////////////////////////////
+	
+	public boolean isAdjacentTo(double[] current, double[] target) throws IllegalArgumentException {
+		// defensief
+		
+		if (! isValidPosition(current) || ! isValidPosition(target)) {
+			throw new IllegalArgumentException();
+		}
+		
+		int[] currentCube = getCubePosition(current);
+		int[] targetCube = getCubePosition(target);
+		
+		if ((currentCube[0] == targetCube[0]) &&
+			(currentCube[1] == targetCube[1]) &&
+			(currentCube[2] == targetCube[2])) {
+			return false;
+		}
+		
+		if ((currentCube[0] + 1 == targetCube[0] || currentCube[0] - 1 == targetCube[0] || currentCube[0] == targetCube[0]) &&
+			(currentCube[1] + 1 == targetCube[1] || currentCube[1] - 1 == targetCube[1] || currentCube[1] == targetCube[1]) &&
+			(currentCube[2] + 1 == targetCube[2] || currentCube[2] - 1 == targetCube[2] || currentCube[2] == targetCube[2])) {
+			return true;
+		} 
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	
 	public void work() {
 		// use floating point for duration and other
 	}
 
-	public void attack() {
-
+	public void attack(Unit victim) {
+		victim.defend();
 	}
 
 	public void defend() {
