@@ -345,7 +345,7 @@ public class Unit {
 	@Raw
 	public void setStrength(int strength) {
 		if (! isValidAttribute(strength)) {
-			makeValidAttribute(strength);
+			strength = makeValidAttribute(strength);
 		}
 		this.strength = strength;
 	}
@@ -365,7 +365,7 @@ public class Unit {
 	@Raw @Model
 	private void setInitialStrength(int strength) {
 		if (! isValidInitialAttribute(strength)) {
-			makeValidInitialAttribute(strength);
+			strength = makeValidInitialAttribute(strength);
 		}
 		this.strength = strength;
 	}
@@ -419,7 +419,7 @@ public class Unit {
 	@Raw
 	public void setAgility(int agility) {
 		if (! isValidAttribute(agility)) {
-			makeValidAttribute(agility);
+			agility = makeValidAttribute(agility);
 		}
 		this.agility = agility;
 	}
@@ -439,7 +439,7 @@ public class Unit {
 	@Raw @Model
 	private void setInitialAgility(int agility) {
 		if (! isValidInitialAgility(agility)) {
-			makeValidInitialAttribute(agility);
+			agility = makeValidInitialAttribute(agility);
 		}
 		this.agility = agility;
 	}
@@ -498,7 +498,7 @@ public class Unit {
 	@Raw
 	public void setWeight(int weight) {
 		if (! canHaveAsWeight(weight)) {
-			makeValidWeight(weight);
+			weight = makeValidWeight(weight);
 		}
 		this.weight = weight;
 	}
@@ -518,7 +518,7 @@ public class Unit {
 	@Raw @Model
 	private void setInitialWeight(int weight) {
 		if (! canHaveAsInitialWeight(weight)) {
-			makeValidInitialWeight(weight);
+			weight = makeValidInitialWeight(weight);
 		}
 		this.weight = weight;
 	}
@@ -625,7 +625,7 @@ public class Unit {
 	@Raw @Model
 	public void setToughness(int toughness) {
 		if (! isValidAttribute(toughness)) {
-			makeValidAttribute(toughness);
+			toughness = makeValidAttribute(toughness);
 		}
 		this.toughness = toughness;
 	}
@@ -645,7 +645,7 @@ public class Unit {
 	@Raw
 	private void setInitialToughness(int toughness) {
 		if (! isValidInitialAttribute(toughness)) {
-			makeValidInitialAttribute(toughness);
+			toughness = makeValidInitialAttribute(toughness);
 		}
 		this.toughness = toughness;
 	}
@@ -881,7 +881,7 @@ public class Unit {
 	 * @post  The new orientation for this unit is equal to the given orientation.
 	 *      | new.getOrientation() == orientation
 	 */
-	public void setOrientation(double orientation) {
+	private void setOrientation(double orientation) {
 		this.orientation = orientation;
 	}
 	
@@ -967,7 +967,7 @@ public class Unit {
 	 *    (horizontally, vertically and diagonally) cubes of this unit.
 	 */
 	@Basic @Raw
-	public double[] getTargetPosition() {
+	private double[] getTargetPosition() {
 		return this.targetPosition;
 	}
 
@@ -997,7 +997,7 @@ public class Unit {
 	 *    is moving to.
 	 */
 	@Basic @Raw
-	public double[] getObjectivePosition() {
+	private double[] getObjectivePosition() {
 		return this.objectivePosition;
 	}
 	
@@ -1013,7 +1013,7 @@ public class Unit {
 	 *       | ! isValidPosition(position) 
 	 */
 	@Raw
-	public void setObjectivePosition(double[] position) throws IllegalArgumentException {
+	private void setObjectivePosition(double[] position) throws IllegalArgumentException {
 		if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
@@ -1025,7 +1025,7 @@ public class Unit {
 	 *    The start position of a unit is the center of that cube from where the unit started moving.
 	 */
 	@Basic @Raw
-	public double[] getStartPosition() {
+	private double[] getStartPosition() {
 		return this.startPosition;
 	}
 	
@@ -1055,7 +1055,7 @@ public class Unit {
 	 * 		 | result >= 0
 	 */
 	@Raw
-	public double getBaseSpeed() {
+	private double getBaseSpeed() {
 		return 1.5 * (getStrength() + getAgility()) / (200 * getWeight() / 100);
 	}
 
@@ -1080,7 +1080,7 @@ public class Unit {
 	 *       |    then result == 1.2 * getBaseSpeed()
 	 */
 	@Raw
-	public double getWalkingSpeed(double z, double targZ) {
+	private double getWalkingSpeed(double z, double targZ) {
 		double walkingSpeed = getBaseSpeed();
 		double delta = z - targZ;
 		
@@ -1103,7 +1103,7 @@ public class Unit {
 	 *       | result == 2 * getWalkingSpeed(z, targZ)
 	 */
 	@Raw
-	public double getSprintingSpeed(double z, double targZ) {
+	private double getSprintingSpeed(double z, double targZ) {
 		return 2d * getWalkingSpeed(z, targZ);
 	}
 
@@ -1519,7 +1519,7 @@ public class Unit {
 	 * @return TODO
 	 * @throws IllegalArgumentException
 	 */
-	public boolean isAdjacentTo(double[] current, double[] target) throws IllegalArgumentException {
+	private boolean isAdjacentTo(double[] current, double[] target) throws IllegalArgumentException {
 		// defensief
 		
 		if (! isValidPosition(current) || ! isValidPosition(target)) {
@@ -1585,7 +1585,7 @@ public class Unit {
 	 * @return The work time is a positive floating point value.
 	 *       | result > 0
 	 */
-	public float getWorkTime(){
+	private float getWorkTime(){
 		return 500 / getStrength();
 	}
 	
@@ -1605,7 +1605,7 @@ public class Unit {
 	 * @return A positive floating point value.
 	 *       | result >= 0
 	 */
-	public float getJobTime(){
+	private float getJobTime(){
 		return this.jobTime;
 	}
 	
@@ -1617,14 +1617,14 @@ public class Unit {
 	 * @post  The new job time of the unit is equal to the given job time.
 	 *      | new.getJobTime() == jobTime
 	 */
-	public void setJobTime(float jobTime) {
+	private void setJobTime(float jobTime) {
 		this.jobTime = jobTime;
 	}
 	
 	/**
 	 * Return the sprint time of this unit.
 	 */
-	public float getSprintTime() {
+	private float getSprintTime() {
 		return this.sprintTime;
 	}
 	
@@ -1636,7 +1636,7 @@ public class Unit {
 	 * @post  The new sprint time for the unit is equal to the given sprint time.       
 	 *      | new.getSprintTime() == sprintTime
 	 */
-	public void setSprintTime(float sprintTime) {
+	private void setSprintTime(float sprintTime) {
 		this.sprintTime = sprintTime;
 	}
 	
@@ -1714,7 +1714,7 @@ public class Unit {
 	}
 	
 	//TODO
-	public boolean defend(Unit attacker) {
+	private boolean defend(Unit attacker) {
 		Random random = new Random();
 			
 		double dodgeLuck = random.nextDouble();
@@ -1808,7 +1808,7 @@ public class Unit {
 	}
 	
 	//TODO
-	public void goToRandom(int factor) {
+	private void goToRandom(int factor) {
 		Random random = new Random();
 		double[] spot = new double[3];
 		double multiplier = random.nextInt(factor - 1) + 1;
@@ -1844,7 +1844,7 @@ public class Unit {
 	/**
 	 * Return the opponent unit of this unit.
 	 */
-	public Unit getOpponent() {
+	private Unit getOpponent() {
 		return this.opponent;
 	}
 	
@@ -1857,7 +1857,7 @@ public class Unit {
 	 * @post  The new opponent unit of this unit is equal to the given opponent unit.
 	 *      | new.getOpponent() == opponent
 	 */
-	public void setOpponent(Unit opponent) {
+	private void setOpponent(Unit opponent) {
 		this.opponent = opponent;
 	}
 	
