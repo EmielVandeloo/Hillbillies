@@ -271,9 +271,7 @@ public class Unit {
 	 */
 	public static boolean isValidName(String name) {
 		// FIXME control & space
-		//return (name.length() >= 2) && (Character.isUpperCase(name.charAt(0))) && 
-		//   	  (name.matches("[A-Za-z]['][\"]+"));
-		return true;
+		return (name.length() >= 2) && (Character.isUpperCase(name.charAt(0)));
 	}
 
 	/**
@@ -730,7 +728,7 @@ public class Unit {
 	 *       |	  result == attribute
 	 */
 	@Raw
-	private static int makeValidAttribute(int attribute) {
+	public static int makeValidAttribute(int attribute) {
 		if (attribute > getMaxAttributeValue()) {
 			attribute = getMaxAttributeValue();
 		} else if (attribute < getMinAttributeValue()) {
@@ -757,7 +755,7 @@ public class Unit {
 	 *       |	  result == attribute
 	 */
 	@Raw
-	private static int makeValidInitialAttribute(int attribute) {
+	public static int makeValidInitialAttribute(int attribute) {
 		if (attribute > getMaxInitialAttributeValue()) {
 			attribute = getMaxInitialAttributeValue();
 		} else if (attribute < getMinInitialAttributeValue()) {
@@ -811,7 +809,7 @@ public class Unit {
 	 *      | new.getNbHitPoints() == nbHitPoints
 	 */
 	@Raw @Model
-	public void setNbHitPoints(int nbHitPoints) {
+	private void setNbHitPoints(int nbHitPoints) {
 		assert isValidNbHitPoints(nbHitPoints);
 		this.nbHitPoints = nbHitPoints;
 	}
@@ -862,7 +860,7 @@ public class Unit {
 	 *      | new.getNbStaminaPoints() == nbStaminaPoints
 	 */
 	@Raw @Model
-	public void setNbStaminaPoints(int nbStaminaPoints) {
+	private void setNbStaminaPoints(int nbStaminaPoints) {
 		assert isValidNbStaminaPoints(nbStaminaPoints);
 		this.nbStaminaPoints = nbStaminaPoints;
 	}
@@ -902,7 +900,7 @@ public class Unit {
 	 * @post  The new speed for this unit is equal to the given speed.
 	 *      | new.getCurrentSpeed() == currentSpeed  
 	 */
-	public void setCurrentSpeed(double currentSpeed) {
+	private void setCurrentSpeed(double currentSpeed) {
 		this.currentSpeed = currentSpeed;
 	}
 
@@ -1123,7 +1121,7 @@ public class Unit {
 	 *     | new.isSprinting() == true
 	 */
 	public void startSprinting() {
-		sprinting = true;
+		this.sprinting = true;
 	}
 
 	/**
@@ -1133,7 +1131,7 @@ public class Unit {
 	 *     | new.isSprinting() == false
 	 */
 	public void stopSprinting() {
-		sprinting = false;
+		this.sprinting = false;
 	}
 
 	/**
@@ -1547,7 +1545,7 @@ public class Unit {
 	}
 	
 	//TODO
-	public void staminaDrain(double deltaTime) {		
+	private void staminaDrain(double deltaTime) {		
 		float timeLeft = getSprintTime() - (float) deltaTime;
 		
 		if (timeLeft <= 0) {
@@ -1670,7 +1668,7 @@ public class Unit {
 	}
 	
 	//TODO
-	public void performAttack(double deltaTime, Unit defender) {
+	private void performAttack(double deltaTime, Unit defender) {
 		float timeLeft = getJobTime() - (float) deltaTime;
 		
 		if (timeLeft <= 0) {
@@ -1974,7 +1972,7 @@ public class Unit {
 	 *     | new.doesDefaultBehaviour() == false
 	 */
 	public void stopDefaultBehaviour() {
-		defaultBehaviour = false;
+		this.defaultBehaviour = false;
 	}
 	
 	/**
@@ -2039,3 +2037,4 @@ public class Unit {
 		return working || attacking || resting;
 	}
 }
+
