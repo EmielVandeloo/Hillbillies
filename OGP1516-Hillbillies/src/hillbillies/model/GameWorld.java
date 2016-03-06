@@ -2,6 +2,13 @@ package hillbillies.model;
 
 import be.kuleuven.cs.som.annotate.Value;
 
+/**
+ * A class to organize values about the game world.
+ * 
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 1: 06/03/2016
+ */
 @Value
 public class GameWorld {
 	

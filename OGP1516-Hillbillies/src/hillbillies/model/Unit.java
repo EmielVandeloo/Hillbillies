@@ -33,6 +33,10 @@ import ogp.framework.util.Util;
  * @invar The position of each unit must be a valid position for any
  *        unit.
  *      | isValidPosition(getPosition())
+ *      
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 1: 06/03/2016
  */
 
 public class Unit {
@@ -1249,10 +1253,14 @@ public class Unit {
 	
 	/**
 	 * Advance the state of the given unit by the given time period.
+	 * 
+	 * If enabled the method will choose a random behavior for a unit that is idle.
+	 * After this, the method will check whether the unit is moving.
+	 * If so, the position will be updated accordingly.
+	 * If not, any behaviour (working, resting, attacking another unit) will be executed.
      *
 	 * @param deltaTime
 	 *        The time period, in seconds, by which to advance the unit's state.
-	 * @post  TODO
 	 */
 	@Raw @Model
 	public void advanceTime(double deltaTime) {
@@ -1451,8 +1459,8 @@ public class Unit {
 	 * 
 	 * @return True if and only if the unit's current cube position is equal to the
 	 *         objective's cube position.
-	 *       | result == getCubePosition(getUnitPosition()) == 
-	 *       |              getCubePosition(getObjectivePosition())
+	 *       | result == (getCubePosition(getUnitPosition()) == 
+	 *       |              getCubePosition(getObjectivePosition()))
 	 */
 	private boolean hasReachedObjective() {
 		int[] unitCube = getCubePosition(getUnitPosition());
@@ -1516,7 +1524,31 @@ public class Unit {
 	 *         An array containing the position coordinates of the first position to compare.
 	 * @param  target
 	 *         An array containing the position coordinates of the second position to compare.
-	 * @return TODO
+	 * @return False if the cube of the first coordinate equals the cube of the second coordinate.
+	 * 		 | let 
+	 * 		 |    currentCube = getCubePosition(current)
+	 * 		 |    targetCube = getCubePosition(target)
+	 * 		 | in
+	 * 		 |   if ((currentCube[0] == targetCube[0]) &&
+	 *		 |     (currentCube[1] == targetCube[1]) &&
+	 *		 |     (currentCube[2] == targetCube[2]))
+	 *		 |       then result == false
+	 * @return True if the 2 cubes differ from each other at most by one on any of the three axis.
+	 * 		 | let 
+	 * 		 |    currentCube = getCubePosition(current)
+	 * 		 |    targetCube = getCubePosition(target)
+	 * 		 | in
+	 * 		 |   if ((currentCube[0] + 1 == targetCube[0] || 
+	 * 		 |	  	  currentCube[0] - 1 == targetCube[0] || 
+	 * 		 |		  currentCube[0] == targetCube[0]) &&
+	 *		 |			  (currentCube[1] + 1 == targetCube[1] || 
+	 *		 |			   currentCube[1] - 1 == targetCube[1] || 
+	 *		 |			   currentCube[1] == targetCube[1]) &&
+	 *		 |				  (currentCube[2] + 1 == targetCube[2] || 
+	 *		 |				   currentCube[2] - 1 == targetCube[2] || 
+	 *		 |				   currentCube[2] == targetCube[2]))
+	 *		 |     then result == true
+	 *		 |     else result == false
 	 * @throws IllegalArgumentException
 	 */
 	private boolean isAdjacentTo(double[] current, double[] target) throws IllegalArgumentException {
@@ -1544,7 +1576,29 @@ public class Unit {
 		return false;
 	}
 	
-	//TODO
+	/**
+	 * Keep track of the amount of stamina consumed on the time passed.
+	 * 
+	 * @param  deltaTime
+	 * 		   The time period, in seconds, by which to update this unit's stamina.
+	 * @effect The new sprint time will be the time left until next stamina reduction
+	 * 		   or if such a stamina reduction just occurred: the time between reductions
+	 * 		   minus the overshoot.
+	 * 		 | let
+	 * 		 |    timeLeft = getSprintTime() - (float) deltaTime
+	 * 		 | in
+	 * 		 |    if (timeLeft <= 0)
+	 * 		 |      then setSprintTime(JobStat.SPRINT + timeLeft)
+	 * 		 |      else setSprintTime(timeLeft)
+	 * @post   If the stamina reduction occurs, the amount of stamina points will be reduced
+	 * 		   by one.
+	 * 		 | if (timeLeft <= 0)
+	 * 		 |   then new.getNbStaminaPoints == this.getNbStaminaPoints - 1
+	 * @effect If there is a stamina reduction and the stamina of this unit is already 0
+	 * 		   the unit will stop sprinting.
+	 * 		 | if (timeLeft <= 0 && ! this.getNbStaminaPoints() > 0)
+	 * 		 |   then stopSprinting()
+	 */
 	private void staminaDrain(double deltaTime) {		
 		float timeLeft = getSprintTime() - (float) deltaTime;
 		
@@ -1651,7 +1705,30 @@ public class Unit {
 	
 	// FIGHTING
 	
-	//TODO
+	/**
+	 * Attack another unit.
+	 * 
+	 * @param  defender
+	 * 		   The unit you are going to attack.
+	 * @effect Make the opponents face each other.
+	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
+	 * 		 |   then setAttackOrientation(this, defender)
+	 * @effect Make sure the defender is not moving.
+	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
+	 * 		 |   then defender.stopMovement()
+	 * @effect This unit must stop doing any other jobs.
+	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
+	 * 		 |   then resetAllJobs()
+	 * @effect This unit can start attacking.
+	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
+	 * 		 |   then startAttacking
+	 * @effect Defender will be set as this unit's opponent
+	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
+	 * 		 |   then setOpponent(defender)
+	 * @effect The job timer must be set to the time to attack another unit.
+	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
+	 * 		 |   then setJobTime(JobStat.ATTACK)
+	 */
 	public void attack(Unit defender) {
 		// 1 seconde wachten voor aanval
 		// controleer of de defender dichtbij is
@@ -1667,7 +1744,33 @@ public class Unit {
 		}
 	}
 	
-	//TODO
+	/**
+	 * Make this unit perform its resting attacking behaviour.
+	 * 
+	 * @param deltaTime
+	 * 	      The time period, in seconds, by which to advance a unit's attacking behaviour.
+	 * @effect The new job time is the time left to complete an attack or, if the attack just
+	 *         finished in the current time step, the job time is set to 0.
+	 *       | let
+	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       | in
+	 *       |    if (timeLeft <= 0)
+	 *       |      then setJobTime(0)
+	 *       |    else
+	 *       |      setJobTime(timeLeft)
+	 * @effect If the current number of hitpoints is less than the maximum number of
+	 *         hitpoints, the number of hitpoints is incremented by one.
+	 *       | if (getNbHitPoints() < getMaxNbHitPoints())
+	 *       |   then setNbHitPoints(getNbHitPoints() + 1)
+	 * @effect If the attacker and the defender are in adjacent cubes, and if the defender cannot
+	 *         dodge or block the attack, damage is done to the defender.
+	 *       | if ((isAdjacentTo(getUnitPosition(), defender.getUnitPosition())) &&
+	 *       |         ! (defender.defend(this)))
+	 *       |   then dealDamageTo(defender)   
+     * @effect If the unit has finished its current attack, the unit will stop attacking.
+     *       | if getJobTime() == 0
+     *       |   then stopAttacking()
+	 */
 	private void performAttack(double deltaTime, Unit defender) {
 		float timeLeft = getJobTime() - (float) deltaTime;
 		
@@ -1713,7 +1816,21 @@ public class Unit {
 		return this.attacking;
 	}
 	
-	//TODO
+	/**
+	 * Attempt to defend against the attacker.
+	 * 
+	 * @param  attacker
+	 * 		   The unit that you have to defend against.
+	 * @effect If the unit dodged the attack: move to an adjacent position.
+	 * 		 | if (dodgeLuck < getChanceToDodge(attacker, this))
+	 * 		 |   then goToRandom(2)
+	 * @return True if the unit could successfully dodge.
+	 * 		 | if (random.nextDouble() < getChanceToDodge(attacker, this))
+	 * 		 |   then result == true
+	 * @return True if the unit could successfully block the attack.
+	 * 		 | if (random.nextDouble() < getChanceToBlock(attacker, this))
+	 * 		 |   then result == true
+	 */
 	private boolean defend(Unit attacker) {
 		Random random = new Random();
 			
@@ -1807,7 +1924,14 @@ public class Unit {
 		defender.setOrientation(Math.atan2((posA[1] - posD[1]), (posA[0] - posD[0])));
 	}
 	
-	//TODO
+	/**
+	 * Start walking to a random location (at most factor cubes in any direction).
+	 * 
+	 * @param  factor
+	 * 		   The amount of cubes to walk at most in any direction.
+	 * @effect Start walking to a random location.
+	 * 		 | moveTo(spot)
+	 */
 	private void goToRandom(int factor) {
 		Random random = new Random();
 		double[] spot = new double[3];
@@ -1884,7 +2008,36 @@ public class Unit {
 		setJobTime(getWorkTime());
 	}
 	
-	//TODO
+	/**
+	 * Make this unit perform its working behaviour.
+	 * 
+	 * @param deltaTime
+	 * 	      The time period, in seconds, by which to advance a unit's working behaviour.
+	 * @effect The new job time is the time left until the next incrementation of the
+	 *         number of hitpoints, or if such an incrementation just occurred: the time to
+	 *         finish a job
+	 *       | let
+	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       | in
+	 *       |    if (timeLeft <= 0)
+	 *       |      then setJobTime(getHitPointsRestTime() + timeLeft)
+	 * @effect The job time of the unit is set to the time left to finish its job or,
+	 *         if it just finished a job: the time to finish a job minus a possible overshoot.
+	 *       | let
+	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       | in
+	 *       |    if (timeLeft <= 0)
+	 *       |      then setJobTime(getWorkTime() + timeLeft)
+	 *       |    else
+	 *       |      then setJobTime(timeLeft)
+	 * @effect If the time left for the unit to finish its job is less than or equal to zero,
+	 *         it will stop working.
+	 *       | let
+	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       | in
+	 *       |    if (timeLeft <= 0)
+	 *       |      then stopWorking()
+	 */
 	private void performWork(double deltaTime) {
 		float timeLeft = getJobTime() - (float) deltaTime;
 		
@@ -1903,11 +2056,23 @@ public class Unit {
 	/**
 	 * Make this unit rest.
 	 * 
-	 * TODO
+	 * @effect Start resting.
+	 * 		 | startResting()
+	 * @effect Stop all other jobs.
+	 * 		 | resetAllJobs()
+	 * @effect Initialize the job timer to recover hit points.
+	 * 		 | if (getNbHitPoints() < getMaxNbHitPoints())
+	 * 		 |   then setJobTime(getHitPointsRestTime())
+	 * @effect Initialize the job timer to recover stamina points.
+	 * 		 | else if (getNbStaminaPoints() < getMaxNbStaminaPoints())
+	 * 		 |   setJobTime(getStaminaRestTime())
+	 * @effect Stop resting when already completely full on points.
+	 * 		 | else
+	 * 		 |   stopResting()
 	 */
 	public void rest() {
 		resetAllJobs();
-		this.resting = true;
+		startResting();;
 		
 		if (getNbHitPoints() < getMaxNbHitPoints()) {
 			setJobTime(getHitPointsRestTime());
@@ -1923,7 +2088,56 @@ public class Unit {
 		return this.resting;
 	}
 	
-	//TODO
+	/**
+	 * Make this unit start resting.
+	 * 
+	 * @post The resting state of the unit is equal to true.
+	 *     | new.isResting() == true
+	 */
+	private void startResting() {
+		this.resting = true;
+	}
+	
+	/**
+	 * Make this unit stop resting.
+	 * 
+	 * @post The resting state of the unit is equal to false.
+	 *     | new.isResting() == false
+	 */
+	private void stopResting(){
+		this.resting = false;
+	}
+	
+	/**
+	 * Make this unit perform its resting behaviour.
+	 * 
+	 * @param deltaTime
+	 * 	      The time period, in seconds, by which to advance a unit's resting behaviour.
+	 * @effect The new job time is the time left until the next incrementation of the
+	 *         number of hitpoints, or if such an incrementation just occurred: the
+	 *         time for an incrementation of hitpoints minus a possible overshoot.
+	 *       | let
+	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       | in
+	 *       |    if (timeLeft <= 0)
+	 *       |      then setJobTime(getHitPointsRestTime() + timeLeft)
+	 *       |    else
+	 *       |      setJobTime(timeLeft)
+	 * @effect If the current number of hitpoints is less than the maximum number of
+	 *         hitpoints, the number of hitpoints is incremented by one.
+	 *       | if (getNbHitPoints() < getMaxNbHitPoints())
+	 *       |   then setNbHitPoints(getNbHitPoints() + 1)
+	 * @effect If the current number of hitpoints is equal to the maximum number of hitpoints,
+	 *         and if the current number of stamina points is less than the maximum number of
+	 *         stamina points, the number of stamina points is incremented by one.
+	 *       | if (((getNbHitPoints() == getMaxNbHitPoints()) && (getNbStaminaPoints() < getMaxNbStaminaPoints()))
+	 *       |   then setNbStaminaPoints(getNbStaminaPoints() + 1)
+	 * @effect If the current number of hitpoints is equal to the maximum number of hitpoints,
+	 *         and if the current number of stamina points is equal to the maximum number of
+	 *         stamina points, the unit will stop resting.
+	 *       | if (((getNbHitPoints() == getMaxNbHitPoints()) && (getNbStaminaPoints() == getMaxNbStaminaPoints()))
+	 *       |   then stopResting()
+	 */
 	private void performRest(double deltaTime) {
 		float timeLeft = getJobTime() - (float) deltaTime;
 		
@@ -1935,19 +2149,23 @@ public class Unit {
 				setNbStaminaPoints(getNbStaminaPoints() + 1);
 				setJobTime(getStaminaRestTime() + timeLeft);
 			} else {
-				resting = false;
+				stopResting();
 			}
 		} else {
 			setJobTime(timeLeft);
 		}
 	}
 	
-	//TODO
+	/**
+	 * The time needed to recover one hit point.
+	 */
 	private float getHitPointsRestTime() {
 		return (float) (200 / getToughness() * JobStat.REST);
 	}
 	
-	//TODO
+	/**
+	 * The time needed to recover one stamina point.
+	 */
 	private float getStaminaRestTime() {
 		return (float) (100 / getToughness() * JobStat.REST);
 	}
@@ -2006,15 +2224,13 @@ public class Unit {
 	/**
 	 * Reset all jobs for this unit.
 	 * 
-	 * @effect The unit stops working and stops attacking.
-	 *       | stopWorking() && stopAttacking()
-	 * @post   The resting state of the unit is equal to false.
-	 *       | new.isResting() == false 
+	 * @effect The unit stops working and stops attacking and stops resting.
+	 *       | stopWorking() && stopAttacking() && stopResting()
 	 */
 	private void resetAllJobs() {
-		this.working = false;
-		this.attacking = false;
-		this.resting = false;
+		stopWorking();
+		stopAttacking();
+		stopResting();
 	}
 	
 	/**
@@ -2034,7 +2250,7 @@ public class Unit {
 	 *       | result == isWorking() || isAttacking() || isResting()
 	 */
 	private boolean hasJob() {
-		return working || attacking || resting;
+		return isWorking() || isAttacking() || isResting();
 	}
 }
 
