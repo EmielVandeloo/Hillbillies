@@ -16,7 +16,7 @@ import ogp.framework.util.Util;
  * @invar The weight of each unit must be a valid weight for any unit.
  *      | isValidWeight(getWeight())
  * @invar The strength of each unit must be a valid strength for any
- *        unit.
+// *        unit.
  *        isValidStrength(getStrength())
  * @invar The agility of each unit must be a valid agility for any
  *        unit.
@@ -274,7 +274,6 @@ public class Unit {
 	 *       |              && (name.matches("[A-Za-z]['][\"]+"))
 	 */
 	public static boolean isValidName(String name) {
-		// FIXME control & space
 		return (name.length() >= 2) && (Character.isUpperCase(name.charAt(0)));
 	}
 
@@ -2004,7 +2003,7 @@ public class Unit {
 	 */
 	public void work() {
 		resetAllJobs();
-		this.working = true;
+		startWorking();
 		setJobTime(getWorkTime());
 	}
 	
@@ -2072,7 +2071,7 @@ public class Unit {
 	 */
 	public void rest() {
 		resetAllJobs();
-		startResting();;
+		startResting();
 		
 		if (getNbHitPoints() < getMaxNbHitPoints()) {
 			setJobTime(getHitPointsRestTime());
@@ -2214,7 +2213,7 @@ public class Unit {
 			work();
 		} else if (i == 1) {
 			rest();
-		} else if (i == 2 && objectivePosition == null) {
+		} else if (i == 2 && getObjectivePosition() == null) {
 			goToRandom(GameWorld.MAX_X);
 		} else if (i == 3 && isMoving()) {
 			startSprinting();
