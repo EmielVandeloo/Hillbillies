@@ -1,12 +1,13 @@
 package hillbillies.model;
 
+import java.math.BigDecimal;
 import java.util.Random;
-
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
-import ogp.framework.util.Util;
+import hillbillies.model.Position;
+import hillbillies.model.WorldStat;
 
 /**
  * A class of units involving a name, a weight, a strength, an agility, a toughness,
@@ -17,7 +18,7 @@ import ogp.framework.util.Util;
  * @invar The weight of each unit must be a valid weight for any unit.
  *      | isValidWeight(getWeight())
  * @invar The strength of each unit must be a valid strength for any
-// *        unit.
+ *        unit.
  *        isValidStrength(getStrength())
  * @invar The agility of each unit must be a valid agility for any
  *        unit.
@@ -33,7 +34,7 @@ import ogp.framework.util.Util;
  *      | isValidNbStaminaPoints(getNbStaminaPoints())
  * @invar The position of each unit must be a valid position for any
  *        unit.
- *      | isValidPosition(getPosition())
+ *      | isValidPosition(getUnitPosition())
  *      
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
@@ -45,9 +46,38 @@ import ogp.framework.util.Util;
 public class Unit {
 
 	/**
+	 * Variable registering the game time passed.
+	 */
+	private static BigDecimal gameTime = new BigDecimal(0);
+	
+	/**
 	 * Variable registering the name of this unit.
 	 */
 	private String name;
+	
+	/**
+	 * Variable registering the minimum value of an attribute (strength, agility, weight, toughness)
+	 * of each unit.
+	 */
+	private final static int MIN_ATTRIBUTE_VALUE = 1;
+
+	/**
+	 * Variable registering the maximum value of an attribute (strength, agility, weight, toughness)
+	 * of each unit.
+	 */
+	private final static int MAX_ATTRIBUTE_VALUE = 200;
+	
+	/**
+	 * Variable registering the minimum initial value of an attribute (strength, agility, weight, toughness)
+	 * of each unit.
+	 */
+	private final static int MIN_INITIAL_ATTRIBUTE_VALUE = 25;
+
+	/**
+	 * Variable registering the maximum initial value of an attribute (strength, agility, weight, toughness)
+	 * of each unit.
+	 */
+	private final static int MAX_INITIAL_ATTRIBUTE_VALUE = 100;
 	
 	/**
 	 * Variable registering the weight of this unit.
@@ -80,30 +110,6 @@ public class Unit {
 	private int nbStaminaPoints;
 	
 	/**
-	 * Variable registering the minimum value of an attribute (strength, agility, weight, toughness)
-	 * of each unit.
-	 */
-	private final static int minAttributeValue = 1;
-
-	/**
-	 * Variable registering the maximum value of an attribute (strength, agility, weight, toughness)
-	 * of each unit.
-	 */
-	private final static int maxAttributeValue = 200;
-	
-	/**
-	 * Variable registering the minimum initial value of an attribute (strength, agility, weight, toughness)
-	 * of each unit.
-	 */
-	private final static int minInitialAttributeValue = 25;
-
-	/**
-	 * Variable registering the maximum initial value of an attribute (strength, agility, weight, toughness)
-	 * of each unit.
-	 */
-	private final static int maxInitialAttributeValue = 100;
-	
-	/**
 	 * Variable registering the orientation of this unit. 
 	 */
 	private double orientation = Math.PI/2;
@@ -118,22 +124,22 @@ public class Unit {
 	/**
 	 * Variable referencing an array assembling the position coordinates of this unit.
 	 */
-	private double[] unitPosition = new double[3];
+	private Position unitPosition;
 	
 	/**
 	 * Variable referencing an array storing the (intermediate) target position of this moving unit.
 	 */
-	private double[] targetPosition = null;
+	private Position targetPosition = null;
 	
 	/**
 	 * Variable referencing an array storing the (final) objective position of this moving unit.
 	 */
-	private double[] objectivePosition = null;
+	private Position objectivePosition = null;
 	
 	/**
 	 * Variable referencing an array storing the start position of this moving unit.
 	 */
-	private double[] startPosition = new double[3];
+	private Position startPosition;
 
 	/**
 	 * Variable registering whether or not this unit is moving.
@@ -156,15 +162,19 @@ public class Unit {
 	private boolean	attacking = false;
 	
 	/**
+	 * Variable registering whether or not this unit is currently being attacked.
+	 */
+	private boolean defending = false;
+	
+	/**
 	 * Variable registering whether or not this unit is resting.
 	 */
 	private boolean resting = false;
 	
 	/**
-	 * Variable registering whether or not this unit is able to execute
-	 * its default behaviour.
+	 * Variable registering whether or not the default behaviour of this unit is enabled.
 	 */
-	private boolean defaultBehaviour;
+	private boolean doesDefaultBehaviour = false;
 	
 	/**
 	 * Variable registering the job time of a unit's current job.
@@ -202,7 +212,7 @@ public class Unit {
 	 * @param  position
 	 * 		   The position for this new unit.
 	 * @param  enableDefaultBehaviour
-	 * 		   Whether the default behaviour of this unit is enabled.
+	 * 		   Whether or not the default behaviour of this unit is enabled.
 	 * @post   The initial name of this new unit is equal to the given name.
 	 *       | new.getName() == name
 	 * @post   The initial strength of this new unit is equal to the given strength.
@@ -221,7 +231,7 @@ public class Unit {
 	 * @post   The initial position of this new unit is equal to the given position.
 	 *       | new.getUnitPosition() == position
 	 * @post   The possibility for a unit to perform its default behaviour is equal to the given flag.
-	 *       | new.defaultBehaviour == enableDefaultBehaviour.
+	 *       | new.doesdefaultBehaviour == enableDefaultBehaviour.
 	 * @throws IllegalArgumentException
 	 *         The given name is not a valid name for any unit.
 	 *       | (! isValidName(name))
@@ -244,19 +254,19 @@ public class Unit {
 	@Raw
 	public Unit(String name, int strength, int agility, int weight, int toughness, 
 				   int[] position, boolean enableDefaultBehaviour) throws IllegalArgumentException {
-		
 		setName(name);
 		setInitialStrength(strength);
 		setInitialAgility(agility);
 		setInitialWeight(weight);
 		setInitialToughness(toughness);
+		setUnitPosition(Position.getCenterPosition(position));
 		setNbHitPoints(getMaxNbHitPoints());
 		setNbStaminaPoints(getMaxNbStaminaPoints());
-		setUnitPosition(getCenterPosition(position));
+		this.doesDefaultBehaviour = enableDefaultBehaviour;
+	}	
 		
-		this.defaultBehaviour = enableDefaultBehaviour;
-	}
-
+	// GETTERS AND SETTERS
+		
 	/**
 	 * Return the name of this unit.
 	 */
@@ -275,10 +285,11 @@ public class Unit {
 	 *         symbols than letters (both uppercase and lowercase), quotes (both
 	 *         single and double) and spaces occur in the name. 
 	 *       | result == (name.length() >= 2) && (Character.isUpperCase(name.charAt(0)))
-	 *       |              && (name.matches("[A-Za-z]['][\"]+"))
+	 *       |              && (name.matches("^[A-Za-z'\" ]*$"))
 	 */
 	public static boolean isValidName(String name) {
-		return (name.length() >= 2) && (Character.isUpperCase(name.charAt(0)));
+		return (name.length() >= 2) && (Character.isUpperCase(name.charAt(0)))
+				   && (name.matches("^[A-Za-z'\" ]*$"));
 	}
 
 	/**
@@ -304,7 +315,7 @@ public class Unit {
 		}
 		this.name = name;
 	}
-
+	
 	/**
 	 * Return the strength of this unit.
 	 */
@@ -320,7 +331,7 @@ public class Unit {
 	 *         The strength to check.
 	 * @return True if and only if the given strength is a valid attribute.
 	 *       | result == isValidAttribute(strength)
-	*/
+	 */
 	public static boolean isValidStrength(int strength) {
 		return isValidAttribute(strength);
 	}
@@ -356,7 +367,7 @@ public class Unit {
 		}
 		this.strength = strength;
 	}
-
+	
 	/**
 	 * Set the initial strength of this unit to the given strength.
 	 * 
@@ -393,11 +404,11 @@ public class Unit {
 	 *         The agility to check.
 	 * @return True if and only if the given agility is a valid attribute.
 	 *       | result == isValidAttribute(agility)
-	*/
+	 */
 	public static boolean isValidAgility(int agility) {
 		return isValidAttribute(agility);
 	}
-	
+
 	/**
 	 * Check whether the given agility is a valid initial agility for
 	 * any unit.
@@ -406,7 +417,7 @@ public class Unit {
 	 *         The agility to check.
 	 * @return True if and only if the given agility is a valid initial attribute.
 	 *       | result == isValidInitialAttribute(agility)
-	*/
+	 */
 	public static boolean isValidInitialAgility(int agility) {
 		return isValidInitialAttribute(agility);
 	}
@@ -430,7 +441,6 @@ public class Unit {
 		}
 		this.agility = agility;
 	}
-
 	/**
 	 * Set the initial agility of this unit to the given agility.
 	 * 
@@ -458,7 +468,6 @@ public class Unit {
 	public int getWeight() {
 		return this.weight;
 	}
-
 	/**
 	 * Check whether the given weight is a valid weight for any unit.
 	 * 
@@ -489,7 +498,7 @@ public class Unit {
 	public boolean canHaveAsInitialWeight(int weight) {
 		return isValidInitialAttribute(weight) && (weight >= (getStrength() + getAgility()) / 2);
 	}
-
+	
 	/**
 	 * Set the weight of this unit to the given weight.
 	 * 
@@ -603,7 +612,7 @@ public class Unit {
 	public static boolean isValidToughness(int toughness) {
 		return isValidAttribute(toughness);
 	}
-
+	
 	/**
 	 * Check whether the given toughness is a valid initial toughness for
 	 * any unit.
@@ -629,7 +638,7 @@ public class Unit {
 	 * @post   The new toughness of this unit is equal to the given toughness.
 	 *       | new.getToughness() == toughness
 	 */
-	@Raw @Model
+	@Raw
 	public void setToughness(int toughness) {
 		if (! isValidAttribute(toughness)) {
 			toughness = makeValidAttribute(toughness);
@@ -662,7 +671,7 @@ public class Unit {
 	 */
 	@Basic @Immutable
 	public static int getMinAttributeValue() {
-		return Unit.minAttributeValue;
+		return MIN_ATTRIBUTE_VALUE;
 	}
 	
 	/**
@@ -670,7 +679,7 @@ public class Unit {
 	 */
 	@Basic @Immutable
 	public static int getMaxAttributeValue() {
-		return Unit.maxAttributeValue;
+		return MAX_ATTRIBUTE_VALUE;
 	}
 	
 	/**
@@ -678,7 +687,7 @@ public class Unit {
 	 */
 	@Basic @Immutable
 	public static int getMinInitialAttributeValue() {
-		return Unit.minInitialAttributeValue;
+		return MIN_INITIAL_ATTRIBUTE_VALUE;
 	}
 	
 	/**
@@ -686,7 +695,7 @@ public class Unit {
 	 */
 	@Basic @Immutable
 	public static int getMaxInitialAttributeValue() {
-		return Unit.maxInitialAttributeValue;
+		return MAX_INITIAL_ATTRIBUTE_VALUE;
 	}
 	
 	/**
@@ -701,7 +710,7 @@ public class Unit {
 	public static boolean isValidAttribute(int attribute) {
 		return (attribute >= getMinAttributeValue()) && (attribute <= getMaxAttributeValue());
 	}
-
+	
 	/**
 	 * Check whether the given attribute value is a valid initial attribute value for
 	 * any unit.
@@ -712,7 +721,7 @@ public class Unit {
 	 *         attribute value and less than or equal to the maximum initial attribute value.
 	 *       | result == (attribute >= getMinInitialAttributeValue()) && 
 	 *                      attribute <= getMaxInitialAttributeValue())
-	*/	
+	 */	
 	public static boolean isValidInitialAttribute(int attribute) {
 		return (attribute >= getMinInitialAttributeValue()) && (attribute <= getMaxInitialAttributeValue());
 	}
@@ -743,7 +752,7 @@ public class Unit {
 		}
 		return attribute;
 	}
-
+	
 	/**
 	 * Returns a valid initial value for the given attribute.
 	 * 
@@ -799,6 +808,7 @@ public class Unit {
 	 *         the number of hitpoints is less than or equal to the maximum number of hitpoints.
 	 *       | result == (nbHitPoints >= 0) && (nbHitPoints <= getMaxNbHitPoints()
 	 */
+    @Raw
 	public boolean isValidNbHitPoints(int nbHitPoints) {
 		return (nbHitPoints >= 0) && (nbHitPoints <= getMaxNbHitPoints());
 	}
@@ -815,12 +825,12 @@ public class Unit {
 	 *        number of hitpoints.
 	 *      | new.getNbHitPoints() == nbHitPoints
 	 */
-	@Raw @Model
-	private void setNbHitPoints(int nbHitPoints) {
+	@Raw
+	public void setNbHitPoints(int nbHitPoints) {
 		assert isValidNbHitPoints(nbHitPoints);
 		this.nbHitPoints = nbHitPoints;
 	}
-
+	
 	/**
 	 * Return the number of stamina points of this unit.
 	 */
@@ -848,12 +858,12 @@ public class Unit {
 	 * @return True if and only if the number of stamina points is greater than or equal to zero, and if
 	 *         the number of stamina points is less than or equal to the maximum number of stamina points.
 	 *       | result == (nbHitPoints >= 0) && (nbHitPoints <= getMaxNbStaminaPoints()
-	*/
+	 */
+	@Raw
 	public boolean isValidNbStaminaPoints(int nbStaminaPoints) {
 		return (nbStaminaPoints >= 0) && (nbStaminaPoints <= getMaxNbStaminaPoints());
 	}
 	
-
 	/**
 	 * Set the number of stamina points of this unit to the given number of stamina points.
 	 * 
@@ -866,8 +876,8 @@ public class Unit {
 	 *        number of stamina points.
 	 *      | new.getNbStaminaPoints() == nbStaminaPoints
 	 */
-	@Raw @Model
-	private void setNbStaminaPoints(int nbStaminaPoints) {
+	@Raw
+	public void setNbStaminaPoints(int nbStaminaPoints) {
 		assert isValidNbStaminaPoints(nbStaminaPoints);
 		this.nbStaminaPoints = nbStaminaPoints;
 	}
@@ -888,7 +898,7 @@ public class Unit {
 	 * @post  The new orientation for this unit is equal to the given orientation.
 	 *      | new.getOrientation() == orientation
 	 */
-	@Model
+	@Model @Raw
 	private void setOrientation(double orientation) {
 		this.orientation = orientation;
 	}
@@ -896,6 +906,7 @@ public class Unit {
 	/**
 	 * Return the current speed of this unit.
 	 */
+	@Raw
 	public double getCurrentSpeed() {
 		return this.currentSpeed;
 	}
@@ -908,7 +919,7 @@ public class Unit {
 	 * @post  The new speed for this unit is equal to the given speed.
 	 *      | new.getCurrentSpeed() == currentSpeed  
 	 */
-	@Model
+	@Model @Raw
 	private void setCurrentSpeed(double currentSpeed) {
 		this.currentSpeed = currentSpeed;
 	}
@@ -921,7 +932,7 @@ public class Unit {
 	 * Return the position of this unit.
 	 */
 	@Basic @Raw
-	public double[] getUnitPosition() {
+	public Position getUnitPosition() {
 		return this.unitPosition;
 	}
 	
@@ -931,25 +942,19 @@ public class Unit {
 	 *  
 	 * @param  position
 	 *         The position to check.
-	 * @return True if and only if the length of the position array is equal to 3, 
-	 *         and if each element of the position array is greater than or equal to the minimum
-	 *         cube coordinate of the game world and less than the maximum cube coordinate of
-	 *         the game world.
-	 *       | result == (position.length == 3) &&
-	 *       | for each element in position
-	 *       |    (element >= GameWorld.MIN_X) && (element < GameWorld.MAX_X)
+	 * @return True if and only if the given position is effective and if 
+	 *         each coordinate of the given position is a valid coordinate for any unit.
+	 *       | result == (position.isValidX(position.x())) && position.isValidX(
+	 *       |            position.x()) && position.isValidY(position.y()) &&
+	 *       |            position.isValidZ(position.z())
 	 */
-	public static boolean isValidPosition(double[] position) {
+	public static boolean isValidPosition(Position position) {
 		if (position == null) {
 			return false;
 		}
-		if (position.length != 3) {
+		if ((! Position.isValidX(position.x())) || (! Position.isValidY(position.y())) 
+		          || (! Position.isValidZ(position.z()))) {
 			return false;
-		}
-		for (double value : position) {
-			if (value < GameWorld.MIN_X || value >= GameWorld.MAX_X) {
-				return false;
-			}
 		}
 		return true;
 	}
@@ -968,10 +973,30 @@ public class Unit {
 	 *       | ! isValidPosition(position)
 	 */
 	@Raw @Model
-	private void setUnitPosition(double[] position) throws IllegalArgumentException {
+	private void setUnitPosition(Position position) throws IllegalArgumentException {
 		if (! isValidPosition(position))
 			throw new IllegalArgumentException();
 		this.unitPosition = position;
+	}
+	
+	/**
+	 * Return whether or not the given position is a center position of a certain 
+	 * cube of the game world.
+	 * 
+	 * @param  position
+	 *         The position to check.
+	 * @return True if and only if the given position equals the center position of the
+	 *         cube that contains the given position.
+	 *       | result == position.positionEquals(position.getCenterPosition())
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any unit.
+	 *       | ! isValidPosition(position)
+	 */
+	public static boolean positionInCenter(Position position) throws IllegalArgumentException {
+		if (! isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
+		return position.positionEquals(position.getCenterPosition());
 	}
 	
 	/**
@@ -980,7 +1005,7 @@ public class Unit {
 	 *    (horizontally, vertically and diagonally) cubes of this unit.
 	 */
 	@Basic @Raw @Model
-	private double[] getTargetPosition() {
+	private Position getTargetPosition() {
 		return this.targetPosition;
 	}
 
@@ -993,14 +1018,15 @@ public class Unit {
 	 *         the given position.
 	 *       | new.getTargetPosition() == position
 	 * @throws IllegalArgumentException
-	 *         The given position is not a valid position for any
+	 *         The given position is effective and not a valid position for any
 	 *         unit.
-	 *       | ! isValidPosition(position)
+	 *       | ! isValidPosition(position) && ! (position == null)
 	 */
 	@Raw @Model
-	private void setTargetPosition(double[] position) throws IllegalArgumentException {
-		if (! isValidPosition(position))
+	private void setTargetPosition(Position position) throws IllegalArgumentException {
+		if (! isValidPosition(position) && ! (position == null)) {
 			throw new IllegalArgumentException();
+		}
 		this.targetPosition = position;
 	}
 	
@@ -1010,7 +1036,7 @@ public class Unit {
 	 *    is moving to.
 	 */
 	@Basic @Raw @Model
-	private double[] getObjectivePosition() {
+	private Position getObjectivePosition() {
 		return this.objectivePosition;
 	}
 	
@@ -1022,12 +1048,13 @@ public class Unit {
 	 * @post   The new objective position of this unit is equal to the given position.
 	 *       | new.getObjectivePosition() == position
 	 * @throws IllegalArgumentException
-	 *         The given position is not a valid position for any unit.
-	 *       | ! isValidPosition(position) 
+	 *         The given position effective and not a valid position for any 
+	 *         unit.
+	 *       | ! isValidPosition(position) && ! (position == null)
 	 */
 	@Raw @Model
-	private void setObjectivePosition(double[] position) throws IllegalArgumentException {
-		if (! isValidPosition(position)) {
+	private void setObjectivePosition(Position position) throws IllegalArgumentException {
+		if (! isValidPosition(position) && ! (position == null)) {
 			throw new IllegalArgumentException();
 		}
 		this.objectivePosition = position;
@@ -1038,7 +1065,7 @@ public class Unit {
 	 *    The start position of a unit is the center of that cube from where the unit started moving.
 	 */
 	@Basic @Raw @Model
-	private double[] getStartPosition() {
+	private Position getStartPosition() {
 		return this.startPosition;
 	}
 	
@@ -1054,126 +1081,138 @@ public class Unit {
 	 *       | ! isValidPosition(position)
 	 */
 	@Raw @Model
-	private void setStartPosition(double[] position) throws IllegalArgumentException {
+	private void setStartPosition(Position position) throws IllegalArgumentException {
 		if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
 		this.startPosition = position;
-	}
-	
-	/**
-	 * Return the position of the cube this unit currently occupies.
-	 * 
-	 * @param  position
-	 *         An array containing the position coordinates.
-	 * @return The given position coordinates, rounded down to integer values.
-	 *       | result == (int) position
-	 */
-	public int[] getCubePosition(double[] position) {
-		int[] cubePosition = new int[3];
-		
-		for (int i = 0; i < cubePosition.length; i++) {
-			cubePosition[i] = (int) position[i];
-		}
-		return cubePosition;
-	}
-	
-	/**
-	 * Return the position of the center of the cube this unit currently occupies.
-	 * 
-	 * @param  position
-	 *         An array of doubles containing the position coordinates.
-	 * @return The center of the cube that contains the given position.
-	 *       | result == getCenterPosition(getCubePosition(position))
-	 */
-	@Model
-	private double[] getCenterPosition(double[] position) {
-		int[] cubePosition = getCubePosition(position);
-		return getCenterPosition(cubePosition);
-	}
-	
-	/**
-	 * Return the position of the center of the cube this unit currently occupies.
-	 * 
-	 * @param position
-	 *        An array of integers containing the position coordinates.
-	 * @return The sum of (1) this given position coordinates and
-	 *         (2) [for each coordinate] the length of the side of a cube divided by two.
-	 *         | for each index in (0..position.length)
-	 *         |	result[index] = position[index] + GameWorld.CUBE_LENGTH / 2
-	 */
-	public double[] getCenterPosition(int[] position) {
-		double[] centerPosition = new double[3];
-		
-		for (int i = 0; i < centerPosition.length; i++) {
-			centerPosition[i] = position[i] + (double) GameWorld.CUBE_LENGTH / 2;
-		}
-		return centerPosition;
 	}
 
 	
 	//****************************************************************//
 
 	// ADVANCE TIME
-	
+
 	/**
 	 * Advance the state of the given unit by the given time period.
-	 * 
-	 * If enabled the method will choose a random behavior for a unit that is idle.
-	 * After this, the method will check whether the unit is moving.
-	 * If so, the position will be updated accordingly.
-	 * If not, any behaviour (working, resting, attacking another unit) will be executed.
-     *
-	 * @param deltaTime
-	 *        The time period, in seconds, by which to advance the unit's state.
+	 *
+	 * @param  deltaTime
+	 *         The time period, in seconds, by which to advance the unit's state.
+	 * @post   The given time period is added to the game time.
+	 *       | ...
+	 * @effect If this unit is currently attacking, the opponent's movement is
+	 *         stopped, the unit's movement is stopped, the attack orientation
+	 *         is set and the attack is performed.
+	 *       | ...
+	 * @effect If this unit is currently defending, no action is performed.
+	 *       | ...
+	 * @effect If this unit is currently working, the unit's movement is stopped
+	 *         and the work is performed.
+	 *       | ...
+	 * @effect If this unit is currently resting, the unit's movement is stopped
+	 *         and the rest is performed.
+	 *       | ...
+	 * @effect If this unit's current objective position is effective, the unit
+	 *         walks for the given time period.
+	 *       | ...
+	 * @effect If this unit's default behaviour is enabled, a random default
+	 *         behaviour is chosen.
+	 *       | ...
 	 */
-	@Raw @Model
 	public void advanceTime(double deltaTime) {
-		// deltaTime tussen 0 en 0.2
-		// defensief
-		
-		//Select default behaviour
-		if (doesDefaultBehaviour() && ! hasJob()) {
-			chooseDefaultBehaviour();
-		}
-		
-		//Perform job
-		if (isWorking() && ! isWalking()) {
-			performWork(deltaTime);
-		}
-		if (isResting() && ! isWalking()) {
-			performRest(deltaTime);
-		}
-		if (isAttacking() && ! isWalking()) {
-			performAttack(deltaTime, getOpponent());
-		}
-		
-		//Movement
-		if (isWalking()) {
-			resetAllJobs();
-			
-			if (isSprinting()) {
-				updatePosition(deltaTime, getSprintingSpeed(unitPosition[2], targetPosition[2]));
-				staminaDrain(deltaTime);
+		//deltaTime = setValidDeltaTime(deltaTime);
+		gameTime = gameTime.add(new BigDecimal(deltaTime));
+		if (getTargetPosition() != null) {
+			walk(deltaTime);
+		} else {
+			if (isAttacking()) {
+				setAttackOrientation(this, getOpponent());
+				performAttack(deltaTime, getOpponent());
+			} else if (isDefending()) {
 				
-			} else {
-				updatePosition(deltaTime, getWalkingSpeed(unitPosition[2], targetPosition[2]));
+				// TODO Check this by the number of attackers.
+				// TODO PerformAttack() must decrease this amount by one when finished.
 				
-			}
-				
-			if (hasReachedTarget()) {
-						
-				stopMovement();
-				
-				if (hasReachedObjective()) {
-					stopMoving();
-				} else {
-					moveToAdjacent(moveToNext());
-				}			
+				// Defender must not do anything, but he can't move during the attack.
+				// Therefore this clause: the unit can't jump into the last else if
+				// statement to start walking if he has an effective objective.
+			} else if (isWorking()) {
+				performWork(deltaTime);
+			} else if (isResting()) {
+				performRest(deltaTime);
+			} else if (getObjectivePosition() != null) {
+				//Search next target in Path/Objective
+				walk(deltaTime);
+			} else if (doesDefaultBehaviour()) {
+				chooseDefaultBehaviour();
 			} 
 		}
 	}
-	
+
+	/**
+	 * Make this unit walk for a given time period.
+	 * 
+	 * @param  deltaTime
+	 *         The time period by which to walk.
+	 * @effect The unit starts moving.
+	 *       | startMoving()
+	 * 
+	 * @effect If the unit is currently sprinting, the position is updated in view of the
+	 *         sprinting speed and the number of stamina points is updated accordingly. Else
+	 *         the position is updated in view of the walking speed.
+	 *       | if (isSprinting())
+	 *       |   then updatePosition(deltaTime, getSprintingSpeed(getUnitPosition().
+	 *       |             getCenterPosition.z(), getTargetPosition().getCenterPosition.z()))
+	 *       |   then staminaDrain(deltaTime);
+	 *       | else
+	 *       |   updatePosition(deltaTime, getWalkingSpeed(getUnitPosition().getCenterPosition().
+	 *       |             z(), getTargetPosition.getCenterPosition.z()))
+	 * @effect If the unit has reached its target, the movement is stopped, and if the unit has 
+	 *         reached its objective position, the unit's target position and the unit's objective 
+	 *         position are set to null. Else, if the unit has no job, the unit continues pathing.
+	 *       | if (hasReachedTarget())
+	 *       |   then stopMovement()
+	 *       | if (hasReachedTarget() && hasReachedObjective())
+	 *       |   then setTargetPosition(null)
+	 *       |   then setObjectivePosition(null)
+	 *       | if (hasReachedTarget() && ! hasReachedObjective && ! hasJob())
+	 *       |   then moveToAdjacent(moveToNext())
+	 */
+	@Raw @Model
+	private void walk(double deltaTime) {
+		// TODO Generates thousands of new objects (one each time step)
+		// -> use gameTime to calculate a chance to start sprinting once
+		// every second.
+		if (doesDefaultBehaviour() && ! isSprinting() && getNbStaminaPoints() > 0) {
+			double random = new Random().nextDouble();
+			if (random < deltaTime / 5.0) {
+				startSprinting();
+			}
+		}
+		double speed = 0;
+		if (isSprinting()) {
+			speed = getSprintingSpeed(getUnitPosition().getCenterPosition().z(), 
+					getTargetPosition().getCenterPosition().z());
+			setCurrentSpeed(speed);
+			updatePosition(deltaTime, speed);
+			staminaDrain(deltaTime);
+		} else {
+			speed = getWalkingSpeed(getUnitPosition().getCenterPosition().z(),
+					getTargetPosition().getCenterPosition().z());
+			setCurrentSpeed(speed);
+			updatePosition(deltaTime, speed);
+		}
+		if (hasReachedTarget(deltaTime)) {
+			stopMovement();
+			if (hasReachedObjective()) {
+				setTargetPosition(null);
+				setObjectivePosition(null);
+			} else {
+				moveToAdjacent(moveToNext());	
+			}
+		}
+	}
+
 	//****************************************************************//
 	
 	// MOVEMENT
@@ -1184,6 +1223,7 @@ public class Unit {
 	 * @return True if and only if this unit's target position does not reference the null object.
 	 *       | result == getTargetPosition() != null
 	 */
+	@Raw
 	public boolean isWalking() {
 		return getTargetPosition() != null;
 	}
@@ -1191,7 +1231,7 @@ public class Unit {
 	/**
 	 * Return whether or not this unit is currently moving.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean isMoving() {
 		return this.moving;
 	}
@@ -1202,6 +1242,7 @@ public class Unit {
 	 * @post The new moving state of the unit is equal to true.
 	 *     | new.isMoving() == true
 	 */
+	@Raw
 	public void startMoving() {
 		this.moving = true;
 	}
@@ -1212,6 +1253,7 @@ public class Unit {
 	 * @post The new moving state of the unit is equal to false.
 	 *     | new.isMoving() == false
 	 */
+	@Raw
 	public void stopMoving() {
 		this.moving = false;
 	}
@@ -1221,21 +1263,20 @@ public class Unit {
 	 * 
 	 * @effect The current speed of the unit is set to zero.
 	 *       | setCurrentSpeed(0)
+	 * @effect The unit stops moving.
+	 *       | stopMoving()
 	 * @effect The current unit position is set to the center position
 	 *         of the current unit position.
-	 *       | setUnitPosition(getCenterPosition(getUnitPosition()))
+	 *       | setUnitPosition(getUnitPosition().getCenterPosition())
 	 * @effect The start position of the unit is set to the current unit position.
 	 *       | setStartPosition(getUnitPosition())
-	 * @post   The new target position of the unit is equal to null.
-	 *       | new.getTargetPosition() == null
 	 */
-	@Model
+	@Model @Raw
 	private void stopMovement() {
-		
 		setCurrentSpeed(0);
-		setUnitPosition(getCenterPosition(getUnitPosition()));
+		stopMoving();
+		setUnitPosition(getUnitPosition().getCenterPosition());
 		setStartPosition(getUnitPosition());
-		targetPosition = null;	
 	}
 	
 	/**
@@ -1243,63 +1284,60 @@ public class Unit {
 	 * 
 	 * @param  objective
 	 *         The objective position of this unit.
-	 * @post   The new position of this unit is equal to the center of the cube that
-	 *         contains the given objective.
-	 *       | new.getUnitPosition() == getCenterPosition(objective)
+	 * @effect The objective position is set to the given objective.
+	 *       | setObjectivePosition(objective)
+	 * @effect The unit starts pathing.
+	 *       | moveToAdjacent(moveToNext())
 	 * @throws IllegalArgumentException
 	 *         The objective is an invalid position for any unit.
 	 *       | ! isValidPosition(objective)
 	 */
 	@Raw
-	public void moveTo(double[] objective) throws IllegalArgumentException {
-		
+	public void moveTo(Position objective) throws IllegalArgumentException {
 		if (! isValidPosition(objective)) {
 			throw new IllegalArgumentException();
 		}
-		
-		setObjectivePosition(objective);
+		setObjectivePosition(objective.getCenterPosition());
 		moveToAdjacent(moveToNext());
 	}
 
 	/**
-	 * Return an array containing the coordinates of this unit's next target position
-	 * (i.e. some neighbouring cube) in view of its current objective position.
+	 * Return the unit's next target position (i.e. the center of some neighbouring cube) in
+	 * view of its current objective position.
 	 *  
-	 * @return For each coordinate the center coordinate of the cube the unit currently
+	 * @return For each coordinate: the center coordinate of the cube the unit currently
 	 *         occupies if the unit's cube coordinate is on the same level as the corresponding
-	 *         objective's cube coordinate, the center coordinate of the cube the unit currently
+	 *         objective's cube coordinate; the center coordinate of the cube the unit currently
 	 *         occupies plus one if the unit's cube coordinate is on a lower level than the
-	 *         corresponding objective's cube coordinate, the center coordinate of the cube the 
+	 *         corresponding objective's cube coordinate; the center coordinate of the cube the 
 	 *         unit currently occupies minus one if the unit's cube coordinate is on a higher
 	 *         level than the corresponding objective's cube coordinate.
 	 *       | let 
-	 *       |    start = getCubePosition(getUnitPosition())
-	 *       |    end = getCubePosition(getObjectivePosition())
-	 *       |    center = getCenterPosition(getUnitPosition())
+	 *       |    start = getUnitPosition().getCubePosition()
+	 *       |    end = getObjectivePosition().getCubePosition()
+	 *       |    center = getUnitPosition.getCenterPosition()
 	 *       | in
 	 *       |    for each index in (0..2)
-	 *       |        if start[index] == end[index]
-	 *       |           then result[index] == center[index]
-	 *       |        else if start[index] < end[index]
-	 *       |           then result[index] == center[index] + 1
+	 *       |        if start.getAt(index) == end.getAt(index)
+	 *       |           then result.getAt(index) == center.getAt(index)
+	 *       |        else if start.getAt(index) < end.getAt(index)
+	 *       |           then result.getAt(index) == center.getAt(index) + 1
 	 *       |        else
-	 *       |           then result[index] == center[index] - 1
+	 *       |           then result.getAt(index) == center.getAt(index) - 1
 	 */
-	@Model
-	private double[] moveToNext() {
-		int[] start = getCubePosition(getUnitPosition());
-		int[] end = getCubePosition(getObjectivePosition());
-		
-		double[] target = new double[3];
-		double[] center = getCenterPosition(getUnitPosition());
-		
-		for (int i = 0; i < target.length; i++) {
+	@Model @Raw
+	private Position moveToNext() {
+		int[] start = getUnitPosition().getCubePosition();
+		int[] end = getObjectivePosition().getCubePosition();
+		Position target = new Position();
+		Position center = getUnitPosition().getCenterPosition();
+		for (int i = 0; i < 3; i++) {
 			if (start[i] == end[i]) {
-				target[i] = 0 + center[i];
+				target.setAt(i, 0 + center.getAt(i));
 			} else if (start[i] < end[i]) {
-				target[i] = 1 + center[i];
+				target.setAt(i, 1 + center.getAt(i));
 			} else {
-				target[i] = -1 + center[i];
+				target.setAt(i, -1 + center.getAt(i));
 			}
 		}
 		return target;
@@ -1308,31 +1346,36 @@ public class Unit {
 	/**
 	 * Move this unit to an adjacent cube.
 	 * 
-	 * @param x
-	 *        The amount of cubes to move in the x-direction (-1, 0 or +1).
-	 * @param y
-	 * 		  The amount of cubes to move in the y-direction (-1, 0 or +1).
-	 * @param z
-	 *        The amount of cubes to move in the z-direction (-1, 0 or +1).
-	 * @post  The new position of the unit is equal to the sum of its current position
-	 *        coordinates and x,y,z respectively.
-	 *      | new.getUnitPosition()[0] == this.getUnitPostition()[0] + x
-	 *      | new.getUnitPosition()[1] == this.getUnitPostition()[1] + y
-	 *      | new.getUnitPosition()[2] == this.getUnitPostition()[2] + z
+	 * @param  x
+	 *         The amount of cubes to move in the x-direction (-1, 0 or +1).
+	 * @param  y
+	 * 		   The amount of cubes to move in the y-direction (-1, 0 or +1).
+	 * @param  z
+	 *         The amount of cubes to move in the z-direction (-1, 0 or +1).
+	 * @post   If the unit's current target position is effective, there is no effect.
+	 *       | if (getTargetPosition() != null)
+	 *       |   then return
+	 * @effect Else, the  objective position of the unit is set to the sum of its current position
+	 *         coordinates and x,y,z respectively.
+	 *       | let
+	 *       |   Position targetPosition = new Position()
+	 *       |   targetPosition.setX(getUnitPosition().x() + x)
+	 *	     |   targetPosition.setY(getUnitPosition().y() + y)
+	 *	     |   targetPosition.setZ(getUnitPosition().z() + z)
+	 *       | in
+	 *       |   setObjectivePosition(targetPosition)
+	 * @effect The unit is moved to the new objective position.
+	 *       | moveToAdjacent(getObjectivePosition())
 	 */
-	@Raw @Model
-	public void moveToAdjacent(int x, int y, int z) {
-		// defensief
-		
+	@Raw
+	public void moveToAdjacent(int x, int y, int z) throws IllegalArgumentException {
 		if (getTargetPosition() != null) {
 			return;
 		}
-		
-		double[] targetPosition = new double[3];
-		
-		targetPosition[0] = getUnitPosition()[0] + x;
-		targetPosition[1] = getUnitPosition()[1] + y;
-		targetPosition[2] = getUnitPosition()[2] + z;
+		Position targetPosition = new Position();
+		targetPosition.setX(getUnitPosition().x() + x);
+		targetPosition.setY(getUnitPosition().y() + y);
+		targetPosition.setZ(getUnitPosition().z() + z);
 		setObjectivePosition(targetPosition);
 		moveToAdjacent(targetPosition);
 	}
@@ -1342,42 +1385,77 @@ public class Unit {
 	 * 
 	 * @param  targetPosition
 	 *         The new target position for the unit
+	 * @effect All jobs are reset.
+	 *       | resetAllJobs()
+	 * @effect The unit starts moving.
+	 *       | startMoving()
 	 * @effect The start position of the unit is set to the current unit position.
-	 *       | new.getStartPosition() == getUnitPosition()
+	 *       | setStartPosition(getUnitPosition)
 	 * @effect The target position of the unit is set to the given target position.
-	 *       | new.getTargetPosition() == targetPosition
+	 *       | setTargetPosition(targetPosition)
 	 */
-	public void moveToAdjacent(double[] targetPosition) throws IllegalArgumentException {
+	@Raw
+	public void moveToAdjacent(Position targetPosition) throws IllegalArgumentException {
+		resetAllJobs();
+		startMoving();
 		setStartPosition(getUnitPosition());
 		setTargetPosition(targetPosition);
+		if (isSprinting()){
+			setCurrentSpeed(getSprintingSpeed(getUnitPosition().z(), getTargetPosition().z()));
+		} else {
+			setCurrentSpeed(getWalkingSpeed(getUnitPosition().z(), getTargetPosition().z()));
+		}
 	}
 	
 	/**
 	 * Update the position of this unit according to the time step and its current speed.
 	 * 
 	 * @param  deltaTime
-	 *         The time period, in seconds, by which to update this unit's position.
+	 *         The time period, in seconds, by which to update the unit's position.
 	 * @param  speed
 	 * 	       The current speed of the unit.
+	 * @effect Update the unit's position in view of the unit speed vector.
+	 *       | updatePosition(deltaTime, speed, getUnitSpeed(speed))
+	 */
+	@Model @Raw
+	private void updatePosition(double deltaTime, double speed) {
+		double[] unitSpeed = getUnitSpeed(speed);
+		updatePosition(deltaTime, speed, unitSpeed);
+	}
+	
+	/**
+	 * Update the position of this unit according to the time step, its current speed and
+	 * the unit speed vector.
+	 * 
+	 * @param  deltaTime
+	 *         The time period, in seconds, by which to update the unit's position.
+	 * @param  speed
+	 *         The current speed of the unit.
+	 * @param  unitSpeed
+	 *         The current speed vector of the unit.
+	 * @effect The unit's current speed is set to the given speed.
+	 *       | setCurrentSpeed(speed)
+	 * @effect The unit's walking orientation is set according to the given speed vector.
+	 *       | setWalkingOrientation(unitSpeed)
 	 * @effect This unit's position is set to the sum of (1) the unit's current position and 
-	 *         (2) the product of the speed vector and the given time period.
+	 *         (2) the product of the speed vector and the given time period, if possible.
+	 *         Else, the unit's movement is stopped.
 	 *       | let
 	 *       | 	  updatedUnitPosition = getUnitPosition() + getUnitSpeed() * deltaTime
 	 *       | in
-	 *       | 	  setUnitPosition(updatedUnitPosition)
+	 *       | 	 if (isValidPosition(updatedUnitPosition))
+	 *       |     then setUnitPosition(updatedUnitPosition)
+	 *       |   else
+	 *       |     then stopMovement()
 	 */
-	@Model
-	private void updatePosition(double deltaTime, double speed) {
-		double[] unitSpeed = getUnitSpeed(speed);
-		double[] updatedUnitPosition = new double[3];
-		
+	@Model @Raw
+	private void updatePosition(double deltaTime, double speed, double[] unitSpeed) {
+		Position updatedUnitPosition = new Position();
 		setCurrentSpeed(speed);
 		setWalkingOrientation(unitSpeed);
-		
-		for (int i = 0; i < updatedUnitPosition.length; i++) {
-			updatedUnitPosition[i] = getUnitPosition()[i] + unitSpeed[i] * deltaTime;
+		for (int i = 0; i < 3; i++) {
+			updatedUnitPosition.setAt(i, getUnitPosition().getAt(i) + unitSpeed[i] * deltaTime);
 		}
-		
 		try {
 			setUnitPosition(updatedUnitPosition);
 		} catch (IllegalArgumentException e) {
@@ -1391,13 +1469,13 @@ public class Unit {
 	 * @return True if and only if the distance between the start position of the unit
 	 *         and the unit's current position is greater than or equal to the distance
 	 *         between the start position of the unit and the target position of the unit.
-	 *       | result == getDistance(getStartPosition(), getUnitPosition()) >=
-	 *       |              getDistance(getStartPosition(), getTargetPosition())
+	 *       | result == Position.getDistance(getStartPosition(), getUnitPosition()) >=
+	 *       |              Position.getDistance(getStartPosition(), getTargetPosition())
 	 */
-	@Model
-	private boolean hasReachedTarget() {
-		double startToUnit = getDistance(getStartPosition(), getUnitPosition());
-		double startToTarget = getDistance(getStartPosition(), getTargetPosition());
+	@Model @Raw
+	private boolean hasReachedTarget(double deltaTime) {
+		double startToUnit = Position.getDistance(getStartPosition(), getUnitPosition());
+		double startToTarget = Position.getDistance(getStartPosition(), getTargetPosition());
 		return startToUnit >= startToTarget;
 	}
 	
@@ -1406,14 +1484,13 @@ public class Unit {
 	 * 
 	 * @return True if and only if the unit's current cube position is equal to the
 	 *         objective's cube position.
-	 *       | result == (getCubePosition(getUnitPosition()) == 
-	 *       |              getCubePosition(getObjectivePosition()))
+	 *       | result == (getUnitPosition().getCubePosition() == 
+	 *       |               getObjectivePosition().getCubePosition())
 	 */
-	@Model
+	@Model @Raw
 	private boolean hasReachedObjective() {
-		int[] unitCube = getCubePosition(getUnitPosition());
-		int[] objectiveCube = getCubePosition(getObjectivePosition());
-		
+		int[] unitCube = getUnitPosition().getCubePosition();
+		int[] objectiveCube = getObjectivePosition().getCubePosition();
 		for (int i = 0; i < 3; i++) {
 			if (unitCube[i] != objectiveCube[i]) {
 				return false;
@@ -1442,25 +1519,24 @@ public class Unit {
 	 *         The z-coordinate of the cube the unit is moving to.
 	 * @return The base speed if the cube this unit currently occupies and the cube 
 	 *         this unit is moving to is on the same z-level.
-	 *       | if z == targZ
+	 *       | if (z == targZ)
 	 *       |    then result == getBaseSpeed()
 	 * @return Half the base speed if the z-level of the cube the unit currently occupies 
 	 *         is one level lower than the z-level of the cube the unit is moving to.
-	 *       | if z - targZ == -1
+	 *       | if (z - targZ == -1)
 	 *       |    then result == 0.5 * getBaseSpeed()
 	 * @return 1.2 times the base speed if the z-level of the cube the unit currently occupies
 	 *         is one level higher than the z-level of the cube the unit is moving to.
-	 *       | if z - targZ == 1
+	 *       | if (z - targZ == 1)
 	 *       |    then result == 1.2 * getBaseSpeed()
 	 */
 	@Raw @Model
 	private double getWalkingSpeed(double z, double targZ) {
 		double walkingSpeed = getBaseSpeed();
 		double delta = z - targZ;
-		
-		if (Util.fuzzyEquals(delta, -1)) {
+		if (delta < 0) {
 			walkingSpeed *= 0.5;
-		} else if (Util.fuzzyEquals(delta, 1)) {
+		} else if (delta > 0) {
 			walkingSpeed *= 1.2;
 		}
 		return walkingSpeed;
@@ -1475,17 +1551,16 @@ public class Unit {
 	 *         the unit's target position and the unit's current position, divided by the distance
 	 *         between the unit's target position and the unit's current position.
 	 *       | let
-	 *       |	  distance = getDistance(getTargetPosition(), getUnitPosition())
+	 *       |	  distance = Position.getDistance(getTargetPosition(), getUnitPosition())
 	 *       | in
-	 *       |	  result == speed * (targetPosition() - unitPosition()) / distance
+	 *       |	  result == speed * (getTargetPosition() - getUnitPosition()) / distance
 	 */
-	@Model
+	@Model @Raw
 	private double[] getUnitSpeed(double speed) {
 		double[] unitSpeed = new double[3];
-		double distance = getDistance(getTargetPosition(), getUnitPosition());
-		
+		double distance = Position.getDistance(getTargetPosition(), getUnitPosition());
 		for (int i = 0; i < unitSpeed.length; i++) {
-			unitSpeed[i] = speed * (targetPosition[i] - unitPosition[i]) / distance;
+			unitSpeed[i] = speed * (getTargetPosition().getAt(i) - getUnitPosition().getAt(i)) / distance;
 		}
 		return unitSpeed;
 	}
@@ -1499,7 +1574,7 @@ public class Unit {
 	 *         by the x-component of the given speed vector.
 	 *       | setOrientation(Math.atan2(speed[1], speed[0]))
 	 */
-	@Model
+	@Model @Raw
 	private void setWalkingOrientation(double[] speed) {
 		setOrientation(Math.atan2(speed[1], speed[0]));
 	}
@@ -1526,7 +1601,7 @@ public class Unit {
 	/**
 	 * Return whether or not this unit is currently sprinting.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean isSprinting() {
 		return this.sprinting;
 	}
@@ -1537,6 +1612,7 @@ public class Unit {
 	 * @post The sprinting mode of this unit is equal to true.
 	 *     | new.isSprinting() == true
 	 */
+	@Raw
 	public void startSprinting() {
 		this.sprinting = true;
 	}
@@ -1547,6 +1623,7 @@ public class Unit {
 	 * @post The sprinting mode of this unit is equal to false.
 	 *     | new.isSprinting() == false
 	 */
+	@Raw
 	public void stopSprinting() {
 		this.sprinting = false;
 	}
@@ -1554,7 +1631,7 @@ public class Unit {
 	/**
 	 * Return the sprint time of this unit.
 	 */
-	@Basic @Model @Immutable
+	@Basic @Model @Immutable @Raw
 	private float getSprintTime() {
 		return this.sprintTime;
 	}
@@ -1567,35 +1644,36 @@ public class Unit {
 	 * @post  The new sprint time for the unit is equal to the given sprint time.       
 	 *      | new.getSprintTime() == sprintTime
 	 */
-	@Model
+	@Model @Raw
 	private void setSprintTime(float sprintTime) {
 		this.sprintTime = sprintTime;
 	}
 	
 	/**
-	 * Keep track of the amount of stamina consumed on the time passed.
+	 * Keep track of the amount of stamina points consumed on the time passed.
 	 * 
 	 * @param  deltaTime
 	 * 		   The time period, in seconds, by which to update this unit's stamina.
-	 * @effect The new sprint time will be the time left until next stamina reduction
-	 * 		   or if such a stamina reduction just occurred: the time between reductions
+	 * @effect The new sprint time is equal to the time left until next stamina reduction
+	 * 		   or, if such a stamina reduction just occurred: the time between reductions
 	 * 		   minus the overshoot.
 	 * 		 | let
 	 * 		 |    timeLeft = getSprintTime() - (float) deltaTime
 	 * 		 | in
 	 * 		 |    if (timeLeft <= 0)
 	 * 		 |      then setSprintTime(JobStat.SPRINT + timeLeft)
-	 * 		 |      else setSprintTime(timeLeft)
-	 * @post   If the stamina reduction occurs, the amount of stamina points will be reduced
-	 * 		   by one.
+	 * 		 |      else 
+	 *       |        then setSprintTime(timeLeft)
+	 * @effect If the stamina reduction occurs, the amount of stamina points is set to
+	 *         the current amount of stamina points minus one.
 	 * 		 | if (timeLeft <= 0)
-	 * 		 |   then new.getNbStaminaPoints == this.getNbStaminaPoints - 1
-	 * @effect If there is a stamina reduction and the stamina of this unit is already 0
+	 * 		 |   then setNbStaminaPoints(getNbStaminaPoints() - 1)
+	 * @effect If there is a stamina reduction and the stamina of this unit is already 0,
 	 * 		   the unit will stop sprinting.
-	 * 		 | if (timeLeft <= 0 && ! this.getNbStaminaPoints() > 0)
+	 * 		 | if (timeLeft <= 0 && ! (this.getNbStaminaPoints() > 0))
 	 * 		 |   then stopSprinting()
 	 */
-	@Model
+	@Model @Raw
 	private void staminaDrain(double deltaTime) {		
 		float timeLeft = getSprintTime() - (float) deltaTime;
 		
@@ -1618,9 +1696,12 @@ public class Unit {
 	/**
 	 * Return whether or not this unit is currently working.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean isWorking(){
-		return this.working;
+		if (positionInCenter(getUnitPosition())) {
+			return this.working;
+		}
+		return false;
 	}
 	
 	/**
@@ -1629,6 +1710,7 @@ public class Unit {
 	 * @post The working state of the unit is equal to true.
 	 *     | new.isWorking() == true
 	 */
+	@Raw
 	public void startWorking(){
 		this.working = true;
 	}
@@ -1639,6 +1721,7 @@ public class Unit {
 	 * @post The working state of the unit is equal to false.
 	 *     | new.isWorking() == false
 	 */
+	@Raw
 	public void stopWorking(){
 		this.working = false;
 	}
@@ -1649,7 +1732,7 @@ public class Unit {
 	 * @return The work time is a positive floating point value.
 	 *       | result > 0
 	 */
-	@Model
+	@Model @Raw
 	private float getWorkTime(){
 		return 500 / getStrength();
 	}
@@ -1659,13 +1742,37 @@ public class Unit {
 	 * 
 	 * @effect All jobs of the unit are reset.
 	 *       | resetAllJobs()
-	 * @effect The unit is made start working.
+	 * @effect If the unit's default behaviour is enabled, the unit's -
+	 *         default behaviour is disabled.
+	 *       | if (doesDefaultBehaviour())
+	 *       |   then stopDefaultBehaviour()
+	 * @effect The unit starts working.
 	 *       | startWorking()
 	 * @effect The job time of the unit is set to the work time.
 	 *       | setJobTime(getWorkTime())
 	 */
+	@Raw
 	public void work() {
-		resetAllJobs();
+		if (getObjectivePosition() == null) {
+			resetAllJobs();
+		    if (doesDefaultBehaviour) {
+			    stopDefaultBehaviour();
+		    }
+		    startWorking();
+		    setJobTime(getWorkTime());
+		}
+	}
+	
+	/**
+	 * Make this unit work during its default behaviour.
+	 * 
+	 * @effect The unit starts working.
+	 *       | startWorking()
+	 * @effect The job time of the unit is set to the work time.
+	 *       | setJobTime(getWorkTime())
+	 */
+	@Model @Raw
+	private void workWithDefault() {
 		startWorking();
 		setJobTime(getWorkTime());
 	}
@@ -1673,16 +1780,8 @@ public class Unit {
 	/**
 	 * Make this unit perform its working behaviour.
 	 * 
-	 * @param deltaTime
-	 * 	      The time period, in seconds, by which to advance a unit's working behaviour.
-	 * @effect The new job time is the time left until the next incrementation of the
-	 *         number of hitpoints, or if such an incrementation just occurred: the time to
-	 *         finish a job
-	 *       | let
-	 *       |    timeLeft = getJobtime() - (float) deltaTime
-	 *       | in
-	 *       |    if (timeLeft <= 0)
-	 *       |      then setJobTime(getHitPointsRestTime() + timeLeft)
+	 * @param  deltaTime
+	 * 	       The time period, in seconds, by which to advance a unit's working behaviour.
 	 * @effect The job time of the unit is set to the time left to finish its job or,
 	 *         if it just finished a job: the time to finish a job minus a possible overshoot.
 	 *       | let
@@ -1700,13 +1799,11 @@ public class Unit {
 	 *       |    if (timeLeft <= 0)
 	 *       |      then stopWorking()
 	 */
-	@Model
+	@Model @Raw
 	private void performWork(double deltaTime) {
 		float timeLeft = getJobTime() - (float) deltaTime;
-		
 		if (timeLeft <= 0) {
-			//work done
-			setJobTime(getWorkTime() + timeLeft);
+			setJobTime(0);
 			stopWorking();
 		} else {
 			setJobTime(timeLeft);
@@ -1720,17 +1817,21 @@ public class Unit {
 	/**
 	 * Return whether or not this unit is currently attacking.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean isAttacking() {
-		return this.attacking;
+		if (positionInCenter(getUnitPosition())) {
+			return this.attacking;
+		}
+		return false;
 	}
 	
 	/**
 	 * Make this unit start attacking.
 	 * 
-	 * @post The attacking state of the unit is equal to true.
+	 * @post The new attacking state of the unit is equal to true.
 	 *     | new.isAttacking() == true
 	 */
+	@Raw
 	public void startAttacking() {
 		this.attacking = true;
 	}
@@ -1738,17 +1839,51 @@ public class Unit {
 	/**
 	 * Make this unit stop attacking.
 	 * 
-	 * @post The attacking state of the unit is equal to false.
+	 * @post The new attacking state of the unit is equal to false.
 	 *     | new.isAttacking() == false
 	 */
+	@Raw
 	public void stopAttacking() {
 		this.attacking = false;
 	}
 	
 	/**
+	 * Return whether or not this unit is currently being attacked.
+	 */
+	@Basic @Raw
+	public boolean isDefending() {
+		if (positionInCenter(getUnitPosition())) {
+			return this.defending;
+		}
+		return false;
+	}
+	
+	/**
+	 * Make this unit start defending.
+	 * 
+	 * @post The new defending state of the unit is equal to true.
+	 *     | new.isDefending() == true
+	 */
+	@Raw
+	public void startDefending() {
+		this.defending = true;
+	}
+	
+	/**
+	 * Make this unit stop defending.
+	 * 
+	 * @post The new defending state of the unit is equal to false.
+	 *     | new.isDefending() == false
+	 */
+	@Raw
+	public void stopDefending() {
+		this.defending = false;
+	}
+	
+	/**
 	 * Return the opponent unit of this unit.
 	 */
-	@Model
+	@Model @Raw
 	private Unit getOpponent() {
 		return this.opponent;
 	}
@@ -1756,23 +1891,29 @@ public class Unit {
 	/**
 	 * Set the opponent unit of this unit to the given opponent unit.
 	 * 
-	 * @param opponent
-	 *        The opponent unit.
-	 * @post  The new opponent unit of this unit is equal to the given opponent unit.
-	 *      | new.getOpponent() == opponent
+	 * @param  opponent
+	 *         The opponent unit.
+	 * @post   The new opponent unit of this unit is equal to the given opponent unit.
+	 *       | new.getOpponent() == opponent
+	 * @throws IllegalArgumentException
+	 *         The opponent is not effective and the opponent is this unit.
+	 *       | ! (opponent == null) && (opponent.equals(this))
 	 */
-	@Model
-	private void setOpponent(Unit opponent) {
+	@Model @Raw
+	private void setOpponent(@Raw Unit opponent) throws IllegalArgumentException {
+		if (! (opponent == null) && opponent.equals(this)) {
+			throw new IllegalArgumentException();
+		}
 		this.opponent = opponent;
 	}
 
 	/**
 	 * Return the strength of the attack.
 	 * 
-	 * @return The strength of this unit divided by 10.
-	 *       | result == getStrength() / 10
+	 * @return The strength of the attack is a non-negative integer value.
+	 *       | result >= 0
 	 */
-	@Model
+	@Model @Raw
 	private int getAttackStrength() {
 		return getStrength() / 10;
 	}
@@ -1781,80 +1922,103 @@ public class Unit {
 	 * Attack another unit.
 	 * 
 	 * @param  defender
-	 * 		   The unit you are going to attack.
-	 * @effect Make the opponents face each other.
+	 * 		   The unit this unit is going to attack.
+	 * @effect If this unit and the defender are in neighbouring cubes or occupy the same
+	 *         cube, this unit's and the defender's jobs are reset.
+	 *       | if (isAdjacentToSame(getUnitPosition(), defender.getUnitPosition()))
+	 *       |   then resetAllJobs()
+	 *       |   then defender.resetAllJobs()
+	 * @effect If this unit and the defender are in neighbouring cubes or occupy the same
+	 *         cube, then: (1) if this unit's default behaviour is enabled, this unit's default
+	 *         behaviour is disabled; (2) if the defender's default behaviour is enabled, the defender's
+	 *         default behaviour is disabled.
+	 *       | if (isAdjacentToSame(getUnitPosition(), defender.getUnitPosition()) &&
+	 *       |       (doesDefaultBehaviour()))
+	 *       |   then stopDefaultBehaviour()
+	 *       | if (isAdjacentToSame(getUnitPosition(), defender.getUnitPosition()) &&
+	 *       |       (defender.doesDefaultBehaviour()))
+	 *       |   then defender.stopDefaultBehaviour.
+	 * @effect If this unit and the defender are in neighbouring cubes or occupy the same
+	 *         cube, this unit starts attacking and the defender starts defending.
 	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
-	 * 		 |   then setAttackOrientation(this, defender)
-	 * @effect Make sure the defender is not moving.
-	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
-	 * 		 |   then defender.stopMovement()
-	 * @effect This unit must stop doing any other jobs.
-	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
-	 * 		 |   then resetAllJobs()
-	 * @effect This unit can start attacking.
-	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
-	 * 		 |   then startAttacking
-	 * @effect Defender will be set as this unit's opponent
-	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
-	 * 		 |   then setOpponent(defender)
-	 * @effect The job timer must be set to the time to attack another unit.
-	 * 		 | if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()))
-	 * 		 |   then setJobTime(JobStat.ATTACK)
+	 * 		 |   then startAttacking()
+	 *       |   then defender.startDefending()
+	 * @effect If this unit and the defender are in neighbouring cubes or occupy the same
+	 *         cube, the defender is set as this unit's opponent, if possible, and the job
+	 *         time is set to the attack time. Else, This unit stops attacking and the 
+	 *       | if (isAdjacentToSame(getUnitPosition(), defender.getUnitPosition()) &&
+	 *       |      ((opponent == null) || ! (opponent.equals(this))))
+	 *       |   then setOpponent(defender)
+	 *       |   then setJobTime(JobStat.ATTACK)
+	 *       | else
+	 *       |   then stopAttacking()
+	 *       |   then defender.stopDefending()
 	 */
-	public void attack(Unit defender) {
-		// 1 seconde wachten voor aanval
-		// controleer of de defender dichtbij is
-		
-		if (isAdjacentTo(getUnitPosition(), defender.getUnitPosition()) ||
-				getUnitPosition().equals(defender.getUnitPosition())) {
-			setAttackOrientation(this, defender);
-			defender.stopMovement();
-			
-			resetAllJobs();
-			startAttacking();
-			setOpponent(defender);
-			setJobTime(JobStat.ATTACK);
+	@Raw
+	public void attack(@Raw Unit defender) {
+		if (getObjectivePosition() == null) {
+			if (isAdjacentToOrSame(getUnitPosition(), defender.getUnitPosition())) {
+				resetAllJobs();
+				defender.resetAllJobs();
+				if (doesDefaultBehaviour()) {
+					stopDefaultBehaviour();
+				}
+				if (defender.doesDefaultBehaviour()) {
+					defender.stopDefaultBehaviour();
+				}
+				startAttacking();
+				defender.startDefending();
+				try {
+					setOpponent(defender);
+					setJobTime(JobStat.ATTACK);
+				} catch (IllegalArgumentException e) {
+					stopAttacking();
+					defender.stopDefending();
+				}
+			}
 		}
 	}
 	
 	/**
-	 * Make this unit perform its resting attacking behaviour.
+	 * Make this unit perform its attacking attacking behaviour.
 	 * 
-	 * @param deltaTime
-	 * 	      The time period, in seconds, by which to advance a unit's attacking behaviour.
+	 * @param  deltaTime
+	 * 	       The time period, in seconds, by which to advance a unit's attacking behaviour.
 	 * @effect The new job time is the time left to complete an attack or, if the attack just
-	 *         finished in the current time step, the job time is set to 0.
+	 *         finished in the current time step, the job time is set to zero.
 	 *       | let
-	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       |    timeLeft = getJobTime() - (float) deltaTime
 	 *       | in
 	 *       |    if (timeLeft <= 0)
 	 *       |      then setJobTime(0)
 	 *       |    else
 	 *       |      setJobTime(timeLeft)
-	 * @effect If the current number of hitpoints is less than the maximum number of
-	 *         hitpoints, the number of hitpoints is incremented by one.
-	 *       | if (getNbHitPoints() < getMaxNbHitPoints())
-	 *       |   then setNbHitPoints(getNbHitPoints() + 1)
-	 * @effect If the attacker and the defender are in adjacent cubes, and if the defender cannot
-	 *         dodge or block the attack, damage is done to the defender.
-	 *       | if ((isAdjacentTo(getUnitPosition(), defender.getUnitPosition())) &&
-	 *       |         ! (defender.defend(this)))
-	 *       |   then dealDamageTo(defender)   
-     * @effect If the unit has finished its current attack, the unit will stop attacking.
+	 * @effect If the time left to complete the attack is less than or equal to zero, and if
+	 *         the defender was not able to dodge or block the attack, damage is dealt to the
+	 *         defender.
+	 *       | let
+	 *       |   timeLeft = getJobTime() - (float) deltaTime
+	 *       | in
+	 *       |   if ((timeLeft <= 0) && (! (defender.defend(this))))
+	 *       |     then dealdamageTo(defender)
+     * @effect If this unit has finished its current attack, the unit will stop attacking and
+     *         the defender will stop defending and this unit's opponent is set to null.
      *       | if getJobTime() == 0
      *       |   then stopAttacking()
+     *       |   then defender.stopDefending()
+     *       |   then setOpponent(null)
 	 */
-	@Model
-	private void performAttack(double deltaTime, Unit defender) {
+	@Model @Raw
+	private void performAttack(double deltaTime, @Raw Unit defender) {
 		float timeLeft = getJobTime() - (float) deltaTime;
 		
 		if (timeLeft <= 0) {
 			if (! defender.defend(this)) {
 				dealdamageTo(defender);
 			}
-				
 			setJobTime(0);
 			stopAttacking();
+			defender.stopDefending();
 			setOpponent(null);
 		} else {
 			setJobTime(timeLeft);
@@ -1870,8 +2034,8 @@ public class Unit {
 	 *         current number of hitpoints of the defender and the strength of the attack.
 	 *       | defender.setNbHitpoints(defender.getNbHitPoints() - getAttackStrength())
 	 */
-	@Model
-	private void dealdamageTo(Unit defender) {
+	@Model @Raw
+	private void dealdamageTo(@Raw Unit defender) {
 		defender.setNbHitPoints(defender.getNbHitPoints() - getAttackStrength());
 	}
 	
@@ -1885,21 +2049,20 @@ public class Unit {
 	 * @effect The attackers orientation is set to the arctangent of the quotient of (1)
 	 *         the difference between the defender's y-coordinate and the attacker's y-coordinate and
 	 *         (2) the difference between the defender's x-coordinate and the attacker's x-coordinate.
-	 *       | attacker.setOrientation(Math.atan2((defender.getUnitPosition[1] - attacker.getUnitPosition[1]),
-	 *                                (defender.getUnitPosition[0] - attacker.getUnitPosition[0])))
+	 *       | attacker.setOrientation(Math.atan2((defender.getUnitPosition[.y() - attacker.getUnitPosition.y()),
+	 *       |                         (defender.getUnitPosition.x() - attacker.getUnitPosition.x())))
 	 * @effect The defender's orientation is set to the arctangent of the quotient of (1)
 	 *         The difference between the attacker's y-coordinate and the defender's y-coordinate and
 	 *         (2) the difference between the attacker's x-coordinate and the defender's x-coordinate.
-	 *       | defender.setOrientation(Math.atan2((attacker.getUnitPosition[1] - defender.getUnitPosition[1]),
-	 *                                (attacker.getUnitPosition[0] - defender.getUnitPosition[0])))
+	 *       | defender.setOrientation(Math.atan2((attacker.getUnitPosition.y() - defender.getUnitPosition.y()),
+	 *       |                         (attacker.getUnitPosition.x() - defender.getUnitPosition.x())))
 	 */
-	@Model
-	private void setAttackOrientation(Unit attacker, Unit defender) {
-		double[] posA = attacker.getUnitPosition();
-		double[] posD = defender.getUnitPosition();
-		
-		attacker.setOrientation(Math.atan2((posD[1] - posA[1]), (posD[0] - posA[0])));
-		defender.setOrientation(Math.atan2((posA[1] - posD[1]), (posA[0] - posD[0])));
+	@Model @Raw
+	private void setAttackOrientation(@Raw Unit attacker, @Raw Unit defender) {
+		Position posA = attacker.getUnitPosition();
+		Position posD = defender.getUnitPosition();
+		attacker.setOrientation(Math.atan2((posD.y() - posA.y()), (posD.x() - posA.x())));
+		defender.setOrientation(Math.atan2((posA.y() - posD.y()), (posA.x() - posD.x())));
 	}
 	
 	/**
@@ -1908,7 +2071,7 @@ public class Unit {
 	 * @param  attacker
 	 * 		   The unit that you have to defend against.
 	 * @effect If the unit dodged the attack: move to an adjacent position.
-	 * 		 | if (dodgeLuck < getChanceToDodge(attacker, this))
+	 * 		 | if (random.nextDouble() < getChanceToDodge(attacker, this))
 	 * 		 |   then goToRandom(2)
 	 * @return True if the unit could successfully dodge.
 	 * 		 | if (random.nextDouble() < getChanceToDodge(attacker, this))
@@ -1916,22 +2079,23 @@ public class Unit {
 	 * @return True if the unit could successfully block the attack.
 	 * 		 | if (random.nextDouble() < getChanceToBlock(attacker, this))
 	 * 		 |   then result == true
-	 */
-	@Model
-	private boolean defend(Unit attacker) {
+	 * @return False if the unit could neither dodge or block the attack.
+	 *       | if ((random.nextDouble() > getChanceToDodge(attacker, this)) &&
+	 *       |        (random.nextDouble() > getChanceToBlock(attacker, this)))
+	 *       | then result == false
+	 */    
+	@Model @Raw
+	private boolean defend(@Raw Unit attacker) {
 		Random random = new Random();
-			
 		double dodgeLuck = random.nextDouble();
 		if (dodgeLuck < getChanceToDodge(attacker, this)) {
 			goToRandom(2);
 			return true;
 		}
-		
 		double blockLuck = random.nextDouble();
 		if (blockLuck < getChanceToBlock(attacker, this)) {
 			return true;
 		}
-		
 		return false;
 	}
 	
@@ -1945,8 +2109,8 @@ public class Unit {
 	 * @return The chance to dodge an attack is a positive double value.
 	 *       | result > 0
 	 */
-	@Model
-	private double getChanceToDodge(Unit attacker, Unit defender){
+	@Model @Raw
+	private double getChanceToDodge(@Raw Unit attacker, @Raw Unit defender){
 		return 0.20 * defender.getAgility() / attacker.getAgility();
 	}
 	
@@ -1960,8 +2124,8 @@ public class Unit {
 	 * @return The chance to block an attack is a positive double value.
 	 *       | result > 0
 	 */
-	@Model
-	private double getChanceToBlock(Unit attacker, Unit defender) {
+	@Model @Raw
+	private double getChanceToBlock(@Raw Unit attacker, @Raw Unit defender) {
 		return 0.25 * (defender.getStrength() + defender.getAgility()) / (attacker.getStrength() + attacker.getAgility());
 	}
 	
@@ -1972,9 +2136,12 @@ public class Unit {
 	/**
 	 * Return whether or not this unit is currently resting.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean isResting(){
-		return this.resting;
+		if (positionInCenter(getUnitPosition())) {
+			return this.resting;
+		}
+		return false;
 	}
 	
 	/**
@@ -1983,8 +2150,8 @@ public class Unit {
 	 * @post The resting state of the unit is equal to true.
 	 *     | new.isResting() == true
 	 */
-	@Model
-	private void startResting() {
+	@Raw
+	public void startResting() {
 		this.resting = true;
 	}
 	
@@ -1994,8 +2161,8 @@ public class Unit {
 	 * @post The resting state of the unit is equal to false.
 	 *     | new.isResting() == false
 	 */
-	@Model
-	private void stopResting(){
+	@Raw
+	public void stopResting(){
 		this.resting = false;
 	}
 	
@@ -2005,7 +2172,7 @@ public class Unit {
 	 * @return The time needed to recover one hitpoint is greater than zero.
 	 *       | result > 0
 	 */
-	@Model
+	@Model @Raw
 	private float getHitPointsRestTime() {
 		return (float) (200 / getToughness() * JobStat.REST);
 	}
@@ -2016,32 +2183,70 @@ public class Unit {
 	 * @return The time needed to recover one stamina point is greater than zero.
 	 *       | result > 0
 	 */
-	@Model
+	@Model @Raw
 	private float getStaminaRestTime() {
 		return (float) (100 / getToughness() * JobStat.REST);
 	}
 	
+	// TODO 3 seconds
 	/**
 	 * Make this unit rest.
 	 * 
-	 * @effect Start resting.
-	 * 		 | startResting()
-	 * @effect Stop all other jobs.
+	 * @effect The unit's other jobs are reset.
 	 * 		 | resetAllJobs()
-	 * @effect Initialize the job timer to recover hit points.
+	 * @effect If the unit's default behaviour is enabled, the unit's
+	 *         default behaviour is disabled.
+	 *       | if (doesDefaultBehaviour())
+	 *       |   then stopDefaultBehaviour()
+	 * @effect The unit starts resting.
+	 * 		 | startResting()
+	 * @effect If the unit's current number of hit points is less than the
+	 *         unit's maximum number of hit points, the job time is set to the
+	 *         time needed to recover one hit point.
 	 * 		 | if (getNbHitPoints() < getMaxNbHitPoints())
 	 * 		 |   then setJobTime(getHitPointsRestTime())
-	 * @effect Initialize the job timer to recover stamina points.
-	 * 		 | else if (getNbStaminaPoints() < getMaxNbStaminaPoints())
-	 * 		 |   setJobTime(getStaminaRestTime())
-	 * @effect Stop resting when already completely full on points.
-	 * 		 | else
-	 * 		 |   stopResting()
+	 * @effect If the unit's current number of stamina points is less than the
+	 *         unit's maximum number of stamina, the job time is set to the
+	 *         time needed to recover one stamina point.
+	 * 		 | if (getNbStaminaPoints() < getMaxNbStaminaPoints())
+	 * 		 |   then setJobTime(getStaminaRestTime())
 	 */
+	@Raw
 	public void rest() {
-		resetAllJobs();
+		if (getObjectivePosition() == null) {
+			resetAllJobs();
+			if (doesDefaultBehaviour()) {
+				stopDefaultBehaviour();
+			}
+			startResting();
+			if (getNbHitPoints() < getMaxNbHitPoints()) {
+				setJobTime(getHitPointsRestTime());
+			} else {
+				setJobTime(getStaminaRestTime());
+			}
+		}
+	}
+	
+	// TODO 3 seconds
+	/**
+	 * Make this unit rest during its default behaviour.
+	 * 
+	 * @effect The unit starts resting.
+	 * 		 | startResting()
+	 * @effect If the unit's current number of hit points is less than the
+	 *         unit's maximum number of hit points, the job time is set to the
+	 *         time needed to recover one hit point.
+	 * 		 | if (getNbHitPoints() < getMaxNbHitPoints())
+	 * 		 |   then setJobTime(getHitPointsRestTime())
+	 * @effect If the unit's current number of stamina points is less than the
+	 *         unit's maximum number of stamina, the job time is set to the
+	 *         time needed to recover one stamina point.
+	 * 		 | if (getNbStaminaPoints() < getMaxNbStaminaPoints())
+	 * 		 |   then setJobTime(getStaminaRestTime())
+	 */
+	@Raw @Model
+	private void restWithDefault() {
 		startResting();
-		
 		if (getNbHitPoints() < getMaxNbHitPoints()) {
 			setJobTime(getHitPointsRestTime());
 		} else {
@@ -2050,7 +2255,7 @@ public class Unit {
 	}
 	
 	/**
-	 * Make this unit perform its resting behaviour.
+	 * Make this unit perform its resting behavior.
 	 * 
 	 * @param deltaTime
 	 * 	      The time period, in seconds, by which to advance a unit's resting behaviour.
@@ -2064,11 +2269,11 @@ public class Unit {
 	 *       |      then setJobTime(getHitPointsRestTime() + timeLeft)
 	 *       |    else
 	 *       |      setJobTime(timeLeft)
-	 * @effect If the current number of hitpoints is less than the maximum number of
-	 *         hitpoints, the number of hitpoints is incremented by one.
+	 * @effect If the current number of hit points is less than the maximum number of
+	 *         hit points, the number of hit points is incremented by one.
 	 *       | if (getNbHitPoints() < getMaxNbHitPoints())
 	 *       |   then setNbHitPoints(getNbHitPoints() + 1)
-	 * @effect If the current number of hitpoints is equal to the maximum number of hitpoints,
+	 * @effect If the current number of hitpoints is equal to the maximum number of hit points,
 	 *         and if the current number of stamina points is less than the maximum number of
 	 *         stamina points, the number of stamina points is incremented by one.
 	 *       | if (((getNbHitPoints() == getMaxNbHitPoints()) && (getNbStaminaPoints() < getMaxNbStaminaPoints()))
@@ -2079,7 +2284,7 @@ public class Unit {
 	 *       | if (((getNbHitPoints() == getMaxNbHitPoints()) && (getNbStaminaPoints() == getMaxNbStaminaPoints()))
 	 *       |   then stopResting()
 	 */
-	@Model
+	@Model @Raw
 	private void performRest(double deltaTime) {
 		float timeLeft = getJobTime() - (float) deltaTime;
 		
@@ -2101,77 +2306,92 @@ public class Unit {
 	//****************************************************************//
 	
 	// DEFAULT BEHAVIOUR
-
+	
 	/**
-	 * Return whether or not this unit is currently performing default behaviour.
+	 * Return whether or not this unit is currently performing default behavior.
 	 */
-	@Basic
+	@Basic @Raw
 	public boolean doesDefaultBehaviour() {
-		return this.defaultBehaviour;
+		return this.doesDefaultBehaviour;
 	}
 	
 	/**
-	 * Make this unit start performing default behaviour.
+	 * Make this unit start performing default behavior.
 	 * 
-	 * @post The new default behaviour of this unit is equal to true.
-	 *     | new.doesDefaultBehaviour() == true
+	 * @post if the unit is currently not moving and currently has no job,
+	 *       the new default behaviour of the unit is equal to true.
+	 *     | if (! isMoving() && ! hasJob())
+	 *     |   then new.doesDefaultBehaviour() == true
 	 */
+	@Raw
 	public void startDefaultBehaviour() {
-		this.defaultBehaviour = true;
+		if (! isMoving() && ! hasJob()) {
+			this.doesDefaultBehaviour = true;
+		}
 	}
 
 	/**
-	 * Make this unit stop performing default behaviour.
+	 * Make this unit stop performing default behavior.
 	 * 
-	 * @post The new default behaviour of this unit is equal to false.
-	 *     | new.doesDefaultBehaviour() == false
+	 * @effect The unit stops moving.
+	 *       | stopMoving()
+	 * @effect The objective position is set to the current target position.
+	 *       | setObjectivePosition(getTargetPosition())
+	 * @post   The new default behaviour for the unit is equal to false.
+	 *       | new.doesDefaultBehaviour() == false
 	 */
+	@Raw
 	public void stopDefaultBehaviour() {
-		this.defaultBehaviour = false;
+		stopMoving();
+		setObjectivePosition(getTargetPosition());
+		this.doesDefaultBehaviour = false;
 	}
 	
 	/**
 	 * Choose a random default behaviour for this unit.
 	 * 
 	 * @post The unit is working or resting or moving to a random position.
-	 *     | isWorking() || isResting() || isMoving()
+	 *     | new.isWorking() || new.isResting() || new.isMoving()
 	 */
-	@Model
+	@Model @Raw
 	private void chooseDefaultBehaviour() {
 		Random random = new Random();
-		
-		int i = random.nextInt(4);
+		int i = random.nextInt(3);
 		if (i == 0) {
-			work();
+			workWithDefault();
 		} else if (i == 1) {
-			rest();
+			restWithDefault();
 		} else if (i == 2 && getObjectivePosition() == null) {
-			goToRandom(GameWorld.MAX_X);
-		} else if (i == 3 && isMoving()) {
-			startSprinting();
+			goToRandom(WorldStat.MAX_X);
 		}
 	}
 	
 	/**
-	 * Start walking to a random location (at most factor cubes in any direction).
+	 * Walk to a random location.
 	 * 
 	 * @param  factor
 	 * 		   The amount of cubes to walk at most in any direction.
-	 * @effect Start walking to a random location.
-	 * 		 | moveTo(spot)
+	 * @effect Move to a random location.
+	 * 		 | let
+	 *       |   Position spot = new Position()
+	 *       |   multiplier = random.nextInt(factor - 1) + 1
+	 *       | in
+	 *       |   for each index in 0..2
+	 *       |     spot.setAt(index, getUnitPosition().getAt(index) +
+	 *       |                    getRandomDirection() * multiplier)
+	 *       |   moveTo(spot)
 	 */
-	@Model
+	@Model @Raw
 	private void goToRandom(int factor) {
 		Random random = new Random();
-		double[] spot = new double[3];
+		Position spot = new Position();
 		double multiplier = random.nextInt(factor - 1) + 1;
 		
 		do {
-			for (int i = 0; i < spot.length; i++) {
-				spot[i] = getUnitPosition()[i] + getRandomDirection() * multiplier;
+			for (int i = 0; i < 3; i++) {
+				spot.setAt(i, getUnitPosition().getAt(i) + getRandomDirection() * multiplier);
 			}
 		} while (! isValidPosition(spot));
-		
 		moveTo(spot);
 	}
 	
@@ -2179,13 +2399,12 @@ public class Unit {
 	 * Return a valid random direction for this unit to move in.
 	 *  
 	 * @return A random integer with a value of -1, 0 or +1.
-	 *       | result == -1 || 0 || 1   
+	 *       | result == -1 || result == 0 || result == 1   
 	 */
-	@Model
+	@Model @Raw
 	private int getRandomDirection() {
 		Random random = new Random();
 		int nb = random.nextInt(3);
-		
 		if (nb == 0) {
 			return 0;
 		} else if (nb == 1) {
@@ -2205,7 +2424,7 @@ public class Unit {
 	 * @return True if and only if the unit is currently working, attacking, or resting.
 	 *       | result == isWorking() || isAttacking() || isResting()
 	 */
-	@Model
+	@Model @Raw
 	private boolean hasJob() {
 		return isWorking() || isAttacking() || isResting();
 	}
@@ -2216,7 +2435,7 @@ public class Unit {
 	 * @effect The unit stops working and stops attacking and stops resting.
 	 *       | stopWorking() && stopAttacking() && stopResting()
 	 */
-	@Model
+	@Model @Raw
 	private void resetAllJobs() {
 		stopWorking();
 		stopAttacking();
@@ -2229,7 +2448,7 @@ public class Unit {
 	 * @return A positive floating point value.
 	 *       | result >= 0
 	 */
-	@Model
+	@Model @Raw
 	private float getJobTime(){
 		return this.jobTime;
 	}
@@ -2242,62 +2461,29 @@ public class Unit {
 	 * @post  The new job time of the unit is equal to the given job time.
 	 *      | new.getJobTime() == jobTime
 	 */
-	 @Model
-	private void setJobTime(float jobTime) {
-		this.jobTime = jobTime;
-	}
+	 @Model @Raw
+     private void setJobTime(float jobTime) {
+		 this.jobTime = jobTime;
+	 }
 	
 	//****************************************************************//
 	
 	// HELPER FUNCTIONS
 	
 	/**
-	 * Return the distance between two points in the three-dimensional space.
-	 * 
-	 * @param  a
-	 * 		   The coordinates of the first point, as an array of doubles {x,y,z}.
-	 * @param  b
-	 *  	   The coordinates of the second point, as an array of doubles {x,y,z}. 
-	 * @return The square root of the sum of the squares of the differences of the respective coordinates.
-	 *       | result == Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2) 
-			 |               + Math.pow(a[2] - b[2], 2));
-	 * @throws IllegalArgumentException
-	 *         The length of a or b is not equal to 3.
-	 *       | (a.length != 3) || (b.length != 3)
-	 * @throws IllegalArgumentException
-	 * 		   a and/or b reference the null object
-	 *       | (a == null) || (b == null)
-	 */
-	 @Model
-	private double getDistance(double[] a, double[] b) throws IllegalArgumentException {
-		if (a.length != 3 || b.length != 3 || a == null || b == null) {
-			throw new IllegalArgumentException();
-		}
-		return Math.sqrt(Math.pow(a[0] - b[0], 2)
-			           + Math.pow(a[1] - b[1], 2) 
-			           + Math.pow(a[2] - b[2], 2));
-	}
-	
-	/**
-	 * Return whether a certain position is adjacent to another position.
+	 * Return whether a certain position is adjacent to or the same as another position.
 	 * 
 	 * @param  current
 	 *         An array containing the position coordinates of the first position to compare.
 	 * @param  target
 	 *         An array containing the position coordinates of the second position to compare.
-	 * @return False if the cube of the first coordinate equals the cube of the second coordinate.
+	 * @return True if the current position is in the same cube as the target position.
+	 *       | if (current.getCenterPosition().positionEquals(target.getCenterPosition()))
+	 *       |   then result == true
+	 * @return True if the 2 cubes differ from each other at most by one on any of the three axes.
 	 * 		 | let 
-	 * 		 |    currentCube = getCubePosition(current)
-	 * 		 |    targetCube = getCubePosition(target)
-	 * 		 | in
-	 * 		 |   if ((currentCube[0] == targetCube[0]) &&
-	 *		 |     (currentCube[1] == targetCube[1]) &&
-	 *		 |     (currentCube[2] == targetCube[2]))
-	 *		 |       then result == false
-	 * @return True if the 2 cubes differ from each other at most by one on any of the three axis.
-	 * 		 | let 
-	 * 		 |    currentCube = getCubePosition(current)
-	 * 		 |    targetCube = getCubePosition(target)
+	 * 		 |    currentCube = current.getCubePosition()
+	 * 		 |    targetCube = target.getCubePosition()
 	 * 		 | in
 	 * 		 |   if ((currentCube[0] + 1 == targetCube[0] || 
 	 * 		 |	  	  currentCube[0] - 1 == targetCube[0] || 
@@ -2309,34 +2495,41 @@ public class Unit {
 	 *		 |				   currentCube[2] - 1 == targetCube[2] || 
 	 *		 |				   currentCube[2] == targetCube[2]))
 	 *		 |     then result == true
-	 *		 |     else result == false
+	 *		 |   else 
+	 *       |     result == false
 	 * @throws IllegalArgumentException
+	 *         current or target are no valid positions.
+	 *       | (! isValidPosition(current)) || (! isValidPosition(target))
 	 */
-	 @Model
-	private boolean isAdjacentTo(double[] current, double[] target) throws IllegalArgumentException {
-		// defensief
-		
-		if (! isValidPosition(current) || ! isValidPosition(target)) {
-			throw new IllegalArgumentException();
-		}
-		
-		int[] currentCube = getCubePosition(current);
-		int[] targetCube = getCubePosition(target);
-		
-		if ((currentCube[0] == targetCube[0]) &&
-			(currentCube[1] == targetCube[1]) &&
-			(currentCube[2] == targetCube[2])) {
-			return false;
-		}
-		
-		if ((currentCube[0] + 1 == targetCube[0] || currentCube[0] - 1 == targetCube[0] || currentCube[0] == targetCube[0]) &&
-			(currentCube[1] + 1 == targetCube[1] || currentCube[1] - 1 == targetCube[1] || currentCube[1] == targetCube[1]) &&
-			(currentCube[2] + 1 == targetCube[2] || currentCube[2] - 1 == targetCube[2] || currentCube[2] == targetCube[2])) {
-			return true;
-		} 
-		
-		return false;
-	}
-
+	 @Raw
+	 public static boolean isAdjacentToOrSame(Position current, Position target) throws IllegalArgumentException {	
+	 	 if (! isValidPosition(current) || ! isValidPosition(target)) {
+			 throw new IllegalArgumentException();
+		 }
+		 if (current.getCenterPosition().positionEquals(target.getCenterPosition())) {
+			 return true;
+		 }
+		 int[] currentCube = current.getCubePosition();
+		 int[] targetCube = target.getCubePosition();
+		 if ((currentCube[0] + 1 == targetCube[0] || currentCube[0] - 1 == targetCube[0] || currentCube[0] == targetCube[0]) &&
+			 (currentCube[1] + 1 == targetCube[1] || currentCube[1] - 1 == targetCube[1] || currentCube[1] == targetCube[1]) &&
+			 (currentCube[2] + 1 == targetCube[2] || currentCube[2] - 1 == targetCube[2] || currentCube[2] == targetCube[2])) {
+			 return true;
+		 } 
+		 return false;
+	 }
 }
 
+// getUnitPosition, getCubePosition in Unit (p.6)
+// Niet schuin naar een ander z-level bewegen
+// weight veranderen als strength/agility veranderen
+// Hitpoints/stamina points veranderen als weight/toughness veranderen
+// getWalkingSpeed: -1 -> <0 , 1 -> >0
+// Random position na ontwijken: zelfde z-level (p.11)
+// Tests in folder tests
+
+// Rusten, aanvallen, werken op bewegende unit: geen effect
+// Verdedigen op bewegende unit: effect (p.9)
+
+// Rusten, aanvallen, verdedigen, bewegen op werkende unit: effect (p.10)
+// Aanvallen, verdedigen, werken, bewegen op rustende unit: effect (p.12) 
