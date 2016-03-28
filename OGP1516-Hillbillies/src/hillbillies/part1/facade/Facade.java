@@ -1,9 +1,10 @@
 package hillbillies.part1.facade;
 
 import hillbillies.model.Unit;
+import hillbillies.world.Position;
 import ogp.framework.util.ModelException;
 
-public class Facade implements IFacade{
+public class Facade implements IFacade {
 
 	@Override
 	public Unit createUnit(String name, int[] initialPosition, 
@@ -14,12 +15,12 @@ public class Facade implements IFacade{
 
 	@Override
 	public double[] getPosition(Unit unit) throws ModelException {
-		return unit.getUnitPosition();
+		return unit.getUnitPosition().convertToDoubleArray();
 	}
 
 	@Override
 	public int[] getCubeCoordinate(Unit unit) throws ModelException {
-		return unit.getCubePosition(unit.getUnitPosition());
+		return unit.getUnitPosition().getCubePosition();
 	}
 
 	@Override
@@ -105,11 +106,7 @@ public class Facade implements IFacade{
 
 	@Override
 	public void moveToAdjacent(Unit unit, int dx, int dy, int dz) throws ModelException {
-		try {
-			unit.moveToAdjacent(dx, dy, dz);
-		} catch (IllegalArgumentException e) {
-			throw new ModelException();
-		}
+		unit.moveToAdjacent(dx, dy, dz);
 	}
 
 	@Override
@@ -119,7 +116,7 @@ public class Facade implements IFacade{
 
 	@Override
 	public boolean isMoving(Unit unit) throws ModelException {
-		return unit.isWalking();
+		return unit.isMoving();
 	}
 
 	@Override
@@ -144,7 +141,7 @@ public class Facade implements IFacade{
 
 	@Override
 	public void moveTo(Unit unit, int[] cube) throws ModelException {
-		unit.moveTo(unit.getCenterPosition(cube));
+		unit.moveTo(Position.getCenterPosition(cube));
 	}
 
 	@Override

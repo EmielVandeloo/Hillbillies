@@ -6,8 +6,9 @@ import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.model.Position;
-import hillbillies.model.WorldStat;
+import hillbillies.model.character.JobStat;
+import hillbillies.world.Position;
+import hillbillies.world.WorldStat;
 
 /**
  * A class of units involving a name, a weight, a strength, an agility, a toughness,
@@ -996,7 +997,7 @@ public class Unit {
 		if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		return position.positionEquals(position.getCenterPosition());
+		return position.equals(position.getCenterPosition());
 	}
 	
 	/**
@@ -2506,7 +2507,7 @@ public class Unit {
 	 	 if (! isValidPosition(current) || ! isValidPosition(target)) {
 			 throw new IllegalArgumentException();
 		 }
-		 if (current.getCenterPosition().positionEquals(target.getCenterPosition())) {
+		 if (current.getCenterPosition().equals(target.getCenterPosition())) {
 			 return true;
 		 }
 		 int[] currentCube = current.getCubePosition();

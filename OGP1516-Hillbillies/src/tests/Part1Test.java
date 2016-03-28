@@ -2,6 +2,9 @@ package tests;
 
 import static org.junit.Assert.*;
 import hillbillies.model.*;
+import hillbillies.model.character.JobStat;
+import hillbillies.world.Position;
+
 import org.junit.*;
 
 public class Part1Test {
@@ -33,7 +36,7 @@ public class Part1Test {
 		assertEquals(50, validUnitWithDefault.getAgility());
 		assertEquals(50, validUnitWithDefault.getWeight());
 		assertEquals(50, validUnitWithDefault.getToughness());
-		assertTrue(validUnitWithDefault.getUnitPosition().positionEquals(new Position(5.5,5.5,5.5)));
+		assertTrue(validUnitWithDefault.getUnitPosition().equals(new Position(5.5,5.5,5.5)));
 		assertTrue(validUnitWithDefault.doesDefaultBehaviour());
 		assertFalse(validUnitWithoutDefault.doesDefaultBehaviour());
 		assertEquals(50, validUnitWithDefault.getNbHitPoints());
@@ -236,7 +239,7 @@ public class Part1Test {
 		double time = distance / speed;
 		advanceTimeFor(validUnitWithoutDefault, time, 0.05);
 		System.out.println("1... " + validUnitWithoutDefault.getUnitPosition().toString());
-		assertTrue(validUnitWithoutDefault.getUnitPosition().positionEquals(new Position(7.5,3.5,5.5)));
+		assertTrue(validUnitWithoutDefault.getUnitPosition().equals(new Position(7.5,3.5,5.5)));
 		assertFalse(validUnitWithoutDefault.isMoving());
 	}
 	
@@ -249,7 +252,7 @@ public class Part1Test {
 		double time = distance / speed;
 		advanceTimeFor(validUnitWithoutDefault, time, 0.05);
 		System.out.println("2... " + validUnitWithoutDefault.getUnitPosition().toString());
-		assertTrue(validUnitWithoutDefault.getUnitPosition().positionEquals(new Position(2.5,5.5,7.5)));
+		assertTrue(validUnitWithoutDefault.getUnitPosition().equals(new Position(2.5,5.5,7.5)));
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -266,7 +269,7 @@ public class Part1Test {
 		double time = distance / speed;
 		advanceTimeFor(validUnitWithoutDefault, time, 0.05);
 		System.out.println("3... " + validUnitWithoutDefault.getUnitPosition().toString());
-		assertTrue(validUnitWithoutDefault.getUnitPosition().positionEquals(new Position(6.5,5.5,4.5)));
+		assertTrue(validUnitWithoutDefault.getUnitPosition().equals(new Position(6.5,5.5,4.5)));
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
