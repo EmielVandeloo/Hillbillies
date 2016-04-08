@@ -10,17 +10,17 @@ public class Facade implements IFacade {
 	public Unit createUnit(String name, int[] initialPosition, 
 			int weight, int agility, int strength, int toughness,
 			boolean enableDefaultBehavior) throws ModelException {
-		return new Unit(name, strength, agility, weight, toughness, initialPosition, enableDefaultBehavior);
+		return new Unit(initialPosition, name, strength, agility, weight, toughness, enableDefaultBehavior);
 	}
 
 	@Override
 	public double[] getPosition(Unit unit) throws ModelException {
-		return unit.getUnitPosition().convertToDoubleArray();
+		return unit.getPosition().convertToDoubleArray();
 	}
 
 	@Override
 	public int[] getCubeCoordinate(Unit unit) throws ModelException {
-		return unit.getUnitPosition().getCubePosition();
+		return unit.getPosition().getCubePosition().convertToIntegerArray();
 	}
 
 	@Override
@@ -141,9 +141,10 @@ public class Facade implements IFacade {
 
 	@Override
 	public void moveTo(Unit unit, int[] cube) throws ModelException {
-		unit.moveTo(Position.getCenterPosition(cube));
+		unit.moveTo(Position.convertToPosition(cube).getCenterPosition());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void work(Unit unit) throws ModelException {
 		unit.work();

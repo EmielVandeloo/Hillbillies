@@ -1,31 +1,31 @@
 package hillbillies.model;
 
-import hillbillies.model.item.ItemEntity;
-import hillbillies.world.Position;
 import hillbillies.model.World;
+import hillbillies.model.item.Item;
+import hillbillies.world.Position;
 
 /**
  * A class of logs.
  */
-public class Log extends ItemEntity {
+public class Log extends Item {
 	
 	// CONSTRUCTORS
 
-	public Log(World world, Position position) throws IllegalArgumentException {
-		super(world, position);
+	public Log() throws IllegalArgumentException {
+		super();
 	}
 	
-	public Log(World world, Position position, int weight) throws IllegalArgumentException {
-		super(world, position, weight);
+	public Log(int weight) throws IllegalArgumentException {
+		super(weight);
 	}
 	
 	
-	// OVERRIDE
-
-	@Override
-	public void drop(Position position) {
-		// TODO
-		//Log.spawn(new Log(getWorld(), getPosition()));
+	// METHODS
+	
+	public static void drop(World world, Position position) {
+		if (dropChance()) {
+			new Log().fall(world, position);
+		}
 	}
-
+	
 }

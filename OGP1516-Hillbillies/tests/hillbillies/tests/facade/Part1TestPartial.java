@@ -69,7 +69,6 @@ public class Part1TestPartial {
 		double distance = Math.sqrt(2);
 		double time = distance / speed;
 		advanceTimeFor(facade, unit, time, 0.05);
-		System.out.println(unit.getUnitPosition().toString());
 		assertDoublePositionEquals(2.5, 2.5, 2.5, facade.getPosition(unit));
 	}
 

@@ -1,30 +1,31 @@
 package hillbillies.world;
 
-import hillbillies.model.item.Droppable;
+import hillbillies.model.Boulder;
+import hillbillies.model.Log;
+import hillbillies.model.World;
+import hillbillies.world.Position;
 
 public enum Cube {
 	
 	// ENUM
 	
-	AIR (true, 0, null),
-	ROCK (false, 1, null),
-	WOOD (false, 2, null),
-	WORKBENCH (true, 3, null);
+	AIR (true, 0),
+	ROCK (false, 1),
+	WOOD (false, 2),
+	WORKBENCH (true, 3);
 	
 	
 	// FIELDS
 	
 	private final boolean passable;
 	private final int id;
-	private final Droppable dropable;
 	
 	
 	// CONSTRUCTORS
 	
-	private Cube(boolean passable, int id, Droppable dropable) {
+	private Cube(boolean passable, int id) {
 		this.passable = passable;
 		this.id = id;
-		this.dropable = dropable;
 		
 		//TODO Hoe kan het droppen van een item algemeen blijven?
 	}
@@ -43,9 +44,18 @@ public enum Cube {
 	
 	// METHODS
 
-	public void drop(Position position) {
-		if (dropable != null) {
-			dropable.drop(position);
+	public void drop(World world, Position position) {
+		if (position != null) {
+			switch (this) {
+			case ROCK:
+				Boulder.drop(world, position);
+				break;
+			case WOOD:
+				Log.drop(world, position);
+				break;
+			default:
+				break;
+			}
 		}
 	}
 	

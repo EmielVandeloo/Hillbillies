@@ -6,19 +6,19 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import hillbillies.model.World;
 import hillbillies.world.Coordinate;
 import hillbillies.world.Position;
-import hillbillies.model.World;
 
 public class PathFinder {
 
-	public Path findPath(World world, Position start, Position end) {
+	public static Path findPath(World world, Position start, Position end) {
 		return aStar(world,
 				new Node(start.convertToCoordinate()), 
 				new Node(end.convertToCoordinate()));
 	}
 
-	private Path aStar(World world, Node start, Node end) {
+	private static Path aStar(World world, Node start, Node end) {
 		
 		Map<Coordinate, Node> closedList = new HashMap<>();
 		ArrayList<Node> openList = new ArrayList<>();
@@ -46,7 +46,7 @@ public class PathFinder {
 					if (! openList.contains(neighbour)) {
 						openList.add(neighbour);
 					} 
-					else if (gCost < neighbour.getGCost()) {
+					else if (gCost < neighbour.getGCost() && isCornerAllowed(world, current, neighbour)) {
 						cameFrom.put(neighbour, current);
 						neighbour.setGCost(gCost);
 					}
@@ -56,7 +56,7 @@ public class PathFinder {
 		return new Path(world.getWorldVersion());
 	}
 
-	private Path reconstructPath(Map<Node, Node> cameFrom, Node current, int worldVersion) {
+	private static Path reconstructPath(Map<Node, Node> cameFrom, Node current, int worldVersion) {
 		LinkedList<Position> totalPath = new LinkedList<>();
 		totalPath.add(current.getCoordinate().toCenter());
 		
@@ -68,9 +68,42 @@ public class PathFinder {
 		return new Path(totalPath, worldVersion);
 	}
 
-	private Node getMostPromising(ArrayList<Node> list) {
+	private static Node getMostPromising(ArrayList<Node> list) {
 		Collections.sort(list);
 		return list.get(0);
+	}
+	
+	private static boolean isCornerAllowed(World world, Node a, Node b) {
+		int[] directions = getDirections(a.getCoordinate(), b.getCoordinate());
+		
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				for (int k = 0; k < 2; k++) {
+					
+					int[] dir = {0, 0, 0};
+					if (i == 1) dir[0] = directions[0];
+					if (i == 1) dir[1] = directions[1];
+					if (i == 1) dir[2] = directions[2];
+					
+					if (! world.isPassable(new Coordinate(dir).toCenter())) {
+						return false;
+					}
+					
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	private static int[] getDirections(Coordinate a, Coordinate b) {
+		int[] directions = new int[3];
+		
+		for (int i = 0; i < 3; i++) {
+			directions[i] = b.getAt(i) - a.getAt(i);
+		}
+		
+		return directions;
 	}
 
 }

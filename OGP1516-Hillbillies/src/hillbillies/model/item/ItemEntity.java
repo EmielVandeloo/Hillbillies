@@ -1,108 +1,110 @@
 package hillbillies.model.item;
 
-import java.util.Random;
-
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Entity;
-import hillbillies.world.Position;
 import hillbillies.model.World;
+import hillbillies.model.item.Item;
+import hillbillies.world.Position;
 
 /**
  * A class of item entities.
  * 
- * @invar  Each item entity can have its weight as weight.
- *       | canHaveAsWeight(this.getWeight())
+ * @invar  Each item entity can have its item as item.
+ *       | canHaveAsItem(this.getItem())
  */
-public abstract class ItemEntity extends Entity implements Droppable {
-	
+public class ItemEntity extends Entity {
+
 	// FIELDS
-	
+
 	/**
-	 * Variable registering the weight of this item entity.
+	 * Variable registering the item of this item entity.
 	 */
-	private final int weight;
-	
-	/**
-	 * Variable registering the maximal weight of this item entity.
-	 */
-	public static final int MAX_WEIGHT = 50;
-	
-	/**
-	 * Variable registering the minimal weight of this item entity.
-	 */
-	public static final int MIN_WEIGHT = 10;
-	
+	private final Item item;
+
 
 	// CONSTRUCTORS
 	
-	public ItemEntity(World world, Position position) throws IllegalArgumentException {
-		this(world, position, getRandomWeight());
-	}
-
 	/**
-	 * Initialize this new item entity with given position and weight.
+	 * Initialize this new item entity with given world, position and item.
 	 * 
 	 * @param  world
 	 * 		   The world for this new item entity.
 	 * @param  position
 	 * 		   The position for this new item entity.
-	 * @param  weight
-	 *         The weight for this new item entity.
-	 * @post   The weight of this new item entity is equal to the given
-	 *         weight.
-	 *       | new.getWeight() == weight
+	 * @param  item
+	 *         The item for this new item entity.
+	 * @post   The item of this new item entity is equal to the given
+	 *         item.
+	 *       | new.getItem() == item
 	 * @throws IllegalArgumentException
-	 *         This new item entity cannot have the given weight as its weight.
-	 *       | ! canHaveAsWeight(this.getWeight())
+	 *         This new item entity cannot have the given item as its item.
+	 *       | ! canHaveAsItem(this.getItem())
 	 * @throws IllegalArgumentException
 	 * 		   This new item entity cannot have the given world or position.
 	 */
-	public ItemEntity(World world, Position position, int weight) throws IllegalArgumentException {
+	public ItemEntity(World world, Position position, Item item) throws IllegalArgumentException {
 		super(world, position);
 		
-		if (! canHaveAsWeight(weight)) {
+		if (! canHaveAsItem(item)) {
 			throw new IllegalArgumentException();
 		}
-		
-		this.weight = weight;
+		this.item = item;
 	}
 
 
 	// GETTERS AND SETTERS
 
 	/**
-	 * Return the weight of this item entity.
+	 * Return the item of this item entity.
 	 */
 	@Basic @Raw @Immutable
-	public int getWeight() {
-		return this.weight;
+	public Item getItem() {
+		return this.item;
 	}
 
 	/**
-	 * Check whether this item entity can have the given weight as its weight.
+	 * Check whether this item entity can have the given item as its item.
 	 *  
-	 * @param  weight
-	 *         The weight to check.
+	 * @param  item
+	 *         The item to check.
 	 * @return 
-	 *       | result == (weight >= 10) && (weight <= 50)
+	 *       | result == TODO
 	 */
 	@Raw
-	public boolean canHaveAsWeight(int weight) {
-		return (weight >= 10) && (weight <= 50);
+	public boolean canHaveAsItem(Item item) {
+		if (item == null) {
+			return false;
+		}
+		return true;
 	}
-	
-	
+
+
 	// METHODS
-	
+
 	public void advanceTime(double deltaTime) {
 		fallBehavior(deltaTime);
 	}
-	
-	private static int getRandomWeight() {
-		Random random = new Random();
-		return random.nextInt((MAX_WEIGHT - MIN_WEIGHT) + 1) + MIN_WEIGHT;
-	}
 
+	public void spawn() {
+		getWorld().addEntity(this);
+	}
+	
+	public Item pickUp() {
+		getWorld().removeEntity(this);
+		return getItem();
+	}
+	
+	
+	// OVERRIDE
+	
+	@Override
+	public String getEntityId() {
+		return getItem().getClass().getName();
+		
+	}
+	
+	// TODO Hashcode and equals.
+	
 }

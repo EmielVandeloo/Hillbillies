@@ -129,19 +129,6 @@ public class Coordinate {
 	}
 
 	/**
-	 * Check whether the given x is a valid x for
-	 * any position.
-	 *  
-	 * @param  x
-	 *         The x to check.
-	 * @return 
-	 *       | result == (WorldStat.MIN_X <= x) && (x <= WorldStat.MAX_X)
-	 */
-	public static boolean isValidX(int x) {
-		return (WorldStat.MIN_X <= x) && (x < WorldStat.MAX_X);
-	}
-
-	/**
 	 * Set the x of this position to the given x.
 	 * 
 	 * @param  x
@@ -155,8 +142,6 @@ public class Coordinate {
 	 */
 	@Raw
 	public void setX(int x) throws IllegalArgumentException {
-		if (! isValidX(x))
-			throw new IllegalArgumentException();
 		this.x = x;
 	}
 
@@ -169,19 +154,6 @@ public class Coordinate {
 	@Basic @Raw
 	public int getY() {
 		return this.y;
-	}
-
-	/**
-	 * Check whether the given y is a valid y for
-	 * any position.
-	 *  
-	 * @param  y
-	 *         The y to check.
-	 * @return 
-	 *       | result == (WorldStat.MIN_Y <= y) && (y <= WorldStat.MAX_Y)
-	 */
-	public static boolean isValidY(int y) {
-		return (WorldStat.MIN_Y <= y) && (y < WorldStat.MAX_Y);
 	}
 
 	/**
@@ -198,8 +170,6 @@ public class Coordinate {
 	 */
 	@Raw
 	public void setY(int y) throws IllegalArgumentException {
-		if (! isValidY(y))
-			throw new IllegalArgumentException();
 		this.y = y;
 	}
 
@@ -212,19 +182,6 @@ public class Coordinate {
 	@Basic @Raw
 	public int getZ() {
 		return this.z;
-	}
-
-	/**
-	 * Check whether the given z is a valid z for
-	 * any position.
-	 *  
-	 * @param  z
-	 *         The z to check.
-	 * @return 
-	 *       | result == (WorldStat.MIN_Z <= z) && (z <= WorldStat.MAX_Z)
-	 */
-	public static boolean isValidZ(int z) {
-		return (WorldStat.MIN_Z <= z) && (z < WorldStat.MAX_Z);
 	}
 
 	/**

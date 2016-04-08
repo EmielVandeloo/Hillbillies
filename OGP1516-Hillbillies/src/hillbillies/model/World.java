@@ -1,39 +1,57 @@
 package hillbillies.model;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
-
 import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Entity;
 import hillbillies.model.Unit;
+import hillbillies.model.character.JobStat;
 import hillbillies.part2.listener.TerrainChangeListener;
+import hillbillies.path.Path;
+import hillbillies.path.PathFinder;
 import hillbillies.util.ConnectedToBorder;
 import hillbillies.world.Coordinate;
 import hillbillies.world.Cube;
 import hillbillies.world.Position;
 
 /**
+ * A class of game worlds.
  * 
  * @invar   Each world must have proper entities.
- *        | hasProperEntities()
  * @invar   Each world must have proper factions.
- *        | hasProperFactions()
  * 
- * @author Pieter-Jan
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 2: 10/04/2016
  */
 public class World {
 
 	// FIELDS
 
 	/**
+	 * Variable registering the game time passed.
+	 */
+	private static BigDecimal gameTime = new BigDecimal(0.0);
+	
+	/**
 	 * Variable containing the maximum amount of factions
-	 * allowed in one world.
+	 * allowed in this world.
 	 */
 	public static final int MAX_FACTIONS = 5;
+	
+	/**
+	 * Variable containing the maximum amount of units allowed
+	 * in this world.
+	 */
+	public static final int MAX_UNITS = 100;
 	
 	/**
 	 * Variable containing the length of a side of a cube.
@@ -41,22 +59,23 @@ public class World {
 	public static final int CUBE_LENGTH = 1;
 	
 	/**
-	 * 
+	 * A variable referencing the vector according to which an entity
+	 * has to update its position when it is falling.
 	 */
 	public static final double[] FALL_VECTOR = new double[] {0, 0, -3};
 
 	/**
-	 * Variable referencing the size of the world in the X-axis.
+	 * Variable referencing the size of the world in the X-direction.
 	 */
 	public final int sizeX;
 	
 	/**
-	 * Variable referencing the size of the world in the Y-axis.
+	 * Variable referencing the size of the world in the Y-direction.
 	 */
 	public final int sizeY;
 	
 	/**
-	 * Variable referencing the size of the world in the Z-axis.
+	 * Variable referencing the size of the world in the Z-direction.
 	 */
 	public final int sizeZ;
 
@@ -86,12 +105,8 @@ public class World {
 	 * of this world.
 	 * 
 	 * @invar  The referenced set is effective.
-	 *       | entities != null
 	 * @invar  Each entity registered in the referenced list is
 	 *         effective and not yet terminated.
-	 *       | for each entity in entities:
-	 *       |   ( (entity != null) &&
-	 *       |     (! entity.isTerminated()) )
 	 */
 	private final Map<String, HashSet<Entity>> entities = new HashMap<>();
 	
@@ -100,25 +115,17 @@ public class World {
 	 * of this world.
 	 * 
 	 * @invar  The referenced set is effective.
-	 *       | factions != null
 	 * @invar  Each faction registered in the referenced list is
 	 *         effective and not yet terminated.
-	 *       | for each faction in factions:
-	 *       |   ( (faction != null) &&
-	 *       |     (! faction.isTerminated()) )
 	 */
 	private final Set<Faction> factions = new HashSet<Faction>();
 	
-
-	// CONSTURCTOR
-
 	/**
+	 * Variable registering whether or not this world is terminated.
 	 */
-	/**
-	 * Initialize this new world as a non-terminated world with 
-	 * no entities yet.
-	 * 
-	 */
+	private boolean isTerminated;
+
+	// CONSTRUCTORS AND DESTRUCTOR 
 
 	/**
 	 * Initialize this new world as a non-terminated world with 
@@ -129,48 +136,106 @@ public class World {
 	 * 		   construct the game world.
 	 * @param  modelListener
 	 * 		   A class to detect terrain changes.
-	 * @post   TODO De lengten en andere aanvullen in commentaar.
+	 * @post   The size of the game world and the type of each cube of
+	 *         the game world is initialized according to the given
+	 *         terrain types.
 	 * @post   This new world has no factions yet.
-	 *       | new.getNbFactions() == 0
 	 * @post   This new world has no entities yet.
-	 *       | new.getNbEntities() == 0
+	 * @post   border is initialized as a new object of the ConnectedToBorder
+	 *         class.
+	 * @post   modelListener is initialized as a new object of the
+	 *         modelListener class. 
+	 * @effect The world version is set to 0.
 	 * @throws IllegalArgumentException
+	 *         The terrain types are not effective, or the model listener
+	 *         is not effective.
 	 * @throws IndexOutOfBoundsException
+	 *         The terrain types contain one or more integers different
+	 *         from 0,1,2 or 3.
 	 */
 	@Raw
 	public World(int[][][] terrainTypes, TerrainChangeListener modelListener) 
 			throws IllegalArgumentException, IndexOutOfBoundsException {
-
 		if (terrainTypes == null) {
 			throw new IllegalArgumentException();
 		}
-
-		sizeX = terrainTypes.length;
-		sizeY = terrainTypes[0].length;
-		sizeZ = terrainTypes[0][0].length;
-
+		this.sizeX = terrainTypes.length;
+		this.sizeY = terrainTypes[0].length;
+		this.sizeZ = terrainTypes[0][0].length;
 		setWorldVersion(0);
-
-		world = new Cube[sizeX][sizeY][sizeZ];
+		this.world = new Cube[sizeX][sizeY][sizeZ];
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
 				for (int k = 0; k < sizeZ; k++) {
-					world[i][j][k] = Cube.byId(terrainTypes[i][j][k]);
+					this.world[i][j][k] = Cube.byId(terrainTypes[i][j][k]);
 				}
 			}
 		}
-
 		if (modelListener == null) {
 			throw new IllegalArgumentException();
 		}
-
 		this.border = new ConnectedToBorder(sizeX, sizeY, sizeZ);
 		this.modelListener = modelListener;
 	}
-
+	
+	/**
+	 * Return whether this world is terminated.
+	 */
+	@Basic
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	/**
+	 * Terminate this world.
+	 * 
+	 * @effect Each active faction in this world is terminated.
+	 * @effect Each active entity in this world is terminated.
+	 */
+	public void terminate() {
+		if (!isTerminated()) {
+			this.isTerminated = true;
+			for (Faction faction : getAllFactions()) {
+				faction.terminate();
+			}
+			for (HashSet<Entity> entityType : entities.values()) {
+				for (Entity entity : entityType) {
+					if (entity instanceof Unit) {
+						((Unit) entity).terminate();
+					} else{
+						entity.terminate();
+					}
+				}
+			}
+		}
+	}
 
 	// GETTERS AND SETTERS
 
+	/**
+	 * Return the number of cubes in the x-direction.
+	 */
+	@Basic
+	public int getSizeX() {
+		return this.sizeX;
+	}
+
+	/**
+	 * Return the number of cubes in the y-direction.
+	 */
+	@Basic
+	public int getSizeY() {
+		return this.sizeY;
+	}
+	
+	/**
+	 * Return the number of cubes in the z-direction.
+	 */
+	@Basic
+	public int getSizeZ() {
+		return this.sizeZ;
+	}
+	
 	/**
 	 * Return the current version of this world.
 	 */
@@ -180,40 +245,77 @@ public class World {
 	}
 	
 	/**
-	 * Set the new version of this world.
+	 * Set the new version of this world to the given world version.
 	 * 
 	 * @param worldVersion
+	 *        The version to set the world version to.
+	 * @post  If the given world version is greater than or equal to zero, the
+	 *        new world version of this world is equal to the given world version.
 	 */
-	@Raw
+	@Model
 	private void setWorldVersion(int worldVersion) {
-		this.worldVersion = worldVersion;
+		if (worldVersion >= 0) {
+			this.worldVersion = worldVersion;
+		}
 	}
 
 	/**
-	 * Increment the version of this world.
+	 * Increment the version of this world by one.
 	 * 
-	 * @effect Set the new world version a bit higher.
+	 * @effect Set the new world version to the current world version
+	 *         incremented by one.
 	 */
+	@Model
 	private void updateWorldVersion() {
 		setWorldVersion(getWorldVersion() + 1);
 	}
 
+	/**
+	 * Return the cube type of this world at the given position.
+	 * 
+	 * @param  position
+	 *         The position to retrieve the cube type of.
+	 * @return The cube type of this world at the given position.
+	 */
 	public Cube getAt(Position position) {
 		int[] coord = position.convertToIntegerArray();
 		return world[coord[0]][coord[1]][coord[2]];
 	}
 
+	/**
+	 * Set the cube type of this world at the given position to the given cube type.
+	 * 
+	 * @param  position
+	 *         The position of the cube to change the type of.
+	 * @param  cube
+	 *         The new cube type at the given position.
+	 * @post   The cube at the given position is set to the given cube type.
+	 * @effect The world version is updated.
+	 * @effect The model listener is notified that the cube type has changed at the
+	 *         given position.
+	 */
+	@Model
 	private void setAt(Position position, Cube cube) {
 		Coordinate coord = position.convertToCoordinate();
-		world[coord.x()][coord.y()][coord.z()] = cube;
-
+		this.world[coord.x()][coord.y()][coord.z()] = cube;
 		updateWorldVersion();
 		modelListener.notifyTerrainChanged(coord.x(), coord.y(), coord.z());
 	}
 
-
 	// WORLD-METHODS
 
+	/**
+	 * Set the cube type of this world at the given position to the given cube type.
+	 * 
+	 * @param  position
+	 *         The position of the cube to change the type of.
+	 * @param  cube
+	 *         The new cube type at the given position.
+	 * @effect The cube type at the given position is set to the given cube type.
+	 * @throws IllegalArgumentException
+	 *         The given position or the given cube is not effective, the given cube type
+	 *         is air or the current cube type at the given position is not air.
+	 */
 	public void place(Position position, Cube cube) throws IllegalArgumentException {
 		if (position == null || cube == null) {
 			throw new IllegalArgumentException();
@@ -226,10 +328,19 @@ public class World {
 		}
 	}
 
+	/**
+	 * Remove the cube type at the given position.
+	 * 
+	 * @param  position
+	 *         The position of the cube to change the type of.
+	 * @effect The cube at the given position is dropped.
+	 * @effect The cube type at the given position is set to air.
+	 * @effect All cubes that are not anymore connected to the border
+	 *         are removed.
+	 */
 	public void remove(Position position) {
-		getAt(position).drop(position);
+		getAt(position).drop(this, position);
 		setAt(position, Cube.AIR);
-
 		List<int[]> list = 
 				border.changeSolidToPassable((int) position.x(), (int) position.y(), (int) position.z());
 		for (int[] coord : list) {
@@ -237,12 +348,103 @@ public class World {
 		}
 	}
 
+	/**
+	 * Check whether the cube at the given position is passable.
+	 * 
+	 * @param  position
+	 *         The position of the cube to check the type of.
+	 * @return True if and only if the cube at the given position is of type
+	 *         air or of type workshop.
+	 */
 	public boolean isPassable(Position position) {
 		return getAt(position).isPassable();
 	}
+	
+	/**
+	 * Advance the state of this world by the given time step.
+	 * 
+	 * @param  deltaTime
+	 *         The time step by which to advance this world's state.
+	 * @effect The given time step is made a valid time step.
+	 * @effect The given time step is added to the game time.
+	 * @effect For each entity in the list of all entities, do:
+	 * @effect If the entity is not a unit, and if the entity is falling
+	 *         or has no underlying solid cube, its fall behaviour is executed.
+	 * @effect Otherwise, if the check if the unit has to rest because three
+	 *         minutes have passed yields true, the entity rests, whereafter
+	 *         the entity's state is advanced by the given time step.
+	 */
+	public void advanceTime(double deltaTime) {
+		makeValidDeltaTime(deltaTime);
+		gameTime = gameTime.add(new BigDecimal(deltaTime));
+		for (Entity entity : getAllEntities()) {
+			if (!(entity instanceof Unit)) {
+				if (entity.isFalling() || !hasUnderlyingSolid(entity.getPosition())) {
+					entity.fallBehavior(deltaTime);
+				}
+			} else {
+				if (checkThreeMinuteRest(deltaTime) == true) {
+					((Unit) entity).rest();
+				}
+				entity.advanceTime(deltaTime);
+			}
+		}
+	}
+	
+	/**
+	 * Make the given time step a valid time step.
+	 * 
+	 * @param deltaTime
+	 *        The time step to control
+	 * @post  If the given time step is negative, the time step is
+	 *        set to zero.
+	 *      | if (deltaTime < 0)
+	 *      |   then deltaTime = 0
+	 * @post  If the given time step is greater than 0.2, the time
+	 *        step is set to 0.2.
+	 *      | if (deltaTime > 0.2)
+	 *      |   then deltaTime = 0.2
+	 */
+	private void makeValidDeltaTime(double deltaTime) {
+		if (deltaTime < 0) {
+			deltaTime = 0;
+		} else if (deltaTime > 0.2) {
+			deltaTime = 0.2;
+		}
+	}
+	
+	/**
+	 * Calculate a path between the given start position and the given end position.
+	 * 
+	 * @param  start
+	 *         The start position.
+	 * @param  end
+	 *         The end position.
+	 * @return A path between the given start position and the given end position.
+	 */
+	public Path calculatePathBetween(Position start, Position end) {
+		return PathFinder.findPath(this, start, end);
+	}
+	
+	/**
+	 * Check whether this unit has to rest because three minutes of game time have passed.
+	 * 
+	 * @param  deltaTime
+	 *         The time step, in seconds, by which the game time will increase.
+	 * @return True if and only if the remainder of the division from the current game
+	 *         time by 180 (three minutes) is greater than the remainder of the division
+	 *         of the current game time incremented by the given time step by 180.
+	 */
+	public boolean checkThreeMinuteRest(double deltaTime) {
+		JobStat.BigDec1 = gameTime.remainder(JobStat.THREEMINUTEREST);
+		JobStat.BigDec2 = gameTime.add(new BigDecimal(deltaTime)).remainder(JobStat.THREEMINUTEREST);
+		if (JobStat.BigDec1.compareTo(JobStat.BigDec2) > 0) {
+			return true;
+		}
+		return false;
+	}
 
-
-	// ENTITY-METHODS
+	// ENTITY METHODS
 
 	/**
 	 * Check whether this world has the given entity as one of its
@@ -250,11 +452,15 @@ public class World {
 	 * 
 	 * @param  entity
 	 *         The entity to check.
+	 * @return True if and only if the given entity is in the set of
+	 *         all entities of the type of the given entity.
 	 */
 	@Basic
-	@Raw
 	public boolean hasAsEntity(@Raw Entity entity) {
-		return getList(entity).contains(entity);
+		try{
+			getList(entity).contains(entity);
+		} catch (IllegalArgumentException e) {}
+		return false;
 	}
 
 	/**
@@ -265,13 +471,13 @@ public class World {
 	 *         The entity to check.
 	 * @return True if and only if the given entity is effective
 	 *         and that entity is a valid entity for a world.
-	 *       | result == TODO
-	 *       |   (entity != null) &&
-	 *       |   Entity.isValidWorld(this)
 	 */
-	@Raw
 	public boolean canHaveAsEntity(Entity entity) {
-		return (entity != null) && (Entity.isValidWorld(this));
+		if (isTerminated()) {
+			return entity == null;
+		} else {
+			return ((entity != null) && !entity.isTerminated());
+		}
 	}
 
 	/**
@@ -281,14 +487,10 @@ public class World {
 	 *         entities attached to it as one of its entities,
 	 *         and if each of these entities references this world as
 	 *         the world to which they are attached.
-	 *       | for each entity in entities:
-	 *       |   if (hasAsEntity(entity))
-	 *       |     then canHaveAsEntity(entity) &&
-	 *       |          (entity.getWorld() == this)
 	 */
 	public boolean hasProperEntities() {
-		for (HashSet<Entity> list : entities.values()) {
-			for (Entity entity : list) {
+		for (HashSet<Entity> entityType : entities.values()) {
+			for (Entity entity : entityType) {
 				if (!canHaveAsEntity(entity))
 					return false;
 				if (entity.getWorld() != this)
@@ -299,18 +501,26 @@ public class World {
 	}
 
 	/**
-	 * Return the number of entities associated with this world.
+	 * Return the number of active entities associated with this world.
 	 *
-	 * @return  The total number of entities collected in this world.
-	 *        | result ==
-	 *        |   card({entity:Entity | hasAsEntity({entity)})
+	 * @return The size of the set of all active entities.
 	 */
+	@Basic
 	public int getNbEntities() {
-		int nb = 0;
-		for (HashSet<Entity> list : entities.values()) {
-			nb += list.size();
+		return getAllEntities().size();
+	}
+	
+	/**
+	 * Return all active entities in this world.
+	 */
+	public HashSet<Entity> getAllEntities() {
+		HashSet<Entity> allEntities = new HashSet<>();
+		for (HashSet<Entity> entityType : entities.values()) {
+			for (Entity entity : entityType) {
+				allEntities.add(entity);
+			}
 		}
-		return nb;
+		return allEntities;
 	}
 
 	/**
@@ -320,20 +530,19 @@ public class World {
 	 *         The entity to be added.
 	 * @pre    The given entity is effective and already references
 	 *         this world.
-	 *       | (entity != null) && (entity.getWorld() == this)
-	 * @post   This world has the given entity as one of its entities.
-	 *       | new.hasAsEntity(entity)
-	 * @Return Whether the addition was successful or not.
+	 * @post   If the given entity is of unit type, and the maximum number
+	 *         of active units in this world is not yet reached, this world
+	 *         has the given entity as one of its entities.
+	 * @post   If the given entity isn't already registered in this world,
+	 *         this world has the given entity as one of its entities.
 	 */
-	public boolean addEntity(@Raw Entity entity) {
+	public void addEntity(@Raw Entity entity) {
 		assert (entity != null) && (entity.getWorld() == this);
-		
-		if (getList(entity).size() < entity.maxEntities) {
+		if (entity instanceof Unit) {
+			if (getNbUnits() >= World.MAX_UNITS) {return;}
+		} else if (!hasAsEntity(entity)) {
 			getList(entity).add(entity);
-			return true;
 		}
-		return false;
-		// TODO De beperking voor unit nog aanpassen.
 	}
 
 	/**
@@ -344,22 +553,24 @@ public class World {
 	 * @pre    This world has the given entity as one of
 	 *         its entities, and the given entity does not
 	 *         reference any world.
-	 *       | this.hasAsEntitie(entity) &&
-	 *       | (entity.getWorld() == null)
 	 * @post   This world no longer has the given entity as
 	 *         one of its entities.
-	 *       | ! new.hasAsEntitie(entity)
 	 */
-	@Raw
 	public void removeEntity(Entity entity) {
-		assert this.hasAsEntity(entity) && (entity.getWorld() == null);
+		assert hasAsEntity(entity) && (entity.getWorld() == null);
 		entities.remove(entity);
 	}
 	
+	/**
+	 * Return all entities that are of the same type as the given entity.
+	 * 
+	 * @param  entity
+	 *         Object of the entity type of which to retrieve all entities.
+	 * @return All entities of the same type as the given entity.
+	 */
 	private HashSet<Entity> getList(Entity entity) {
 		return entities.get(entity.getClass().getName());
 	}
-
 
 	// FACTION-METHODS
 
@@ -369,11 +580,12 @@ public class World {
 	 * 
 	 * @param  faction
 	 *         The faction to check.
+	 * @return True if and only if the set of active factions of this world
+	 *         has the given faction as one of its factions.
 	 */
 	@Basic
-	@Raw
 	public boolean hasAsFaction(@Raw Faction faction) {
-		return factions.contains(faction);
+		return getAllFactions().contains(faction);
 	}
 
 	/**
@@ -383,14 +595,10 @@ public class World {
 	 * @param  faction
 	 *         The faction to check.
 	 * @return True if and only if the given faction is effective
-	 *         and that faction is a valid faction for a world.
-	 *       | result ==
-	 *       |   (faction != null) &&
-	 *       |   Faction.isValidWorld(this)
+	 *         and that faction is a valid faction for any world.
 	 */
-	@Raw
 	public boolean canHaveAsFaction(Faction faction) {
-		return (faction != null) && (Faction.canHaveAsWorld(this));
+		return (faction != null) && (faction.canHaveAsWorld(this));
 	}
 
 	/**
@@ -400,13 +608,9 @@ public class World {
 	 *         factions attached to it as one of its factions,
 	 *         and if each of these factions references this world as
 	 *         the world to which they are attached.
-	 *       | for each faction in Faction:
-	 *       |   if (hasAsFaction(faction))
-	 *       |     then canHaveAsFaction(faction) &&
-	 *       |          (faction.getWorld() == this)
 	 */
 	public boolean hasProperFactions() {
-		for (Faction faction : factions) {
+		for (Faction faction : getAllFactions()) {
 			if (!canHaveAsFaction(faction))
 				return false;
 			if (faction.getWorld() != this)
@@ -418,12 +622,18 @@ public class World {
 	/**
 	 * Return the number of factions associated with this world.
 	 *
-	 * @return  The total number of factions collected in this world.
-	 *        | result ==
-	 *        |   card({faction:Faction | hasAsFaction({faction)})
+	 * @return The size of the set of all active factions.
 	 */
+	@Basic
 	public int getNbFactions() {
-		return factions.size();
+		return getAllFactions().size();
+	}
+	
+	/**
+	 * Return all active factions of this world.
+	 */
+	public HashSet<Faction> getAllFactions() {
+		return new HashSet<>(factions);
 	}
 
 	/**
@@ -433,13 +643,16 @@ public class World {
 	 *         The faction to be added.
 	 * @pre    The given faction is effective and already references
 	 *         this world.
-	 *       | (faction != null) && (faction.getWorld() == this)
-	 * @post   This world has the given faction as one of its factions.
-	 *       | new.hasAsFaction(faction)
+	 * @post   If the maximum number of active factions in this world is
+	 *         not yet reached, and if this world doesn't reference the
+	 *         given faction as one of its factions, this world has the 
+	 *         given faction as one of its factions.
 	 */
 	public void addFaction(@Raw Faction faction) {
 		assert (faction != null) && (faction.getWorld() == this);
-		factions.add(faction);
+		if ((getNbFactions() < World.MAX_FACTIONS) && !hasAsFaction(faction)) {
+			factions.add(faction);
+		}
 	}
 
 	/**
@@ -448,45 +661,509 @@ public class World {
 	 * @param  faction
 	 *         The faction to be removed.
 	 * @pre    This world has the given faction as one of
-	 *         its factions, and the given faction does not
-	 *         reference any world.
-	 *       | this.hasAsFaction(faction) &&
-	 *       | (faction.getWorld() == null)
+	 *         its factions, the given faction does not
+	 *         reference any world and the faction is effective.
 	 * @post   This world no longer has the given faction as
 	 *         one of its factions.
-	 *       | ! new.hasAsFaction(faction)
 	 */
-	@Raw
 	public void removeFaction(Faction faction) {
-		assert this.hasAsFaction(faction) && (faction.getWorld() == null);
+		assert faction != null && hasAsFaction(faction) && (faction.getWorld() == null);
 		factions.remove(faction);
 	}
 	
-	
 	// USAGE-METHODS
 	
-	public void addUnit() {
-		addUnit(createRandomUnit());
+	/**
+	 * Return the total amount of active units in this world.
+	 * 
+	 * @return The size of the set of all active units.
+	 */
+	public int getNbUnits() {
+		return getAllUnits().size();
 	}
 	
-	public void addUnit(Unit unit) {
-		Faction faction = getPriorityFaction();
-		
-		faction.addUnit(unit);
-		this.addEntity(unit);
-	}
-	
-	private Unit createRandomUnit() {
-		// TODO Hoe kan je dit het beste doen? (Misschien onderbrengen in Unit?)
-		//Unit unit = new Unit(name, strength, agility, weight, toughness, position, enableDefaultBehaviour)
-		return null;
-	}
-	
-	private Faction getPriorityFaction() {
-		// TODO Nalezen hoe de prioriteit van factions werkt.
-		
-		//faction.canHaveAsUnit(unit);
-		return null;
+	/**
+	 * Return all active units of this world.
+	 * 
+	 * @return A set collecting all active units of this world.
+	 */
+	public HashSet<Unit> getAllUnits() {
+		HashSet<Unit> units = new HashSet<>();
+		for (Entity entity : getAllEntities()) {
+			if (entity instanceof Unit) {
+				units.add((Unit) entity);
+			}
+		}
+		return units;
 	}
 
+	/**
+	 * Add a randomly initialized unit to this world.
+	 * 
+	 * @effect  
+	 *         a randomly initialized unit is added to this world at a random position.
+	 */
+	public void addUnit() {
+		if (!(getNbUnits() >= World.MAX_UNITS)) {
+			addUnit(createRandomUnit());
+		}
+	}
+	
+	/**
+	 * Add the given unit to this world.
+	 * 
+	 * @param  unit
+	 *         The unit to add to this world.
+	 * @effect If the maximum number of active units in this world is not yet reached,
+	 *         the given unit references the priority faction as its faction.
+	 * @effect If the maximum number of active units in this world is not yet reached,
+	 *         the given unit is added as an active unit to the priority faction.
+	 * @effect If the maximum number of active units in this world is not yet reached,
+	 *         the given unit references this world as its world.
+	 * @effect If the maximum number of active units in this world is not yet reached,
+	 *         the given unit is added as an active entity of this world.
+	 */
+	public void addUnit(@Raw Unit unit) {
+		if (!(getNbUnits() >= World.MAX_UNITS)) {
+			Faction faction = getPriorityFaction();
+			unit.setFaction(faction);
+			faction.addUnit(unit);
+			unit.setWorld(this);
+			addEntity(unit);
+		}
+	}
+	
+	/**
+	 * Initialize a unit with random initial attributes.
+	 * 
+	 * @effect A new unit with random initial attributes and a random initial
+	 *         position is created.
+	 */
+	private Unit createRandomUnit() {
+		int a = Unit.getMinInitialAttributeValue();
+		int b = Unit.getMaxInitialAttributeValue();
+		int[] position = getSpawnPosition().convertToIntegerArray();
+		return new Unit(position, Unit.getRandomizedName(), Unit.getRandomizedValueBetween(a, b), 
+				Unit.getRandomizedValueBetween(a, b), Unit.getRandomizedValueBetween(a, b), 
+				Unit.getRandomizedValueBetween(a, b), false);
+	}
+	
+	/**
+	 * Return the faction a new unit has to reference as its faction.
+	 * 
+	 * @return A newly initialized faction if the maximum number of active factions
+	 *         in this world is not yet reached.
+	 * @return The faction with the smallest number of units attached to it otherwise.
+	 */
+	public Faction getPriorityFaction() {
+		Faction fac = null;
+		int nb = Faction.MAX_UNITS;
+		if (getNbFactions() < World.MAX_FACTIONS) {
+			return new Faction(this, Faction.getRandomizedName());
+		} else {
+			for (Faction faction : getAllFactions()) {
+				if (faction.getNbUnits() < nb) {
+					nb = faction.getNbUnits();
+					fac = faction;
+				}
+			}
+			return fac;
+		}
+	}
+	
+	// POSITIONS
+	
+	/**
+	 * Return all positions of this world.
+	 */
+	@Basic @Model
+	private List<Position> getAllPositions() {
+		List<Position> allPositions = new ArrayList<Position>();
+		for (int x=0; x<getSizeX(); x++) {
+			for (int y=0; x<getSizeY(); y++) {
+				for (int z=0; z<getSizeZ(); z++) {
+					Position pos = new Position(x,y,z);
+					allPositions.add(pos);
+				}
+			}
+		}
+		return allPositions;
+	}
+	
+	/**
+	 * Return all passable positions of this world.
+	 * 
+	 * @return All positions of all the positions of this world that are passable.
+	 */
+	@Model
+	private List<Position> getAllPassablePositions() {
+		List<Position> allPassablePositions = new ArrayList<Position>();
+		for (Position pos : getAllPositions()) {
+			if (getAt(pos).isPassable()) {
+				allPassablePositions.add(pos);
+			}
+		}
+		return allPassablePositions;
+	}
+	
+	/**
+	 * Return all solid positions of this world.
+	 * 
+	 * @return All positions of all the positions of this world that are not passable.
+	 */
+	@Model
+	private List<Position> getAllSolidPositions() {
+		List<Position> allSolidPositions = new ArrayList<Position>();
+		for (Position pos : getAllPositions()) {
+			if (!getAt(pos).isPassable()) {
+				allSolidPositions.add(pos);
+			}
+		}
+		return allSolidPositions;
+	}
+	
+	/**
+	 * Return all passable positions of this world with a solid neighbouring cube.
+	 * 
+	 * @return All positions of all the passable positions that have a solid
+	 *         neighbouring cube.
+	 */
+	@Model
+	private List<Position> getAllPassablePositionsWithSolidNeighbour() {
+		List<Position> allPassablePositionsWithSolidNeighbour = new ArrayList<Position>();
+		for (Position pos : getAllPassablePositions()) {
+			if (hasSolidNeighbour(pos)) {
+				allPassablePositionsWithSolidNeighbour.add(pos);
+			}
+		}
+		return allPassablePositionsWithSolidNeighbour;
+	}
+	
+	/**
+	 * Return all passable border positions of this world.
+	 * 
+	 * @return All positions of all the passable positions with a solid neighbouring cube
+	 *         that have less than 26 neighbouring cubes.
+	 */
+	@Model
+	private List<Position> getAllPassableBorderPositions() {
+		List<Position> allPassableBorderPositions = new ArrayList<Position>();
+		for (Position pos : getAllPassablePositionsWithSolidNeighbour()) {
+			if (getAllNeighbours(pos).size() < 26) {
+				allPassableBorderPositions.add(pos);
+			}
+		}
+		return allPassableBorderPositions;
+	}
+	
+	/**
+	 * Return all passable positions of this world with a solid cube at an underlying z-level.
+	 * 
+	 * @return All positions of all passable positions with a solid neighbour that have
+	 *         an underlying solid.
+	 */
+	@Model
+	private List<Position> getAllPassablePositionsWithUnderlyingSolid() {
+		List<Position> allPassablePositionsWithUnderlyingSolid = new ArrayList<Position>();
+		for (Position pos : getAllPassablePositionsWithSolidNeighbour()) {
+			if (getAt(pos).isPassable() && hasUnderlyingSolid(pos)) {
+				allPassablePositionsWithUnderlyingSolid.add(pos);
+			}
+		}
+		return allPassablePositionsWithUnderlyingSolid;
+	}
+	
+	/**
+	 * Return a random spawn position in this world.
+	 * 
+	 * @return A random position from the list of all possible spawn positions.
+	 */
+	@Model
+	private Position getSpawnPosition() {
+		List<Position> allPossibleSpawnPositions = getPossibleSpawnPositions();
+		int random = new Random().nextInt(allPossibleSpawnPositions.size());
+		return allPossibleSpawnPositions.get(random);
+	}
+	
+	/**
+	 * Return a list of all possible spawn positions in this world.
+	 * 
+	 * @return A list of passable cube positions that have a solid cube
+	 *         on the underlying z-level or that have no underlying z-level.
+	 */
+	@Model
+	private List<Position> getPossibleSpawnPositions() {
+		return getAllPassablePositionsWithUnderlyingSolid();
+	}
+	
+	/**
+	 * Check whether the given position is a valid position of this world.
+	 * 
+	 * @param  position
+	 *         The position to check.
+	 * @return True if and only if the position is effective, and if the position is
+	 *         between the borders of this world in the x-, y- and z-direction.
+	 */
+	public boolean isValidPosition(Position position) {
+		return  ((position.x() >= 0 && position.x() < getSizeX()) &&
+				(position.y() >= 0 && position.y() < getSizeY()) &&
+				(position.z() >= 0 && position.z() < getSizeZ()));
+	}
+	
+	/**
+	 * Return a list of positions containing all directly neighbouring (not diagonally) positions
+	 * of the given position.
+	 * 
+	 * @param  position
+	 *         The position to search around
+	 * @return A list containing all directly neighbouring (not diagonally) positions of the given position.
+	 */
+	public List<Position> getDirectNeighbours(Position position) {
+		List<Position> neighbours = new ArrayList<>();
+		for (int i = 0; i < 3; i++) {
+			for (int j = -1; j < 2; j++) {
+				if (j != 0) {
+					try {
+						neighbours.add(position.add(i, j));
+					} catch (IllegalArgumentException e) {}
+				}
+			}
+		}
+		return neighbours;
+	}
+	
+	/**
+	 * Return a list of positions containing all neighbouring (also diagonally) positions
+	 * of the given position.
+	 * 
+	 * @param  position
+	 *         The position to search around.
+	 * @return A list containing all neighbouring (also diagonally) positions of the given position.
+	 */
+	public List<Position> getAllNeighbours(Position position) {
+		List<Position> neighbours = new ArrayList<>();
+		for (int i = -1; i < 2; i++) {
+			for (int j = -1; j < 2; j++) {
+				for (int k = -1; k < 2; k++) {
+					if (i != 0 || j != 0 || k != 0) {
+						try {
+							neighbours.add(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k));
+						} catch (IllegalArgumentException e) {}
+					}
+				}
+			}
+		}
+		return neighbours;
+	}
+	
+	/**
+	 * Return a list of positions containing this position and all neighbouring (also diagonally) positions
+	 * of the given position.
+	 * 
+	 * @param  position
+	 *         The position to search around.
+	 * @return A list containing this position and all neighbouring (also diagonally) positions of the given position..
+	 */
+	public List<Position> getAllNeighboursAndSame(Position position) {
+		List<Position> neighbours = new ArrayList<>();
+		for (int i = -1; i < 2; i++) {
+			for (int j = -1; j < 2; j++) {
+				for (int k = -1; k < 2; k++) {
+					try {
+						neighbours.add(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k));
+					} catch (IllegalArgumentException e) {}
+				}
+			}
+		}
+		return neighbours;
+	}
+	
+	/**
+	 * Return some random position of this world.
+	 * 
+	 * @return A random position of this world.
+	 */
+	public Position getRandomPosition() {
+		int x = new Random().nextInt(getSizeX());
+		int y = new Random().nextInt(getSizeY());
+		int z = new Random().nextInt(getSizeZ());
+		return new Position(x,y,z);
+	}
+	
+	/**
+	 * Return a random reachable position starting from the given position.
+	 * 
+	 * @param  position
+	 *         The position to start from.
+	 * @return A random accessible position with a solid neighbouring cube that
+	 *         can be reached starting from the given position.
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid unit position.
+	 */
+	public Position getRandomReachablePositionStartingFrom(Position position) 
+	                    throws IllegalArgumentException {
+		if (!Unit.isValidUnitPosition(position, this)) {
+			throw new IllegalArgumentException();
+		}
+		Position pos = new Position();
+		while (true) {
+			pos = getRandomPosition();
+			if (existsPathBetween(position, pos)) {
+				return pos;
+			}
+		}
+	}
+	
+	/**
+	 * Check whether there exists a path between the given start position and the given end
+	 * position in this world.
+	 * 
+	 * @param  start
+	 *         The start position.
+	 * @param  end
+	 *         The end position.
+	 * @return True if and only if their exists a first position in the path between the given 
+	 *         start position and the given end position. 
+	 */
+	public boolean existsPathBetween(Position start, Position end) {
+		return (PathFinder.findPath(this, start, end).popNextPosition() != null);
+	}
+	
+	/**
+	 * Find a random position of this world in a given radius around a given position.
+	 * 
+	 * @param  Position
+	 *         The position to search around.
+	 * @param  radius
+	 * 		   The radius around this position to search in.
+	 * @return Return a random position that is no more than #radius cubes (also 
+	 *         diagonally) from the given position.
+	 */
+	@Model @Raw
+	public Position getRandomPosition(Position position, int radius) throws IllegalArgumentException {
+		if (radius < 1) {
+			throw new IllegalArgumentException();
+		}
+		Random random = new Random();
+		Position spot = new Position();
+		while (true) {
+			int multiplier = random.nextInt(radius - 1) + 1;
+			try {
+				for (int i = 0; i < 3; i++) {
+					spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
+				}
+				return spot;
+			} catch (IllegalArgumentException e) {}
+		}
+	}
+	
+	/**
+	 * Return a random neighbouring cube of this world (also diagonally) as the given position.
+	 * 
+	 * @param  position
+	 *         The position to search next to.
+	 * @return A random position of this world in a radius of one around the given position.
+	 */
+	public Position getRandomNeighbouringPosition(Position position) {
+		return getRandomPosition(position, 1);
+	}
+	
+	/**
+	 * Return a random accessible neighbouring cube (also diagonally) as the
+	 * given position.
+	 * 
+	 * @param  position
+	 *         The position to search next to.
+	 * @return A random neighbouring position that is passable and has a solid neighbour.
+	 */
+	public Position getRandomAccessibleNeighbouringPosition(Position position) {
+		while (true) {
+			Position pos = getRandomNeighbouringPosition(position);
+			if (getAt(pos).isPassable() && hasSolidNeighbour(pos)) {
+				return pos;
+			}
+		}
+	}
+	
+	/**
+	 * Return a random accessible neighbouring cube of this world (also
+	 * diagonally) on the same z-level as the given position.
+	 * 
+	 * @param  position
+	 *         The position to search next to.
+	 * @return A random accessible neighbouring position that is on the same z-level
+	 *         as the given position.
+	 */
+	public Position getRandomAccessibleNeighbouringPositionOnSameZ(Position position) {
+		while (true) {
+			Position pos = getRandomAccessibleNeighbouringPosition(position);
+			if (pos.z() == position.z()) {
+				return pos;
+			}
+		}
+	}
+	
+	/**
+	 * Return whether this world features a solid cube next to (also diagonally)
+	 * the given position.
+	 * 
+	 * @param  position
+	 *         The position to search next to.
+	 * @return True if and only if some position next to the given position is
+	 *         not passable, or if the total amount of neighbouring cubes is less
+	 *         than 26.
+	 */
+	public boolean hasSolidNeighbour(Position position) {
+		// Corner or side cube: always support at the side of the game world.
+		if (getAllNeighbours(position).size() < 26) {
+			return true;
+		}
+		for (Position pos : getAllNeighbours(position)) {
+			if (!getAt(pos).isPassable()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Return whether this world features a solid cube at the underlying position of
+	 * the given position.
+	 * 
+	 * @param  position
+	 *         The position of which to retrieve the type of the cube at the
+	 *         underlying z-level.
+	 * @return True if and only if the given position doesn't have an underlying
+	 *         cube. Else, true if and only if the underlying cube is not passable.
+	 */
+	public boolean hasUnderlyingSolid(Position position) {
+		if (getAllNeighbours(position).size() < 26) {
+			if (!isValidPosition(position.add(Position.Z, -1))) {
+				return true;
+			}
+		}
+		if (!getAt(position.add(Position.Z, -1)).isPassable()) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Return a random direction.
+	 *  
+	 * @return A random integer with a value of -1, 0 or +1.
+	 *       | result == -1 || result == 0 || result == 1   
+	 */
+	@Model
+	private static int getRandomDirection() {
+		Random random = new Random();
+		int nb = random.nextInt(3);
+		if (nb == 0) {
+			return -1;
+		} else if (nb == 1) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
 }

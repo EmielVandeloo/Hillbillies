@@ -57,12 +57,13 @@ public class Node implements Comparable<Node> {
 	 *       | ! canHaveAsCoordinate(this.getCoordinate())
 	 */
 	public Node(Coordinate coordinate) throws IllegalArgumentException {
-		if (! canHaveAsCoordinate(coordinate))
+		if (! canHaveAsCoordinate(coordinate)) {
 			throw new IllegalArgumentException();
+		}
 		this.coordinate = coordinate;
 	}
 
-	
+
 	// GETTERS AND SETTERS
 
 
@@ -80,15 +81,11 @@ public class Node implements Comparable<Node> {
 	 * @param  coordinate
 	 *         The coordinate to check.
 	 * @return 
-	 *       | result == TODO
+	 *       | result == (coordinate != null)
 	 */
 	@Raw
 	public boolean canHaveAsCoordinate(Coordinate coordinate) {
-		if (coordinate == null) {
-			return false;
-		} else {
-			return true;
-		}
+		return (coordinate != null);
 	}
 
 	/**
@@ -106,10 +103,10 @@ public class Node implements Comparable<Node> {
 	 * @param  hCost
 	 *         The hCost to check.
 	 * @return 
-	 *       | result == TODO
+	 *       | result == (hCost >= 0)
 	 */
 	public static boolean isValidHCost(double hCost) {
-		return false;
+		return (hCost >= 0);
 	}
 
 	/**
@@ -126,8 +123,7 @@ public class Node implements Comparable<Node> {
 	 *       | ! isValidHCost(getHCost())
 	 */
 	@Raw
-	public void setHCost(double hCost) 
-			throws IllegalArgumentException {
+	public void setHCost(double hCost) throws IllegalArgumentException {
 		if (! isValidHCost(hCost))
 			throw new IllegalArgumentException();
 		this.hCost = hCost;
@@ -184,10 +180,10 @@ public class Node implements Comparable<Node> {
 	public static double getDistanceBetween(Node start, Node end) {
 		return Coordinate.getDistance(start.getCoordinate(), end.getCoordinate());
 	}
-	
-	
+
+
 	// OVERRIDE
-	
+
 	@Override
 	public int compareTo(Node o) {
 		if (this.getFCost() == o.getFCost()) {

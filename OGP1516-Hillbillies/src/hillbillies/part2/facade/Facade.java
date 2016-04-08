@@ -115,10 +115,9 @@ public class Facade implements IFacade {
 		return 0;
 	}
 
-	@Override
+	@Override @Deprecated
 	public void advanceTime(Unit unit, double dt) throws ModelException {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub	
 	}
 
 	@Override
@@ -169,10 +168,9 @@ public class Facade implements IFacade {
 		
 	}
 
-	@Override
+	@Override @Deprecated
 	public void work(Unit unit) throws ModelException {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -256,7 +254,6 @@ public class Facade implements IFacade {
 	@Override
 	public void setCubeType(World world, int x, int y, int z, int value) throws ModelException {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -274,7 +271,6 @@ public class Facade implements IFacade {
 	@Override
 	public void addUnit(Unit unit, World world) throws ModelException {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

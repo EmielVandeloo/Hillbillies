@@ -1,21 +1,13 @@
 package hillbillies.world;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
+import hillbillies.model.World;
 import ogp.framework.util.Util;
 
 /**
- * 
- * @invar  The x of each position must be a valid x for any position.
- *       | isValidX(getX())
- * @invar  The y of each position must be a valid y for any position.
- *       | isValidY(getY())
- * @invar  The z of each position must be a valid z for any position.
- *       | isValidZ(getZ())
+ * A class of positions.
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
@@ -26,35 +18,34 @@ public class Position {
 	// FIELDS
 
 	/**
-	 * Variable registering the x of this position.
+	 * Variable registering the x-coordinate of this position.
 	 */
 	private double x;
 
 	/**
-	 * Variable registering the y of this position.
+	 * Variable registering the y-coordinate of this position.
 	 */
 	private double y;
 
 	/**
-	 * Variable registering the z of this position.
+	 * Variable registering the z-coordinate of this position.
 	 */
 	private double z;
 	
 	/**
-	 * Variable registering the integer associated with the x-axe.
+	 * Variable registering the integer associated with the x-axis.
 	 */
 	public static final int X = 0;
 	
 	/**
-	 * Variable registering the integer associated with the y-axe.
+	 * Variable registering the integer associated with the y-axis.
 	 */
 	public static final int Y = 1;
 	
 	/**
-	 * Variable registering the integer associated with the z-axe.
+	 * Variable registering the integer associated with the z-axis.
 	 */
 	public static final int Z = 2;
-
 
 	// CONSTRUCTORS
 
@@ -62,7 +53,6 @@ public class Position {
 	 * Create a new position at the minimum coordinates.
 	 *
 	 * @effect The new position was created for the minimum values.
-	 *       | this((double) WorldStat.MIN_X, (double) WorldStat.MIN_Y, (double) WorldStat.MIN_Z)
 	 */
 	public Position() {
 		//Do nothing.
@@ -77,68 +67,49 @@ public class Position {
 	 *         The y for this new position.
 	 * @param  z
 	 *         The z for this new position.                 
-	 * @effect The x of this new position is set to the given x. 
-	 *       | this.setx(x)
+	 * @effect The x of this new position is set to the given x.
 	 * @effect The y of this new position is set to the given y.
-	 *       | this.setY(y)
 	 * @effect The z of this new position is set to
 	 *         the given z.
-	 *       | this.setZ(z)
 	 */
-	public Position(double x, double y, double z) throws IllegalArgumentException {
+	public Position(double x, double y, double z) {
 		this.setX(x);
 		this.setY(y);
 		this.setZ(z);
 	}
 	
 	/**
-	 * Create a new position with the given integer-coordinates.
+	 * Create a new position with the given integer coordinates.
 	 * 
 	 * @param  pos
 	 * 		   The x, y and z-coordinates of the new position
-	 * 		   contained in an integer-array.
-	 * @effect The new position was created for the given coordinates.
-	 * 		 | this((double) pos[0], (double) pos[1], (double) pos[2])
+	 * 		   contained in an integer array.
+	 * @effect The new position is created for the given coordinates.
 	 */
 	public Position(int[] pos) {
 		this((double) pos[0], (double) pos[1], (double) pos[2]);
 	}
 	
 	/**
-	 * Create a new position with the given integer-coordinates.
+	 * Create a new position with the given integer coordinates.
 	 * 
 	 * @param  pos
 	 * 		   The x, y and z-coordinates of the new position
-	 * 		   contained in a double-array.
-	 * @effect The new position was created for the given coordinates.
-	 * 		 | this(pos[0], pos[1], pos[2])
+	 * 		   contained in a double array.
+	 * @effect The new position is created for the given coordinates.
 	 */
 	public Position(double[] pos) {
 		this(pos[0], pos[1], pos[2]);
 	}
 
-
 	// X-POSITION
 
 	/**
-	 * Return the x of this position.
+	 * Return the x-coordinate of this position.
 	 */
 	@Basic @Raw
 	public double getX() {
 		return this.x;
-	}
-
-	/**
-	 * Check whether the given x is a valid x for
-	 * any position.
-	 *  
-	 * @param  x
-	 *         The x to check.
-	 * @return 
-	 *       | result == (WorldStat.MIN_X <= x) && (x <= WorldStat.MAX_X)
-	 */
-	public static boolean isValidX(double x) {
-		return (WorldStat.MIN_X <= x) && (x < WorldStat.MAX_X);
 	}
 
 	/**
@@ -148,40 +119,20 @@ public class Position {
 	 *         The new x for this position.
 	 * @post   The x of this new position is equal to
 	 *         the given x.
-	 *       | new.getx() == x
-	 * @throws IllegalArgumentException
-	 *         The given x is not a valid x for any position.
-	 *       | ! isValidx(getX())
 	 */
 	@Raw
-	public void setX(double x) throws IllegalArgumentException {
-//		if (! isValidX(x))
-//			throw new IllegalArgumentException();
+	public void setX(double x) {
 		this.x = x;
 	}
-
 
 	// Y-POSITION
 
 	/**
-	 * Return the y of this position.
+	 * Return the y-coordinate of this position.
 	 */
 	@Basic @Raw
 	public Double getY() {
 		return this.y;
-	}
-
-	/**
-	 * Check whether the given y is a valid y for
-	 * any position.
-	 *  
-	 * @param  y
-	 *         The y to check.
-	 * @return 
-	 *       | result == (WorldStat.MIN_Y <= y) && (y <= WorldStat.MAX_Y)
-	 */
-	public static boolean isValidY(double y) {
-		return (WorldStat.MIN_Y <= y) && (y < WorldStat.MAX_Y);
 	}
 
 	/**
@@ -191,40 +142,20 @@ public class Position {
 	 *         The new y for this position.
 	 * @post   The y of this new position is equal to
 	 *         the given y.
-	 *       | new.getY() == y
-	 * @throws IllegalArgumentException
-	 *         The given y is not a valid y for any position.
-	 *       | ! isValidY(getY())
 	 */
 	@Raw
-	public void setY(double y) throws IllegalArgumentException {
-//		if (! isValidY(y))
-//			throw new IllegalArgumentException();
+	public void setY(double y) {
 		this.y = y;
 	}
-
 
 	// Z-POSITION
 
 	/**
-	 * Return the z of this position.
+	 * Return the z-coordinate of this position.
 	 */
 	@Basic @Raw
 	public double getZ() {
 		return this.z;
-	}
-
-	/**
-	 * Check whether the given z is a valid z for
-	 * any position.
-	 *  
-	 * @param  z
-	 *         The z to check.
-	 * @return 
-	 *       | result == (WorldStat.MIN_Z <= z) && (z <= WorldStat.MAX_Z)
-	 */
-	public static boolean isValidZ(double z) {
-		return (WorldStat.MIN_Z <= z) && (z < WorldStat.MAX_Z);
 	}
 
 	/**
@@ -234,23 +165,26 @@ public class Position {
 	 *         The new z for this position.
 	 * @post   The z of this new position is equal to
 	 *         the given z.
-	 *       | new.getZ() == z
-	 * @throws IllegalArgumentException
-	 *         The given z is not a valid z for any position.
-	 *       | ! isValidZ(getZ())
 	 */
 	@Raw
-	public void setZ(double z) throws IllegalArgumentException {
-//		if (! isValidZ(z))
-//			throw new IllegalArgumentException();
+	public void setZ(double z) {
 		this.z = z;
 	}
-
+	
+	/**
+	 * Check whether this position is valid.
+	 * 
+	 * @return This position is effective.
+	 */
+	@Raw
+	public boolean isValid() {
+		return this != null;
+	}
 
 	// SHORT-ACCESS
 
 	/**
-	 * Return the x of this position.
+	 * Return the x-coordinate of this position.
 	 */
 	@Basic @Raw
 	public double x() {
@@ -262,20 +196,16 @@ public class Position {
 	 * 
 	 * @param  x
 	 *         The new x for this position.
-	 * @effect The x of this new position is equal to
+	 * @effect The x of this new position is set to
 	 *         the given x.
-	 *       | setX(x)
-	 * @throws IllegalArgumentException
-	 *         The given x is not a valid x for any position.
-	 *       | ! isValidx(getX())
 	 */
 	@Raw
-	public void x(double x) throws IllegalArgumentException {
+	public void x(double x) {
 		setX(x);
 	}
 
 	/**
-	 * Return the y of this position.
+	 * Return the y-coordinate of this position.
 	 */
 	@Basic @Raw
 	public double y() {
@@ -287,20 +217,16 @@ public class Position {
 	 * 
 	 * @param  y
 	 *         The new y for this position.
-	 * @effect The y of this new position is equal to
+	 * @effect The y of this new position is set to
 	 *         the given y.
-	 *       | setY(y)
-	 * @throws IllegalArgumentException
-	 *         The given y is not a valid y for any position.
-	 *       | ! isValidY(getY())
 	 */
 	@Raw
-	public void y(double y) throws IllegalArgumentException {
+	public void y(double y) {
 		setY(y);
 	}
 
 	/**
-	 * Return the z of this position.
+	 * Return the z-coordinate of this position.
 	 */
 	@Basic @Raw
 	public double z() {
@@ -314,13 +240,9 @@ public class Position {
 	 *         The new z for this position.
 	 * @effect The z of this new position is equal to
 	 *         the given z.
-	 *       | setZ(z)
-	 * @throws IllegalArgumentException
-	 *         The given z is not a valid z for any position.
-	 *       | ! isValidZ(getZ())
 	 */
 	@Raw
-	public void z(double z) throws IllegalArgumentException {
+	public void z(double z) {
 		setZ(z);
 	}
 
@@ -328,20 +250,13 @@ public class Position {
 	// ABSTRACT POSITIONS
 
 	/**
-	 * A method to get the value in a certain direction.
+	 * Get the coordinate value in a certain direction.
 	 * 
 	 * @param  i
 	 * 		   The direction to search in.
-	 * @return The ith coordinate of this position
-	 * 		 | if (i == 0)
-	 *		 |   return getX()
-	 *		 | else if (i == 1)
-	 *		 |   return getY()
-	 *		 | else if (i == 2)
-	 *		 |   return getZ()
+	 * @return The i-th coordinate of this position.
 	 * @throws IndexOutOfBoundsException
 	 * 		   The requested value doesn't exist in a 3-dimensional vector.
-	 * 		 | (i < 0 || i > 2)
 	 */
 	public double getAt(int i) throws IndexOutOfBoundsException {
 		if (i == 0) {
@@ -356,52 +271,75 @@ public class Position {
 	}
 
 	/**
-	 * A method to set the value in a certain direction.
+	 * Set the coordinate value in a certain direction.
 	 * 
 	 * @param  i
-	 * 		 | The direction to set.
+	 * 		   The direction to set.
 	 * @param  value
-	 * 		 | The value to set.
+	 * 		   The value to set.
 	 * @throws IndexOutOfBoundsException
 	 * 		   The requested value doesn't exist in a 3-dimensional vector.
-	 * 		 | (i < 0 || i > 2)
-	 * @throws IllegalArgumentException
-	 * 		   The given value is not a valid value.
 	 */
-	public void setAt(int i, double value) throws IndexOutOfBoundsException, IllegalArgumentException{
+	public void setAt(int i, double value) throws IndexOutOfBoundsException {
 		if (i == 0) {
 			setX(value);
 		} else if (i == 1) {
-			setY(value);;
+			setY(value);
 		} else if (i == 2) {
-			setZ(value);;
+			setZ(value);
 		} else {
 			throw new IndexOutOfBoundsException();
 		}
 	}
 	
+	/**
+	 * Add a given amount to this position in the given direction.
+	 * 
+	 * @param  i
+	 *         The direction in which to add.
+	 * @param  amount
+	 *         The amount to add.
+	 * @return A position containing the current coordinates, with the given
+	 *         amount added in the given direction.
+	 */
 	public Position add(int i, double amount) {
 		Position position = new Position(convertToDoubleArray());
 		position.setAt(i, getAt(i) + amount);
-		
 		return position;
 	}
 
-
 	// CONVERSIONS
 	
+	/**
+	 * Convert this position to an array of doubles.
+	 */
 	public double[] convertToDoubleArray() {
 		return new double[] {x(), y(), z()};
 	}
 	
+	/**
+	 * Convert this position to an array of integer.
+	 */
 	public int[] convertToIntegerArray() {
 		return new int[] {(int) x(), (int) y(), (int) z()};
 	}
 	
+	/**
+	 * Convert this position to a coordinate object.
+	 */
 	public Coordinate convertToCoordinate() {
 		return new Coordinate(convertToIntegerArray());
 	}
-
+	
+	/**
+	 * Convert the given integer array to a position.
+	 * 
+	 * @param  position
+	 *         The integer array to convert to a position.
+	 */
+	public static Position convertToPosition(int[] position) {
+		return new Position(position);
+	}
 
 	// METHODS
 
@@ -413,12 +351,8 @@ public class Position {
 	 * @param  b
 	 *  	   The coordinates of the second point, as position. 
 	 * @return The square root of the sum of the squares of the differences of the respective coordinates.
-	 *       | result == Math.sqrt(Math.pow(a.x() - b.x(), 2)
-	 *		 |         + Math.pow(a.y() - b.y(), 2) 
-	 *		 |         + Math.pow(a.z() - b.z(), 2))
 	 * @throws IllegalArgumentException
-	 * 		   a and/or b reference the null object
-	 *       | (a == null) || (b == null)
+	 * 		   a and/or b are not effective.
 	 */
 	@Model
 	public static double getDistance(Position a, Position b) throws IllegalArgumentException {
@@ -436,31 +370,26 @@ public class Position {
 	 * @param  position
 	 *         An position containing the position coordinates.
 	 * @return The center of the cube that contains the given position.
-	 *       | result == getCenterPosition(getCubePosition())
 	 */
 	@Model
 	public Position getCenterPosition() {
-		int[] cubePosition = getCubePosition();
-		return getCenterPosition(cubePosition);
+		int[] cubePosition = getCubePosition().convertToIntegerArray();
+		Position centerPosition = new Position(
+				cubePosition[0] + World.CUBE_LENGTH / 2,
+				cubePosition[1] + World.CUBE_LENGTH / 2,
+				cubePosition[2] + World.CUBE_LENGTH / 2);
+		return centerPosition;
 	}
 	
 	/**
-	 * Return the position of the center of the cube the position occupies.
+	 * Check whether or not the given position is a center position of a certain 
+	 * cube of the game world.
 	 * 
-	 * @param position
-	 *        An array of integers containing the position coordinates.
-	 * @return The sum of (1) this given position coordinates and
-	 *         (2) [for each coordinate] the length of the side of a cube divided by two.
-	 *         | for each index in (0..position.length)
-	 *         |	result.setAt(index, position[index] + GameWorld.CUBE_LENGTH / 2)
+	 * @return True if and only if this position equals the center position of the
+	 *         cube that contains this position.
 	 */
-	public static Position getCenterPosition(int[] position) {
-		Position centerPosition = new Position();
-		
-		for (int i = 0; i < 3; i++) {
-			centerPosition.setAt(i, position[i] + (double) WorldStat.CUBE_LENGTH / 2);
-		}
-		return centerPosition;
+	public boolean positionInCenter() {
+		return equals(getCenterPosition());
 	}
 	
 	/**
@@ -469,114 +398,72 @@ public class Position {
 	 * @param  position
 	 *         An array containing the position coordinates.
 	 * @return The given position coordinates, rounded down to integer values.
-	 *       | result == position.convertToIntegerArray()
 	 */
-	public int[] getCubePosition() {
-		return this.convertToIntegerArray();
+	public Position getCubePosition() {
+		return Position.convertToPosition(convertToIntegerArray());
 	}
 	
 	/**
-	 * Check whether a certain position equals another position.
+	 * Check whether this position equals a given object.
 	 * 
-	 * @param  position
-	 *         The position to compare with.
+	 * @param  o
+	 *         The object to compare with.
+	 * @return False if the given object is not effective or is no position.
 	 * @return True if and only if each coordinate of the position to test
-	 *         is equal to the respective coordinate of the position to compare with.
-	 *       | result == (Util.fuzzyEquals(x(), position.x()) && Util.fuzzyEquals(y(), position.y()) &&
-				      Util.fuzzyEquals(z(), position.z()))
+	 *         is equal to the respective coordinate of the position object to compare with.
 	 */
-	public boolean equals(Position position) {
-		if (position == null) {
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		return Util.fuzzyEquals(x(), position.x()) && Util.fuzzyEquals(y(), position.y()) &&
-				Util.fuzzyEquals(z(), position.z());
+		Position pos = (Position) o;
+		return Util.fuzzyEquals(x(), pos.x()) && Util.fuzzyEquals(y(), pos.y()) &&
+				Util.fuzzyEquals(z(), pos.z());
 	}
 	
+	/**
+	 * Return a textual representation of this position.
+	 */
 	@Override
-	public Object clone() {
+	public String toString() {
+		return this.x() + " " + this.y() + " " + this.z();
+	}
+	
+	/**
+	 * Return a clone of this position.
+	 */
+	@Override
+	public Position clone() {
 		return new Position(convertToDoubleArray());
 	}
 
-	public ArrayList<Position> getDirectNeighbours() {
-		ArrayList<Position> neighebours = new ArrayList<>();
-		
-		for (int i = 0; i < 3; i++) {
-			for (int j = -1; j < 2; j++) {
-				if (j != 0) {
-					try {
-						neighebours.add(this.add(i, j));
-					} catch (IllegalArgumentException e) {}
-				}
-			}
-		}
-		return neighebours;
-	}
-	
-	public ArrayList<Position> getAllNeighbours() {
-		ArrayList<Position> neighbours = new ArrayList<>();
-
-		for (int i = -1; i < 2; i++) {
-			for (int j = -1; j < 2; j++) {
-				for (int k = -1; k < 2; k++) {
-
-					if (i != 0 || j != 0 || k != 0) {
-						try {
-							neighbours.add(this.add(X, i).add(Y, j).add(Z, k));
-						} catch (IllegalArgumentException e) {}
-					}
-				}
-			}
-		}
-		return neighbours;
-	}
-	
 	/**
-	 * Find a random position in a radius around this position.
+	 * Return whether a certain position is adjacent to or the same as another position.
 	 * 
-	 * @param  radius
-	 * 		   The radius around this position to search in.
-	 * 		   Must be 1 or more.
-	 * @return Return a random position.
+	 * @param  current
+	 *         An array containing the position coordinates of the first position to compare.
+	 * @param  target
+	 *         An array containing the position coordinates of the second position to compare.
+	 * @return True if the current position is in the same cube as the target position.
+	 * @return True if the 2 cubes differ from each other at most by one on any of the three axes.
+	 * @throws IllegalArgumentException
+	 *         current or target are no valid positions.
 	 */
-	@Model @Raw
-	public Position getRandomPosition(int radius) throws IllegalArgumentException {
-		if (radius < 1) {
-			throw new IllegalArgumentException();
-		}
-		
-		Random random = new Random();
-		Position spot = new Position();
-		double multiplier = random.nextInt(radius - 1) + 1;
-		
-		while (true) {
-			try {
-				for (int i = 0; i < 3; i++) {
-					spot.setAt(i, this.getAt(i) + getRandomDirection() * multiplier);
-				}
-				return spot;
-			} catch (IllegalArgumentException e) {}
-		}
-	}
-	
-	/**
-	 * Return a valid random direction.
-	 *  
-	 * @return A random integer with a value of -1, 0 or +1.
-	 *       | result == -1 || result == 0 || result == 1   
-	 */
-	@Model @Raw
-	private int getRandomDirection() {
-		Random random = new Random();
-		int nb = random.nextInt(3);
-		
-		if (nb == 0) {
-			return X;
-		} else if (nb == 1) {
-			return Y;
-		} else {
-			return Z;
-		}
-	}
-
+	 public static boolean isAdjacentToOrSame(Position current, Position target) throws IllegalArgumentException {	
+	 	 if (! current.isValid() || ! target.isValid()) {
+			 throw new IllegalArgumentException();
+		 }
+		 if (current.getCenterPosition().equals(target.getCenterPosition())) {
+			 return true;
+		 }
+		 int[] currentCube = current.getCubePosition().convertToIntegerArray();
+		 int[] targetCube = target.getCubePosition().convertToIntegerArray();
+		 if ((currentCube[0] + 1 == targetCube[0] || currentCube[0] - 1 == targetCube[0] || currentCube[0] == targetCube[0]) &&
+			 (currentCube[1] + 1 == targetCube[1] || currentCube[1] - 1 == targetCube[1] || currentCube[1] == targetCube[1]) &&
+			 (currentCube[2] + 1 == targetCube[2] || currentCube[2] - 1 == targetCube[2] || currentCube[2] == targetCube[2])) {
+			 return true;
+		 } 
+		 return false;
+	 }
 }

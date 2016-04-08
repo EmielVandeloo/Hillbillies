@@ -1,65 +1,62 @@
 package hillbillies.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
 import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
+import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Unit;
 
 /**
  * A class of factions.
  * 
- * @invar  Each faction can have its world as world.
- *       | canHaveAsWorld(this.getWorld())
- * @invar  The name of each faction must be a valid name for any
- *         faction.
- *       | isValidName(getName())
+ * @invar   Each faction can have its world as world.
+ * @invar   The name of each faction must be a valid name for any
+ *          faction.
  * @invar   Each faction must have proper units.
- *        | hasProperUnits()
  * 
- * @author Pieter-Jan
- *
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 2: 10/04/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Faction {
 
 	// FIELDS
 
 	/**
-	 * Variable registering the maximal amount of units allowed.
+	 * Variable registering the maximal amount of units allowed in a faction.
 	 */
 	public static final int MAX_UNITS = 50;
 
 	/**
 	 * Variable registering the world of this faction.
 	 */
-	private final World world;
+	private World world;
 
 	/**
 	 * Variable registering the name of this faction.
 	 */
 	private String name;
+	
+	/**
+	 * Variable registering whether this faction is terminated.
+	 */
+	private boolean isTerminated;
 
 	/**
 	 * Variable referencing a set collecting all the units
 	 * of this faction.
 	 * 
 	 * @invar  The referenced set is effective.
-	 *       | units != null
 	 * @invar  Each unit registered in the referenced list is
 	 *         effective and not yet terminated.
-	 *       | for each unit in units:
-	 *       |   ( (unit != null) &&
-	 *       |     (! unit.isTerminated()) )
 	 */
 	private final Set<Unit> units = new HashSet<Unit>();
 
-
-	// CONSTRUCTOR
+	// CONSTRUCTOR AND DESTRUCTOR
 
 	/**
 	 * Initialize this new faction as a non-terminated faction with 
@@ -69,27 +66,52 @@ public class Faction {
 	 *         The world for this new faction.
 	 * @param  name
 	 *         The name for this new faction.
-	 * @post   The world of this new faction is equal to the given
-	 *         world.
-	 *       | new.getWorld() == world
 	 * @post   This new faction has no units yet.
-	 *       | new.getNbUnits() == 0
+	 * @post   This world of this new faction is equal to the given world.
 	 * @effect The name of this new faction is set to
 	 *         the given name.
-	 *       | this.setName(name)
 	 * @throws IllegalArgumentException
 	 *         This new faction cannot have the given world as its world.
-	 *       | ! canHaveAsWorld(this.getWorld())
 	 */
+	@Raw
 	public Faction(World world, String name) throws IllegalArgumentException {
 		if (! canHaveAsWorld(world)) {
 			throw new IllegalArgumentException();
 		}
 		this.world = world;
-
-		this.setName(name);
+		setName(name);
 	}
-
+	
+	/**
+	 * Check whether this faction is terminated.
+	 */
+	@Basic @Raw
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	/**
+	 * Terminate this faction and its associated units, if any.
+	 * 
+	 * @post This faction is terminated.
+	 * @post This faction no longer references a world as the world to which
+	 *       it is attached.
+	 * @post If this faction was not already terminated, the world to which
+	 *       this faction was attached no longer references this faction as
+	 *       an active faction in the world.
+	 * @post The units belonging to this faction, if any, are terminated.
+	 */
+	public void terminate() {
+		if (!isTerminated()) {
+			World formerWorld = getWorld();
+			this.isTerminated = true;
+			setWorld(null);
+			formerWorld.removeFaction(this);
+			for (Unit unit : units) {
+				unit.terminate();
+			}
+		}
+	}
 
 	// GETTERS AND SETTERS
 
@@ -107,15 +129,10 @@ public class Faction {
 	 *  
 	 * @param  name
 	 *         The name to check.
-	 * @return True if name is not null.
-	 *       | result == (name != null)
+	 * @return True if the given name is effective.
 	 */
 	public static boolean isValidName(String name) {
-		if (name == null) {
-			return false;
-		} else {
-			return true;
-		}
+		return (name != null);
 	}
 
 	/**
@@ -123,13 +140,11 @@ public class Faction {
 	 * 
 	 * @param  name
 	 *         The new name for this faction.
-	 * @post   The name of this new faction is equal to
+	 * @post   The new name of this faction is equal to
 	 *         the given name.
-	 *       | new.getName() == name
 	 * @throws IllegalArgumentException
 	 *         The given name is not a valid name for any
 	 *         faction.
-	 *       | ! isValidName(getName())
 	 */
 	@Raw
 	public void setName(String name) throws IllegalArgumentException {
@@ -141,28 +156,63 @@ public class Faction {
 	/**
 	 * Return the world of this faction.
 	 */
-	@Basic @Raw @Immutable
+	@Basic @Raw
 	public World getWorld() {
 		return this.world;
 	}
-
+	
+	/**
+	 * Set the world of this faction to the given world.
+	 * 
+	 * @post If this faction can have the given world as the world to which it
+	 *       is attached, the world to which it is attached is set to the given world.
+	 */
+	@Raw @Model
+	private void setWorld(World world) {
+		if(canHaveAsWorld(world)) {
+			this.world = world;
+		}
+	}
+	
 	/**
 	 * Check whether this faction can have the given world as its world.
 	 *  
 	 * @param  world
 	 *         The world to check.
-	 * @return 
-	 *       | result == (world != null) && (world.hasProperFactions());
+	 * @return If this faction is terminated, true if and only if the given world
+	 *         is not effective. Else, true if and only if the given world is
+	 *         effective and not yet terminated.
 	 */
 	@Raw
-	public static boolean canHaveAsWorld(World world) {
-		return (world != null) && (world.hasProperFactions());
+	public boolean canHaveAsWorld(World world) {
+		if (isTerminated()) {
+			return (world == null);
+		} else {
+			return (world != null && !world.isTerminated());
+		}
 	}
 
+	/**
+	 * Check whether this faction has a proper world to which it is attached.
+	 * 
+	 * @return True if and only if this faction can have the world to which it
+	 *         is attached as its world, and that world has a reference to this
+	 *         faction as one of the active factions of that world.
+	 */
+	@Raw
+	public boolean hasProperWorld() {
+		return (canHaveAsWorld(getWorld()) &&
+				  getWorld().getAllFactions().contains(this));
+	}
 
 	// Methods
 
-	public String getRandomizedName() {
+	/**
+	 * Generate a pseudo-random name.
+	 * 
+	 * @return A pseudo-random name.
+	 */
+	public static String getRandomizedName() {
 		Random random = new Random();
 		String name = "The ";
 
@@ -177,12 +227,7 @@ public class Faction {
 		return name;
 	}
 
-	public static boolean canFight(Unit Jef, Unit Bob) {
-		return Jef.getFaction().equals(Bob.getFaction());
-	}
-
-
-	// UNIT-METHODS
+	// UNIT METHODS
 
 	/**
 	 * Check whether this faction has the given unit as one of its
@@ -190,11 +235,13 @@ public class Faction {
 	 * 
 	 * @param  unit
 	 *         The unit to check.
+	 * @return True if and only if this faction has the given unit as
+	 *         one of its units at some index.
 	 */
 	@Basic
 	@Raw
 	public boolean hasAsUnit(@Raw Unit unit) {
-		return units.contains(unit);
+		return getAllUnits().contains(unit);
 	}
 
 	/**
@@ -203,32 +250,33 @@ public class Faction {
 	 * 
 	 * @param  unit
 	 *         The unit to check.
-	 * @return True if and only if the given unit is effective
-	 *         and that unit is a valid unit for a faction.
-	 *       | result ==
-	 *       |   (unit != null) &&
-	 *       |   Unit.isValidFaction(this) &&
-	 *       |   getNbUnits() < MAX_UNITS
+	 * @return If this faction is terminated, true if and only if the given
+	 *         unit is not effective. Else, true if and only if the given unit
+	 *         is effective and not yet terminated.
 	 */
 	@Raw
 	public boolean canHaveAsUnit(Unit unit) {
-		return (unit != null) && 
-				(Unit.isValidFaction(this) && getNbUnits() < MAX_UNITS);
+		if (isTerminated()) {
+			return (unit == null);
+		} else {
+			return (unit != null && !unit.isTerminated());
+		}
 	}
 
 	/**
 	 * Check whether this faction has proper units attached to it.
 	 * 
+	 * @return False if the number of units attached to this faction
+	 *         exceeds the maximum number of units for any faction.
 	 * @return True if and only if this faction can have each of the
 	 *         units attached to it as one of its units,
 	 *         and if each of these units references this faction as
 	 *         the faction to which they are attached.
-	 *       | for each unit in Unit:
-	 *       |   if (hasAsUnit(unit))
-	 *       |     then canHaveAsUnit(unit) &&
-	 *       |          (unit.getFaction() == this)
 	 */
 	public boolean hasProperUnits() {
+		if (getNbUnits() > MAX_UNITS) {
+			return false;
+		}
 		for (Unit unit : units) {
 			if (!canHaveAsUnit(unit))
 				return false;
@@ -241,53 +289,52 @@ public class Faction {
 	/**
 	 * Return the number of units associated with this faction.
 	 *
-	 * @return  The total number of units collected in this faction.
-	 *        | result ==
-	 *        |   card({unit:Unit | hasAsUnit({unit)})
+	 * @return The size of the set collecting all units attached to this faction.
 	 */
 	public int getNbUnits() {
-		return units.size();
+		return getAllUnits().size();
+	}
+	
+	/**
+	 * Return all the units attached to this faction.
+	 */
+	@Raw @Basic
+	public Set<Unit> getAllUnits() {
+		return new HashSet<Unit>(units);
 	}
 
 	/**
-	 * Add the given unit to the set of units of this faction.
+	 * Add the given unit to the set of units attached to this faction.
 	 * 
 	 * @param  unit
 	 *         The unit to be added.
 	 * @pre    The given unit is effective and already references
-	 *         this faction. The amount of 
-	 *       | (unit != null) && (unit.getFaction() == this)
-	 * @post   This faction has the given unit as one of its units.
-	 *       | new.hasAsUnit(unit)
-	 * @return Whether the operation was successful or not.
+	 *         this faction.
+	 * @post   If the maximum number of units in this faction is not yet reached, 
+	 *         and if the given unit isn't already registered in this faction,
+	 *         this faction has the given unit as one of its units.
 	 */
-	public boolean addUnit(@Raw Unit unit) {
+	public void addUnit(@Raw Unit unit) {
 		assert (unit != null) && (unit.getFaction() == this);
-		if (getNbUnits() < MAX_UNITS) {
+		if ((getNbUnits() < MAX_UNITS) && !hasAsUnit(unit)) {
 			units.add(unit);
-			return true;
 		}
-		return false;
 	}
 
 	/**
 	 * Remove the given unit from the set of units of this faction.
 	 * 
-	 * @param  unit
-	 *         The unit to be removed.
-	 * @pre    This faction has the given unit as one of
-	 *         its units, and the given unit does not
-	 *         reference any faction.
-	 *       | this.hasAsUnit(unit) &&
-	 *       | (unit.getFaction() == null)
-	 * @post   This faction no longer has the given unit as
-	 *         one of its units.
-	 *       | ! new.hasAsUnit(unit)
+	 * @param unit
+	 *        The unit to be removed.
+	 * @pre   This faction has the given unit as one of
+	 *        its units, and the given unit does not
+	 *        reference any faction.
+	 * @post  This faction no longer has the given unit as
+	 *        one of its units.
 	 */
 	@Raw
 	public void removeUnit(Unit unit) {
-		assert this.hasAsUnit(unit) && (unit.getFaction() == null);
+		assert hasAsUnit(unit) && (unit.getFaction() == null);
 		units.remove(unit);
 	}
-
 }

@@ -14,19 +14,19 @@ public class Part1Test {
 	
 	@Before
 	public void setUp() {
-		validUnitWithDefault = new Unit("AAA", 50, 50, 50, 50, new int[] {5,5,5}, true);
-		validUnitWithoutDefault = new Unit("BBB", 50, 50, 50, 50, new int[] {5,5,5}, false);
-		veryStrongUnit = new Unit("CCC", 100, 100, 100, 100, new int[] {1,1,1}, false);
+		validUnitWithDefault = new Unit(new int[] {5,5,5}, "AAA", 50, 50, 50, 50, true);
+		validUnitWithoutDefault = new Unit(new int[] {5,5,5}, "BBB", 50, 50, 50, 50, false);
+		veryStrongUnit = new Unit(new int[] {1,1,1}, "CCC", 100, 100, 100, 100, false);
 		veryStrongUnit.setWeight(200);
 		veryStrongUnit.setAgility(200);
 		veryStrongUnit.setStrength(200);
 		veryStrongUnit.setToughness(200);
-		veryWeakUnit = new Unit("DDD", 25, 25, 25, 25, new int[] {2,2,2}, false);
+		veryWeakUnit = new Unit(new int[] {2,2,2}, "DDD", 25, 25, 25, 25, false);
 		veryWeakUnit.setAgility(1);
 		veryWeakUnit.setStrength(1);
 		veryWeakUnit.setToughness(1);
 		veryWeakUnit.setWeight(1);
-		sideLineUnit = new Unit("EEE", 50, 50, 50, 50, new int[] {0,0,0}, false);
+		sideLineUnit = new Unit(new int[] {0,0,0}, "EEE", 50, 50, 50, 50, false);
 	}
 
 	@Test
@@ -36,7 +36,7 @@ public class Part1Test {
 		assertEquals(50, validUnitWithDefault.getAgility());
 		assertEquals(50, validUnitWithDefault.getWeight());
 		assertEquals(50, validUnitWithDefault.getToughness());
-		assertTrue(validUnitWithDefault.getUnitPosition().equals(new Position(5.5,5.5,5.5)));
+		assertTrue(validUnitWithDefault.getPosition().equals(new Position(5.5,5.5,5.5)));
 		assertTrue(validUnitWithDefault.doesDefaultBehaviour());
 		assertFalse(validUnitWithoutDefault.doesDefaultBehaviour());
 		assertEquals(50, validUnitWithDefault.getNbHitPoints());
@@ -45,39 +45,39 @@ public class Part1Test {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void Constructor_NameWithoutCapital() throws Exception {
-		new Unit("aaa", 50, 50, 50, 50, new int[] {5,5,5}, true);
+		new Unit(new int[] {5,5,5}, "aaa", 50, 50, 50, 50, true);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void Constructor_NameTooShort() throws Exception {
-		new Unit("A", 50, 50, 50, 50, new int[] {5,5,5}, true);
+		new Unit(new int[] {5,5,5}, "A", 50, 50, 50, 50, true);
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void Constructor_NullName() throws Exception {
-		new Unit(null, 50, 50, 50, 50, new int[] {5,5,5}, true);
+		new Unit(new int[] {5,5,5}, null, 50, 50, 50, 50, true);
 	}
 	
 	@Test
 	public void Constructor_NameWithQuotes() {
-		Unit unit = new Unit("A\"A\'A", 50, 50, 50, 50, new int[] {5,5,5}, true);
+		Unit unit = new Unit(new int[] {5,5,5}, "A\"A\'A", 50, 50, 50, 50, true);
 		assertEquals("A\"A\'A", unit.getName());
 	}
 	
 	@Test
 	public void Constructor_NameWithSpaces() {
-		Unit unit = new Unit("A A A", 50, 50, 50, 50, new int[] {5,5,5}, true);
+		Unit unit = new Unit(new int[] {5,5,5}, "A A A", 50, 50, 50, 50, true);
 		assertEquals("A A A", unit.getName());
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void Constructor_NameWithIllegalCharacters() throws Exception {
-		new Unit("A@יחא", 50, 50, 50, 50, new int[] {5,5,5}, true);
+		new Unit(new int[] {5,5,5}, "A@יחא", 50, 50, 50, 50, true);
 	}
 	
 	@Test
 	public void Constructor_TooLowAttributeValues() {
-		Unit unit = new Unit("AAA", 24, 10, 0, -10, new int[] {5,5,5}, true);
+		Unit unit = new Unit(new int[] {5,5,5}, "AAA", 24, 10, 0, -10, true);
 		assertEquals(25, unit.getStrength());
 		assertEquals(25, unit.getAgility());
 		assertEquals(25, unit.getWeight());
@@ -86,7 +86,7 @@ public class Part1Test {
 	
 	@Test
 	public void Constructor_TooHighAttributeValues() {
-		Unit unit = new Unit("AAA", 101, 200, Integer.MAX_VALUE, Integer.MAX_VALUE, new int[] {5,5,5}, true);
+		Unit unit = new Unit(new int[] {5,5,5}, "AAA", 101, 200, Integer.MAX_VALUE, Integer.MAX_VALUE, true);
 		assertEquals(100, unit.getStrength());
 		assertEquals(100, unit.getAgility());
 		assertEquals(100, unit.getWeight());
@@ -95,23 +95,23 @@ public class Part1Test {
 	
 	@Test
 	public void Constructor_WeightInViewOfStrengthAndAgility() {
-		Unit unit = new Unit("AAA", 75, 75, 25, 50, new int[] {5,5,5}, true);
+		Unit unit = new Unit(new int[] {5,5,5}, "AAA", 75, 75, 25, 50, true);
 		assertEquals(75, unit.getWeight());
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void Constructor_TooHighPositionCoordinate() throws Exception {
-		new Unit("AAA", 50, 50, 50, 50, new int[] {5,5,50}, true);
+		new Unit(new int[] {5,5,50}, "AAA", 50, 50, 50, 50, true);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void Constructor_TooLowPositionCoordinate() throws Exception {
-		new Unit("AAA", 50, 50, 50, 50, new int[] {-5,5,5}, true);
+		new Unit(new int[] {-5,5,5}, "AAA", 50, 50, 50, 50, true);
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void Constructor_NullPosition() throws Exception {
-		new Unit("AAA", 50, 50, 50, 50, null, true);
+		new Unit(null, "AAA", 50, 50, 50, 50, true);
 	}
 	
 	// isValidName, setName, isValidInitialStrength, isValidInitialAgility, canHaveAsInitialWeight,
@@ -238,8 +238,8 @@ public class Part1Test {
 		double distance = Math.sqrt(8);
 		double time = distance / speed;
 		advanceTimeFor(validUnitWithoutDefault, time, 0.05);
-		System.out.println("1... " + validUnitWithoutDefault.getUnitPosition().toString());
-		assertTrue(validUnitWithoutDefault.getUnitPosition().equals(new Position(7.5,3.5,5.5)));
+		System.out.println("1... " + validUnitWithoutDefault.getPosition().toString());
+		assertTrue(validUnitWithoutDefault.getPosition().equals(new Position(7.5,3.5,5.5)));
 		assertFalse(validUnitWithoutDefault.isMoving());
 	}
 	
@@ -251,8 +251,8 @@ public class Part1Test {
 		double distance = Math.sqrt(13);
 		double time = distance / speed;
 		advanceTimeFor(validUnitWithoutDefault, time, 0.05);
-		System.out.println("2... " + validUnitWithoutDefault.getUnitPosition().toString());
-		assertTrue(validUnitWithoutDefault.getUnitPosition().equals(new Position(2.5,5.5,7.5)));
+		System.out.println("2... " + validUnitWithoutDefault.getPosition().toString());
+		assertTrue(validUnitWithoutDefault.getPosition().equals(new Position(2.5,5.5,7.5)));
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -268,13 +268,15 @@ public class Part1Test {
 		double distance = Math.sqrt(2);
 		double time = distance / speed;
 		advanceTimeFor(validUnitWithoutDefault, time, 0.05);
-		System.out.println("3... " + validUnitWithoutDefault.getUnitPosition().toString());
-		assertTrue(validUnitWithoutDefault.getUnitPosition().equals(new Position(6.5,5.5,4.5)));
+		System.out.println("3... " + validUnitWithoutDefault.getPosition().toString());
+		assertTrue(validUnitWithoutDefault.getPosition().equals(new Position(6.5,5.5,4.5)));
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void moveToAdjacent_IllegalCase() {
 		sideLineUnit.moveToAdjacent(-1, -1, -1);
+		advanceTimeFor(sideLineUnit, 0.5, 0.05);
+		assertTrue(sideLineUnit.getPosition().equals(new Position(0.5,0.5,0.5)));
 	}
 	
 	// SPRINTING
@@ -402,24 +404,6 @@ public class Part1Test {
 		advanceTimeFor(validUnitWithDefault, 1.0, 0.05);
 		assertTrue(validUnitWithDefault.isMoving() || validUnitWithDefault.isWorking() ||
 				validUnitWithDefault.isResting());
-	}
-	
-	@Test
-	public void isAdjacentToOrSame_SameCube() {
-		assertTrue(Unit.isAdjacentToOrSame(validUnitWithDefault.getUnitPosition(), 
-				            validUnitWithoutDefault.getUnitPosition()));
-	}
-	
-	@Test
-	public void isAdjacentToOrSame_NeighbouringCube() {
-		assertTrue(Unit.isAdjacentToOrSame(veryStrongUnit.getUnitPosition(), 
-				            veryWeakUnit.getUnitPosition()));
-	}
-	
-	@Test
-	public void isAdjacentToOrSame_FalseCase() {
-		assertFalse(Unit.isAdjacentToOrSame(veryWeakUnit.getUnitPosition(), 
-				            sideLineUnit.getUnitPosition()));
 	}
 	
 	/**
