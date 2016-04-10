@@ -147,7 +147,7 @@ public class Node implements Comparable<Node> {
 	 *       | result == (gCost > 0)
 	 */
 	public static boolean isValidGCost(double gCost) {
-		return (gCost > 0);
+		return (gCost >= 0);
 	}
 
 	/**

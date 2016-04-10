@@ -12,6 +12,8 @@ import ogp.framework.util.Util;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  * @version Work version: 10/03/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Position {
 

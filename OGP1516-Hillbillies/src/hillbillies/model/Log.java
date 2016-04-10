@@ -1,31 +1,60 @@
 package hillbillies.model;
 
 import hillbillies.model.World;
-import hillbillies.model.item.Item;
+import hillbillies.model.ItemEntity;
 import hillbillies.world.Position;
 
 /**
  * A class of logs.
+ * 
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 2: 10/04/2016
  */
-public class Log extends Item {
+public class Log extends ItemEntity {
 	
-	// CONSTRUCTORS
+	//FIELDS
+	
+	/**
+	 * Field representing the identification of this entity.
+	 */
+	public static final String ENTITY_ID = "item_entity:log";
+	
+	public static String getEntityId() {
+		return ENTITY_ID;
+	}
+	
+	// CONSTRUCTOR
 
-	public Log() throws IllegalArgumentException {
-		super();
+	/**
+	 * Initialize this new log in the given world at the given position.
+	 * 
+	 * @param  world
+	 *         The world to initialize this new log in.
+	 * @param  position
+	 *         The position to initialize this new log at.
+	 * @effect This log is initialized as a new item entity in the given world
+	 *         at the given position.
+	 */
+	public Log(World world, Position position) throws IllegalArgumentException {
+		super(world, position);
 	}
-	
-	public Log(int weight) throws IllegalArgumentException {
-		super(weight);
-	}
-	
 	
 	// METHODS
 	
+	/**
+	 * Drop a log in the given world at the given position.
+	 * 
+	 * @param  world
+	 *         The world to drop a log in.
+	 * @param  position
+	 *         The position to drop a log at.
+	 * @effect If an item entity will be dropped, a new log is spawned
+	 *         in the given world at the given position.
+	 */
 	public static void drop(World world, Position position) {
-		if (dropChance()) {
-			new Log().fall(world, position);
+		if (ItemEntity.willDrop()) {
+			new Log(world, position).spawn();
 		}
 	}
-	
 }

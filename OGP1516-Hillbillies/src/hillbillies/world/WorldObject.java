@@ -1,7 +1,6 @@
 package hillbillies.world;
 
 import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.World;
 
@@ -20,7 +19,7 @@ public abstract class WorldObject {
 	/**
 	 * Variable registering the world of this world object.
 	 */
-	private final World world;
+	private World world;
 	
 	
 	// CONSTRUCTOR
@@ -38,9 +37,7 @@ public abstract class WorldObject {
 	 *       | ! canHaveAsWorld(this.getWorld())
 	 */
 	public WorldObject(World world) throws IllegalArgumentException {
-		if (! canHaveAsWorld(world))
-			throw new IllegalArgumentException();
-		this.world = world;
+		setWorld(world);
 	}
 	
 	
@@ -49,7 +46,7 @@ public abstract class WorldObject {
 	/**
 	 * Return the world of this world object.
 	 */
-	@Basic @Raw @Immutable
+	@Basic @Raw
 	public World getWorld() {
 		return this.world;
 	}
@@ -65,6 +62,13 @@ public abstract class WorldObject {
 	@Raw
 	public boolean canHaveAsWorld(World world) {
 		return (world != null);
+	}
+	
+	public void setWorld(World world) throws IllegalArgumentException {
+//		if (! canHaveAsWorld(world)) {
+//			throw new IllegalArgumentException();
+//		}
+		this.world = world;
 	}
 
 }

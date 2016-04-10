@@ -5,6 +5,15 @@ import hillbillies.model.Log;
 import hillbillies.model.World;
 import hillbillies.world.Position;
 
+/**
+ * A class of cubes.
+ * 
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 2: 10/04/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
+ */
 public enum Cube {
 	
 	// ENUM
@@ -14,22 +23,17 @@ public enum Cube {
 	WOOD (false, 2),
 	WORKBENCH (true, 3);
 	
-	
 	// FIELDS
 	
 	private final boolean passable;
 	private final int id;
-	
 	
 	// CONSTRUCTORS
 	
 	private Cube(boolean passable, int id) {
 		this.passable = passable;
 		this.id = id;
-		
-		//TODO Hoe kan het droppen van een item algemeen blijven?
 	}
-	
 	
 	// GETTERS AND SETTERS
 	
@@ -41,11 +45,10 @@ public enum Cube {
 		return id;
 	}
 	
-	
 	// METHODS
 
 	public void drop(World world, Position position) {
-		if (position != null) {
+		if (world.isValidPosition(position)) {
 			switch (this) {
 			case ROCK:
 				Boulder.drop(world, position);
@@ -67,5 +70,4 @@ public enum Cube {
 		}
 		throw new IndexOutOfBoundsException();
 	}
-
 }

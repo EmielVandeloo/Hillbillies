@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Unit;
 
@@ -167,8 +166,8 @@ public class Faction {
 	 * @post If this faction can have the given world as the world to which it
 	 *       is attached, the world to which it is attached is set to the given world.
 	 */
-	@Raw @Model
-	private void setWorld(World world) {
+	@Raw
+	public void setWorld(World world) {
 		if(canHaveAsWorld(world)) {
 			this.world = world;
 		}

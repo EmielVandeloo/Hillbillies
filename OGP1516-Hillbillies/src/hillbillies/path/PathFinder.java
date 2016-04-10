@@ -39,7 +39,7 @@ public class PathFinder {
 
 			ArrayList<Coordinate> neighbours = current.getCoordinate().getAllNeighbours();
 			for (Coordinate coordinate : neighbours) {
-				if (! closedList.containsKey(coordinate)) {
+				if (! closedList.containsKey(coordinate) && world.isValidPosition(coordinate.toCenter())) {
 					Node neighbour = new Node(coordinate);
 
 					double gCost = current.getGCost() + Node.getDistanceBetween(current, neighbour);

@@ -5,10 +5,10 @@ import java.util.List;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
+import hillbillies.model.ItemEntity;
 import hillbillies.model.World;
-import hillbillies.world.WorldObject;
-import hillbillies.model.item.Item;
 import hillbillies.world.Position;
+import hillbillies.world.WorldObject;
 
 /**
  * A class of inventories.
@@ -58,7 +58,7 @@ public class Inventory extends WorldObject {
 	 *       |   ( (I == J) ||
 	 *       |     (items.get(I) != items.get(J))
 	 */
-	private final List<Item> items = new ArrayList<Item>();
+	private final List<ItemEntity> items = new ArrayList<ItemEntity>();
 
 	/**
 	 * Variable registering the position of this inventory.
@@ -67,7 +67,7 @@ public class Inventory extends WorldObject {
 
 
 	// CONSTRUCTOR
-	
+
 	/**
 	 * Initialize this new inventory as a non-terminated inventory with 
 	 * no items yet and with given maximal weight, maximal item count and position.
@@ -271,7 +271,7 @@ public class Inventory extends WorldObject {
 	 */
 	@Basic
 	@Raw
-	public Item getItemAt(int index) throws IndexOutOfBoundsException {
+	public ItemEntity getItemAt(int index) throws IndexOutOfBoundsException {
 		return items.get(index - 1);
 	}
 
@@ -296,7 +296,7 @@ public class Inventory extends WorldObject {
 	 *       |   (item != null)
 	 */
 	@Raw
-	public boolean canHaveAsItem(Item item) {
+	public boolean canHaveAsItem(ItemEntity item) {
 		return (item != null);
 	}
 
@@ -321,7 +321,7 @@ public class Inventory extends WorldObject {
 	 *       |     (index == I) || (getItemAt(I) != item)
 	 */
 	@Raw
-	public boolean canHaveAsItemAt(Item item, int index) {
+	public boolean canHaveAsItemAt(ItemEntity item, int index) {
 		if ((index < 1) || (index > getNbItems() + 1))
 			return false;
 		if (!this.canHaveAsItem(item))
@@ -362,7 +362,7 @@ public class Inventory extends WorldObject {
 	 *       | for some I in 1..getNbItems():
 	 *       |   getItemAt(I) == item
 	 */
-	public boolean hasAsItem(@Raw Item item) {
+	public boolean hasAsItem(@Raw ItemEntity item) {
 		return items.contains(item);
 	}
 
@@ -382,9 +382,12 @@ public class Inventory extends WorldObject {
 	 * @post   This inventory has the given item as its very last item.
 	 *       | new.getItemAt(getNbItems()+1) == item
 	 */
-	public void addItem(@Raw Item item) {
+	public void addItem(@Raw ItemEntity item) {
 		assert (item != null) && (!this.hasAsItem(item));
-		items.add(item);
+		if (items.size() < getMaximalItemCount()) {
+			items.add(item);
+			getWorld().removeEntity(item);
+		}
 	}
 
 	/**
@@ -412,9 +415,63 @@ public class Inventory extends WorldObject {
 	 *       |     then new.getItemAt(J-1) == getItemAt(J)
 	 */
 	@Raw
-	public void removePurchase(Item item) {
+	public void removePurchase(ItemEntity item) {
 		assert (item != null) && this.hasAsItem(item);
 		items.remove(item);
+	}
+
+
+	// SPECIFIC METHODS
+
+	/**
+	 * A method to retrieve the first item;
+	 * 
+	 * @return The first item in this inventory.
+	 * 		   Null when empty.
+	 */
+	public ItemEntity getItem() {
+		if (items.isEmpty()) {
+			return null;
+		} else {
+			return items.get(0);
+		}
+	}
+
+	/**
+	 * A method to place the item in the world at
+	 * the position of this inventory.
+	 * 
+	 * @param item
+	 * 		  The item to place in the world.
+	 */
+	public void placeInWorld(ItemEntity item) {
+		item.setPosition(getPosition().clone());
+		item.spawn();
+	}
+	
+	/**
+	 * A method to drop an item out of this inventory
+	 * into the world.
+	 * 
+	 * @param  item
+	 * 		   The item to drop.
+	 * @effect Place the item in the world.
+	 * 		 | placeInWorld(item);
+	 * @effect Remove the item from this inventory.
+	 * 		 | removePurchase(item);
+	 */
+	public void dropItem(ItemEntity item) {
+		placeInWorld(item);
+		removePurchase(item);
+	} 
+	
+	/**
+	 * Return whether this inventory is empty or not.
+	 * 
+	 * @return items.isEmpty();
+	 */
+	public boolean isEmpty() {
+		return items.isEmpty();
 	}
 
 
@@ -431,8 +488,8 @@ public class Inventory extends WorldObject {
 	public void terminate() {
 		this.isTerminated = true;
 
-		for (Item item : items) {
-			item.fall(getWorld(), getPosition());
+		for (ItemEntity item : items) {
+			placeInWorld(item);
 			items.remove(item);
 		}
 	}

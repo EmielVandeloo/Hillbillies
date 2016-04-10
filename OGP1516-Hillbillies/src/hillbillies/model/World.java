@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.model.Entity;
-import hillbillies.model.Unit;
 import hillbillies.model.character.JobStat;
 import hillbillies.part2.listener.TerrainChangeListener;
 import hillbillies.path.Path;
@@ -31,6 +30,8 @@ import hillbillies.world.Position;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  * @version Final version Part 2: 10/04/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class World {
 
@@ -56,7 +57,7 @@ public class World {
 	/**
 	 * Variable containing the length of a side of a cube.
 	 */
-	public static final int CUBE_LENGTH = 1;
+	public static final double CUBE_LENGTH = 1;
 	
 	/**
 	 * A variable referencing the vector according to which an entity
@@ -156,14 +157,18 @@ public class World {
 	@Raw
 	public World(int[][][] terrainTypes, TerrainChangeListener modelListener) 
 			throws IllegalArgumentException, IndexOutOfBoundsException {
+		
 		if (terrainTypes == null) {
 			throw new IllegalArgumentException();
 		}
+		
 		this.sizeX = terrainTypes.length;
 		this.sizeY = terrainTypes[0].length;
 		this.sizeZ = terrainTypes[0][0].length;
+		
 		setWorldVersion(0);
 		this.world = new Cube[sizeX][sizeY][sizeZ];
+		
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
 				for (int k = 0; k < sizeZ; k++) {
@@ -269,6 +274,10 @@ public class World {
 	private void updateWorldVersion() {
 		setWorldVersion(getWorldVersion() + 1);
 	}
+	
+	public ConnectedToBorder getBorder() {
+		return this.border;
+	}
 
 	/**
 	 * Return the cube type of this world at the given position.
@@ -294,10 +303,9 @@ public class World {
 	 * @effect The model listener is notified that the cube type has changed at the
 	 *         given position.
 	 */
-	@Model
-	private void setAt(Position position, Cube cube) {
+	public void setAt(Position position, Cube cube) {
 		Coordinate coord = position.convertToCoordinate();
-		this.world[coord.x()][coord.y()][coord.z()] = cube;
+		world[coord.x()][coord.y()][coord.z()] = cube;
 		updateWorldVersion();
 		modelListener.notifyTerrainChanged(coord.x(), coord.y(), coord.z());
 	}
@@ -377,16 +385,19 @@ public class World {
 	public void advanceTime(double deltaTime) {
 		makeValidDeltaTime(deltaTime);
 		gameTime = gameTime.add(new BigDecimal(deltaTime));
+		
 		for (Entity entity : getAllEntities()) {
-			if (!(entity instanceof Unit)) {
-				if (entity.isFalling() || !hasUnderlyingSolid(entity.getPosition())) {
-					entity.fallBehavior(deltaTime);
+			if (!entity.isTerminated()) {
+				if (!(entity instanceof Unit)) {
+					if (entity.isFalling() || !hasUnderlyingSolid(entity.getPosition())) {
+						entity.fallBehavior(deltaTime);
+					}
+				} else {
+					if (checkThreeMinuteRest(deltaTime) == true) {
+						((Unit) entity).rest();
+					}
+					entity.advanceTime(deltaTime);
 				}
-			} else {
-				if (checkThreeMinuteRest(deltaTime) == true) {
-					((Unit) entity).rest();
-				}
-				entity.advanceTime(deltaTime);
 			}
 		}
 	}
@@ -406,8 +417,8 @@ public class World {
 	 *      |   then deltaTime = 0.2
 	 */
 	private void makeValidDeltaTime(double deltaTime) {
-		if (deltaTime < 0) {
-			deltaTime = 0;
+		if (deltaTime <= 0) {
+			deltaTime = 0.01;
 		} else if (deltaTime > 0.2) {
 			deltaTime = 0.2;
 		}
@@ -435,7 +446,8 @@ public class World {
 	 *         time by 180 (three minutes) is greater than the remainder of the division
 	 *         of the current game time incremented by the given time step by 180.
 	 */
-	public boolean checkThreeMinuteRest(double deltaTime) {
+	@Model
+	private boolean checkThreeMinuteRest(double deltaTime) {
 		JobStat.BigDec1 = gameTime.remainder(JobStat.THREEMINUTEREST);
 		JobStat.BigDec2 = gameTime.add(new BigDecimal(deltaTime)).remainder(JobStat.THREEMINUTEREST);
 		if (JobStat.BigDec1.compareTo(JobStat.BigDec2) > 0) {
@@ -455,9 +467,8 @@ public class World {
 	 * @return True if and only if the given entity is in the set of
 	 *         all entities of the type of the given entity.
 	 */
-	@Basic
 	public boolean hasAsEntity(@Raw Entity entity) {
-		try{
+		try {
 			getList(entity).contains(entity);
 		} catch (IllegalArgumentException e) {}
 		return false;
@@ -472,7 +483,8 @@ public class World {
 	 * @return True if and only if the given entity is effective
 	 *         and that entity is a valid entity for a world.
 	 */
-	public boolean canHaveAsEntity(Entity entity) {
+	@Model
+	private boolean canHaveAsEntity(Entity entity) {
 		if (isTerminated()) {
 			return entity == null;
 		} else {
@@ -488,7 +500,8 @@ public class World {
 	 *         and if each of these entities references this world as
 	 *         the world to which they are attached.
 	 */
-	public boolean hasProperEntities() {
+	@Model
+	private boolean hasProperEntities() {
 		for (HashSet<Entity> entityType : entities.values()) {
 			for (Entity entity : entityType) {
 				if (!canHaveAsEntity(entity))
@@ -510,6 +523,15 @@ public class World {
 		return getAllEntities().size();
 	}
 	
+	@Model
+	private int getNbEntitiesOf(String type) {
+		if (entities.containsKey(type)) {
+			return getList(type).size();
+		} else {
+			return 0;
+		}
+	}
+	
 	/**
 	 * Return all active entities in this world.
 	 */
@@ -521,6 +543,17 @@ public class World {
 			}
 		}
 		return allEntities;
+	}
+	
+	/**
+	 * Return all active entities in this world.
+	 */
+	public HashSet<Entity> getAllEntitiesOf(String type) {
+		if (! entities.containsKey(type)) {
+			return null;
+		} else {
+			return entities.get(type);
+		}
 	}
 
 	/**
@@ -536,11 +569,18 @@ public class World {
 	 * @post   If the given entity isn't already registered in this world,
 	 *         this world has the given entity as one of its entities.
 	 */
-	public void addEntity(@Raw Entity entity) {
-		assert (entity != null) && (entity.getWorld() == this);
-		if (entity instanceof Unit) {
-			if (getNbUnits() >= World.MAX_UNITS) {return;}
-		} else if (!hasAsEntity(entity)) {
+	public void addEntity(@Raw Entity entity) throws IllegalArgumentException {
+		if (entity == null || entity.getWorld() != this) {
+			throw new IllegalArgumentException();
+		}
+		try { 
+			if (getNbEntitiesOf(Entity.getEntityId()) >= entity.maxEntities) {
+				return;
+			} else if (! hasAsEntity(entity)) {
+				getList(entity).add(entity);
+			}
+		} catch (NullPointerException e) {
+			entities.put(Entity.getEntityId(), new HashSet<Entity>());
 			getList(entity).add(entity);
 		}
 	}
@@ -556,8 +596,10 @@ public class World {
 	 * @post   This world no longer has the given entity as
 	 *         one of its entities.
 	 */
-	public void removeEntity(Entity entity) {
-		assert hasAsEntity(entity) && (entity.getWorld() == null);
+	public void removeEntity(Entity entity) throws IllegalArgumentException {
+//		if (!hasAsEntity(entity) || entity.getWorld() == this) {
+//			throw new IllegalArgumentException();
+//		}
 		entities.remove(entity);
 	}
 	
@@ -568,8 +610,14 @@ public class World {
 	 *         Object of the entity type of which to retrieve all entities.
 	 * @return All entities of the same type as the given entity.
 	 */
+	@Model
 	private HashSet<Entity> getList(Entity entity) {
-		return entities.get(entity.getClass().getName());
+		return entities.get(Entity.getEntityId());
+	}
+
+	@Model
+	private HashSet<Entity> getList(String type) {
+		return entities.get(type);
 	}
 
 	// FACTION-METHODS
@@ -597,7 +645,8 @@ public class World {
 	 * @return True if and only if the given faction is effective
 	 *         and that faction is a valid faction for any world.
 	 */
-	public boolean canHaveAsFaction(Faction faction) {
+	@Model
+	private boolean canHaveAsFaction(Faction faction) {
 		return (faction != null) && (faction.canHaveAsWorld(this));
 	}
 
@@ -609,7 +658,8 @@ public class World {
 	 *         and if each of these factions references this world as
 	 *         the world to which they are attached.
 	 */
-	public boolean hasProperFactions() {
+	@Model
+	private boolean hasProperFactions() {
 		for (Faction faction : getAllFactions()) {
 			if (!canHaveAsFaction(faction))
 				return false;
@@ -648,8 +698,10 @@ public class World {
 	 *         given faction as one of its factions, this world has the 
 	 *         given faction as one of its factions.
 	 */
-	public void addFaction(@Raw Faction faction) {
-		assert (faction != null) && (faction.getWorld() == this);
+	public void addFaction(@Raw Faction faction) throws IllegalArgumentException {
+		if (faction == null || faction.getWorld() != this || hasAsFaction(faction)) {
+			throw new IllegalArgumentException();
+		}
 		if ((getNbFactions() < World.MAX_FACTIONS) && !hasAsFaction(faction)) {
 			factions.add(faction);
 		}
@@ -666,8 +718,10 @@ public class World {
 	 * @post   This world no longer has the given faction as
 	 *         one of its factions.
 	 */
-	public void removeFaction(Faction faction) {
-		assert faction != null && hasAsFaction(faction) && (faction.getWorld() == null);
+	public void removeFaction(Faction faction) throws IllegalArgumentException {
+		if (faction == null || !hasAsFaction(faction) || faction.getWorld() == this) {
+			throw new IllegalArgumentException();
+		}
 		factions.remove(faction);
 	}
 	
@@ -678,7 +732,8 @@ public class World {
 	 * 
 	 * @return The size of the set of all active units.
 	 */
-	public int getNbUnits() {
+	@Model
+	private int getNbUnits() {
 		return getAllUnits().size();
 	}
 	
@@ -696,6 +751,26 @@ public class World {
 		}
 		return units;
 	}
+	
+	public HashSet<Boulder> getAllBoulders() {
+		HashSet<Boulder> boulders = new HashSet<>();
+		for (Entity entity : getAllEntities()) {
+			if (entity instanceof Boulder) {
+				boulders.add((Boulder) entity); 
+			}
+		}
+		return boulders;
+	}
+	
+	public HashSet<Log> getAllLogs() {
+		HashSet<Log> logs = new HashSet<>();
+		for (Entity entity : getAllEntities()) {
+			if (entity instanceof Log) {
+				logs.add((Log) entity);
+			}
+		}
+		return logs;
+	}
 
 	/**
 	 * Add a randomly initialized unit to this world.
@@ -703,9 +778,10 @@ public class World {
 	 * @effect  
 	 *         a randomly initialized unit is added to this world at a random position.
 	 */
-	public void addUnit() {
+	@Model
+	private void addUnit(boolean enableDefaultBehaviour) {
 		if (!(getNbUnits() >= World.MAX_UNITS)) {
-			addUnit(createRandomUnit());
+			addUnit(createRandomUnit(enableDefaultBehaviour));
 		}
 	}
 	
@@ -730,6 +806,8 @@ public class World {
 			faction.addUnit(unit);
 			unit.setWorld(this);
 			addEntity(unit);
+			faction.setWorld(this);
+			addFaction(faction);
 		}
 	}
 	
@@ -739,13 +817,13 @@ public class World {
 	 * @effect A new unit with random initial attributes and a random initial
 	 *         position is created.
 	 */
-	private Unit createRandomUnit() {
+	public Unit createRandomUnit(boolean enableDefaultBehaviour) {
 		int a = Unit.getMinInitialAttributeValue();
 		int b = Unit.getMaxInitialAttributeValue();
 		int[] position = getSpawnPosition().convertToIntegerArray();
 		return new Unit(position, Unit.getRandomizedName(), Unit.getRandomizedValueBetween(a, b), 
 				Unit.getRandomizedValueBetween(a, b), Unit.getRandomizedValueBetween(a, b), 
-				Unit.getRandomizedValueBetween(a, b), false);
+				Unit.getRandomizedValueBetween(a, b), enableDefaultBehaviour);
 	}
 	
 	/**
@@ -755,7 +833,8 @@ public class World {
 	 *         in this world is not yet reached.
 	 * @return The faction with the smallest number of units attached to it otherwise.
 	 */
-	public Faction getPriorityFaction() {
+	@Model
+	private Faction getPriorityFaction() {
 		Faction fac = null;
 		int nb = Faction.MAX_UNITS;
 		if (getNbFactions() < World.MAX_FACTIONS) {
@@ -905,7 +984,8 @@ public class World {
 	 *         between the borders of this world in the x-, y- and z-direction.
 	 */
 	public boolean isValidPosition(Position position) {
-		return  ((position.x() >= 0 && position.x() < getSizeX()) &&
+		return  (position == null ||
+				(position.x() >= 0 && position.x() < getSizeX()) &&
 				(position.y() >= 0 && position.y() < getSizeY()) &&
 				(position.z() >= 0 && position.z() < getSizeZ()));
 	}
@@ -918,7 +998,8 @@ public class World {
 	 *         The position to search around
 	 * @return A list containing all directly neighbouring (not diagonally) positions of the given position.
 	 */
-	public List<Position> getDirectNeighbours(Position position) {
+	@Model
+	private List<Position> getDirectNeighbours(Position position) {
 		List<Position> neighbours = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {
 			for (int j = -1; j < 2; j++) {
@@ -940,15 +1021,16 @@ public class World {
 	 *         The position to search around.
 	 * @return A list containing all neighbouring (also diagonally) positions of the given position.
 	 */
-	public List<Position> getAllNeighbours(Position position) {
+	@Model
+	private List<Position> getAllNeighbours(Position position) {
 		List<Position> neighbours = new ArrayList<>();
 		for (int i = -1; i < 2; i++) {
 			for (int j = -1; j < 2; j++) {
 				for (int k = -1; k < 2; k++) {
 					if (i != 0 || j != 0 || k != 0) {
-						try {
+						if (isValidPosition(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k))) {
 							neighbours.add(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k));
-						} catch (IllegalArgumentException e) {}
+						}
 					}
 				}
 			}
@@ -964,14 +1046,15 @@ public class World {
 	 *         The position to search around.
 	 * @return A list containing this position and all neighbouring (also diagonally) positions of the given position..
 	 */
-	public List<Position> getAllNeighboursAndSame(Position position) {
+	@Model
+	List<Position> getAllNeighboursAndSame(Position position) {
 		List<Position> neighbours = new ArrayList<>();
 		for (int i = -1; i < 2; i++) {
 			for (int j = -1; j < 2; j++) {
 				for (int k = -1; k < 2; k++) {
-					try {
+					if (isValidPosition(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k))) {
 						neighbours.add(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k));
-					} catch (IllegalArgumentException e) {}
+					}	
 				}
 			}
 		}
@@ -983,7 +1066,8 @@ public class World {
 	 * 
 	 * @return A random position of this world.
 	 */
-	public Position getRandomPosition() {
+	@Model
+	private Position getRandomPosition() {
 		int x = new Random().nextInt(getSizeX());
 		int y = new Random().nextInt(getSizeY());
 		int z = new Random().nextInt(getSizeZ());
@@ -1000,9 +1084,10 @@ public class World {
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid unit position.
 	 */
-	public Position getRandomReachablePositionStartingFrom(Position position) 
+	@Model
+	Position getRandomReachablePositionStartingFrom(Position position) 
 	                    throws IllegalArgumentException {
-		if (!Unit.isValidUnitPosition(position, this)) {
+		if (position == null || !hasSolidNeighbour(position)) {
 			throw new IllegalArgumentException();
 		}
 		Position pos = new Position();
@@ -1040,20 +1125,20 @@ public class World {
 	 *         diagonally) from the given position.
 	 */
 	@Model @Raw
-	public Position getRandomPosition(Position position, int radius) throws IllegalArgumentException {
+	private Position getRandomPosition(Position position, int radius) throws IllegalArgumentException {
 		if (radius < 1) {
 			throw new IllegalArgumentException();
 		}
 		Random random = new Random();
 		Position spot = new Position();
 		while (true) {
-			int multiplier = random.nextInt(radius - 1) + 1;
-			try {
-				for (int i = 0; i < 3; i++) {
-					spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
+			int multiplier = random.nextInt(radius) + 1;
+			for (int i = 0; i < 3; i++) {
+				spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
+				if (isValidPosition(spot)) {
+					return spot;
 				}
-				return spot;
-			} catch (IllegalArgumentException e) {}
+			}
 		}
 	}
 	
@@ -1064,7 +1149,8 @@ public class World {
 	 *         The position to search next to.
 	 * @return A random position of this world in a radius of one around the given position.
 	 */
-	public Position getRandomNeighbouringPosition(Position position) {
+	@Model
+	private Position getRandomNeighbouringPosition(Position position) {
 		return getRandomPosition(position, 1);
 	}
 	
@@ -1076,7 +1162,8 @@ public class World {
 	 *         The position to search next to.
 	 * @return A random neighbouring position that is passable and has a solid neighbour.
 	 */
-	public Position getRandomAccessibleNeighbouringPosition(Position position) {
+	@Model
+	private Position getRandomAccessibleNeighbouringPosition(Position position) {
 		while (true) {
 			Position pos = getRandomNeighbouringPosition(position);
 			if (getAt(pos).isPassable() && hasSolidNeighbour(pos)) {
@@ -1094,7 +1181,8 @@ public class World {
 	 * @return A random accessible neighbouring position that is on the same z-level
 	 *         as the given position.
 	 */
-	public Position getRandomAccessibleNeighbouringPositionOnSameZ(Position position) {
+	@Model
+	Position getRandomAccessibleNeighbouringPositionOnSameZ(Position position) {
 		while (true) {
 			Position pos = getRandomAccessibleNeighbouringPosition(position);
 			if (pos.z() == position.z()) {
@@ -1165,5 +1253,18 @@ public class World {
 		} else {
 			return 1;
 		}
+	}
+	
+	public ArrayList<Entity> getEntitiesAt(Position position, String type) {
+		ArrayList<Entity> entities = new ArrayList<>();
+		
+		if (getAllEntitiesOf(type) != null) {
+			for (Entity entity : getAllEntitiesOf(type)) {
+				if (entity.getPosition().equals(position)) {
+					entities.add(entity);
+				}
+			}
+		}
+		return entities;
 	}
 }

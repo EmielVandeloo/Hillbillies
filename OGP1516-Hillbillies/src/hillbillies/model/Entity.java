@@ -15,10 +15,17 @@ import hillbillies.model.World;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  * @version Final version Part 2: 10/04/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class Entity {
 
 	// FIELDS
+	
+	/**
+	 * Field representing the identification of this entity.
+	 */
+	public static final String ENTITY_ID = "entity";
 	
 	/**
 	 * Variable registering the world of this entity.
@@ -47,7 +54,6 @@ public abstract class Entity {
 	 */
 	private boolean isTerminated;
 
-
 	// CONSTRUCTORS
 
 	/**
@@ -57,37 +63,15 @@ public abstract class Entity {
 	 *         The world for this new entity.
 	 * @param  position
 	 * 		   The position for this new entity.
-	 * @post   The world of this new entity is equal to the given
+	 * @effect The world of this new entity is set to the given
 	 *         world.
 	 * @effect The position of this new entity is set to the given position.
-	 * @throws IllegalArgumentException
-	 *         This new entity cannot have the given world as its world or the given
-	 *         position as its initial position.
 	 */
 	@Raw
 	public Entity(World world, Position position) throws IllegalArgumentException {
-		if (! canHaveAsWorld(world)) {
-			throw new IllegalArgumentException();
-		}
-		
-		this.world = world;
-		setPosition(position);
-	}
-	
-	/**
-	 * Initialize this new entity with given position.
-	 * 
-	 * @param  position
-	 *         The position for this new entity.
-	 * @effect The position of this new entity is set to the given position.
-	 * @throws IllegalArgumentException
-	 *         This new entity cannot have the given position as its initial position.
-	 */
-	@Raw
-	public Entity(Position position) throws IllegalArgumentException {
-		setPosition(position);
-	}
-	
+		setWorld(world);
+		setPosition(position.getCenterPosition());
+	}	
 	
 	// DESTRUCTOR
 	
@@ -139,9 +123,9 @@ public abstract class Entity {
 	 */
 	@Raw
 	void setWorld(World world) throws IllegalArgumentException {
-		if (!canHaveAsWorld(world)) {
-			throw new IllegalArgumentException();
-		}
+//		if (!canHaveAsWorld(world)) {
+//			throw new IllegalArgumentException();
+//		}
 		this.world = world;
 	}
 
@@ -189,27 +173,11 @@ public abstract class Entity {
 	 *  
 	 * @param  position
 	 *         The position to check.
-	 * @param  world
-	 *         The world to check the position in.
-	 * @return False if the position is not a valid position in
-	 *         the given world, or if the given world is not effective.
-	 * @return False if the given position is not passable in the
-	 *         given world.
-	 * @return False if the given position has no underlying solid in the
-	 *         given world.
-	 * @return True otherwise.
+	 * @return True if and only if the given position is not effective or if the given
+	 *         position is a valid position in the world to which this entity is attached.
 	 */
-	public boolean isValidEntityPosition(Position position, World world) {
-		if (!world.isValidPosition(position) || world == null) {
-			return false;
-		}
-		if (!world.getAt(position).isPassable()) {
-			return false;
-		}
-		if (!world.hasUnderlyingSolid(position)) {
-			return false;
-		}
-		return true;
+	public boolean isValidPosition(Position position) {
+		return position == null || getWorld().isValidPosition(position);
 	}
 
 	/**
@@ -225,10 +193,18 @@ public abstract class Entity {
 	 */
 	@Raw
 	public void setPosition(Position position) throws IllegalArgumentException {
-		if (!isValidEntityPosition(position, getWorld())) {
+		if (getWorld() !=  null && !isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
 		this.position = position;
+	}
+
+	/**
+	 * Return whether this entity is currently falling.
+	 */
+	@Basic
+	public boolean isFalling() {
+		return falling;
 	}
 
 	/**
@@ -249,14 +225,6 @@ public abstract class Entity {
 		this.falling = false;
 	}
 
-	/**
-	 * Return whether this entity is currently falling.
-	 */
-	@Basic
-	public boolean isFalling() {
-		return falling;
-	}
-
 	// METHODS
 
 	/**
@@ -267,20 +235,13 @@ public abstract class Entity {
 	 *        state.
 	 */
 	public abstract void advanceTime(double deltaTime);
-
-	/**
-	 * A method to spawn a newly created entity in the game world.
-	 * 
-	 * @param  entity
-	 * 		   The entity to spawn.
-	 * @return True if the operation was successful.
-	 * 		   Problems may occur when the maximum amount of 
-	 * 		   this type was met.
-	 */
-	public abstract void spawn();
 	
-	public String getEntityId() {
-		return getClass().getName();
+	/**
+	 * Return the entity ID of an entity.
+	 */
+	@Basic
+	public static String getEntityId() {
+		return ENTITY_ID;
 	}
 
 	/**
@@ -288,36 +249,18 @@ public abstract class Entity {
 	 * 
 	 * @param  deltaTime
 	 *         The time step by which to execute this entity's fall behaviour.
-	 * @effect If this entity is currently not falling and if it currently has
-	 *         no support, this entity starts falling.
-	 * @effect If this entity is currently falling, its position is updated
-	 *         according to the fall vector. If it reaches ground after this
-	 *         update, the entity stops falling.
+	 * @effect Update the position according to the given time step and the
+	 *         fall vector.
+	 * @effect If this entity has reached ground, the entity stops falling and
+	 *         the position is set to the center position of the cube this entity
+	 *         currently occupies.
 	 */
 	public void fallBehavior(double deltaTime) {
-		if (! isFalling() && hasSupport()) {
-			startFalling();
+	updatePosition(deltaTime, World.FALL_VECTOR);
+	if (hasReachedGround()) {
+		stopFalling();
+		setPosition(getPosition().getCenterPosition());
 		}
-		
-		// TODO Eerder werken met hasSupport.
-
-		if (isFalling()) {
-			updatePosition(deltaTime, World.FALL_VECTOR);
-			if (hasReachedGround()) {
-				stopFalling();
-				setPosition(getPosition().getCenterPosition());
-			}
-		}
-	}
-
-	/**
-	 * A method to check whether this entity has support or not.
-	 * 
-	 * @return True if the cube below the entity is not passable
-	 * 		   or if it is outside the game world.
-	 */
-	public boolean hasSupport() {
-		return ! getWorld().hasUnderlyingSolid(getPosition());
 	}
 
 	/**
@@ -360,6 +303,7 @@ public abstract class Entity {
 			setPosition(updatedPosition);
 		} catch (IllegalArgumentException e) {
 			stopFalling();
+			setPosition(getPosition().getCenterPosition());
 		}
 	}
 	
@@ -368,13 +312,9 @@ public abstract class Entity {
 	 * 
 	 * @param  vector
 	 *         The vector to check.
-	 * @return False if the vector is not effective are is not of length 3.
-	 * @return True otherwise.
+	 * @return True if and only if the given vector is effective and has length 3.
 	 */
 	private static boolean isValidVector(double[] vector) {
-		if (vector == null || vector.length != 3) {
-			return false;
-		} 
-		return true;
+		return (vector != null && vector.length == 3);
 	}
 }

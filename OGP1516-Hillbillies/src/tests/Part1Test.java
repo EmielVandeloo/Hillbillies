@@ -7,6 +7,7 @@ import hillbillies.world.Position;
 
 import org.junit.*;
 
+@Deprecated
 public class Part1Test {
 
 	private static Unit validUnitWithDefault, validUnitWithoutDefault, veryStrongUnit,
@@ -199,26 +200,6 @@ public class Part1Test {
 	
 	// isValidToughness, isValidAttribute, makeValidAttribute tested in setToughness tests.
 	
-	@Test
-	public void isValidNbHitpoints_TrueCase() {
-		assertTrue(validUnitWithDefault.isValidNbHitPoints(validUnitWithDefault.getNbHitPoints()));
-	}
-	
-	@Test
-	public void isValidNbHitpoints_FalseCase() {
-		assertFalse(validUnitWithDefault.isValidNbHitPoints(51));
-	}
-	
-	@Test
-	public void isValidNbStaminaPoints_TrueCase() {
-		assertTrue(validUnitWithDefault.isValidNbStaminaPoints(validUnitWithDefault.getNbStaminaPoints()));
-	}
-	
-	@Test
-	public void isValidNbStaminaPoints_FalseCase() {
-		assertFalse(validUnitWithDefault.isValidNbStaminaPoints(51));
-	}
-	
 	// MOVEMENT
 	
 	@Test
@@ -318,7 +299,7 @@ public class Part1Test {
 		assertFalse(validUnitWithoutDefault.isWorking());
 	}
 	
-	@Test
+	@Test @Deprecated
 	public void work() {
 		validUnitWithoutDefault.work();
 		assertFalse(validUnitWithoutDefault.isMoving());
