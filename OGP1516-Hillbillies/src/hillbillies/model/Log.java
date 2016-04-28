@@ -1,6 +1,7 @@
 package hillbillies.model;
 
 import hillbillies.model.World;
+import be.kuleuven.cs.som.annotate.Basic;
 import hillbillies.model.ItemEntity;
 import hillbillies.world.Position;
 
@@ -20,7 +21,8 @@ public class Log extends ItemEntity {
 	 */
 	public static final String ENTITY_ID = "item_entity:log";
 	
-	public static String getEntityId() {
+	@Override @Basic
+	public String getEntityId() {
 		return ENTITY_ID;
 	}
 	
@@ -49,12 +51,12 @@ public class Log extends ItemEntity {
 	 *         The world to drop a log in.
 	 * @param  position
 	 *         The position to drop a log at.
-	 * @effect If an item entity will be dropped, a new log is spawned
-	 *         in the given world at the given position.
+	 * @effect If an item entity will be dropped, a new log is added
+	 *         to the given world at the given position.
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			new Log(world, position).spawn();
+			world.addEntity(new Log(world, position));
 		}
 	}
 }

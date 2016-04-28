@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
 import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.character.JobStat;
@@ -137,6 +137,8 @@ public class World {
 	 * 		   construct the game world.
 	 * @param  modelListener
 	 * 		   A class to detect terrain changes.
+	 * @post   modelListener is initialized as a new object of the
+	 *         modelListener class. 
 	 * @post   The size of the game world and the type of each cube of
 	 *         the game world is initialized according to the given
 	 *         terrain types.
@@ -144,8 +146,6 @@ public class World {
 	 * @post   This new world has no entities yet.
 	 * @post   border is initialized as a new object of the ConnectedToBorder
 	 *         class.
-	 * @post   modelListener is initialized as a new object of the
-	 *         modelListener class. 
 	 * @effect The world version is set to 0.
 	 * @throws IllegalArgumentException
 	 *         The terrain types are not effective, or the model listener
@@ -157,30 +157,29 @@ public class World {
 	@Raw
 	public World(int[][][] terrainTypes, TerrainChangeListener modelListener) 
 			throws IllegalArgumentException, IndexOutOfBoundsException {
-		
 		if (terrainTypes == null) {
 			throw new IllegalArgumentException();
-		}
-		
-		this.sizeX = terrainTypes.length;
-		this.sizeY = terrainTypes[0].length;
-		this.sizeZ = terrainTypes[0][0].length;
-		
-		setWorldVersion(0);
-		this.world = new Cube[sizeX][sizeY][sizeZ];
-		
-		for (int i = 0; i < sizeX; i++) {
-			for (int j = 0; j < sizeY; j++) {
-				for (int k = 0; k < sizeZ; k++) {
-					this.world[i][j][k] = Cube.byId(terrainTypes[i][j][k]);
-				}
-			}
 		}
 		if (modelListener == null) {
 			throw new IllegalArgumentException();
 		}
-		this.border = new ConnectedToBorder(sizeX, sizeY, sizeZ);
 		this.modelListener = modelListener;
+		this.sizeX = terrainTypes.length;
+		this.sizeY = terrainTypes[0].length;
+		this.sizeZ = terrainTypes[0][0].length;
+		setWorldVersion(0);
+		this.world = new Cube[sizeX][sizeY][sizeZ];
+		this.border = new ConnectedToBorder(sizeX, sizeY, sizeZ);
+		for (int i = 0; i < sizeX; i++) {
+			for (int j = 0; j < sizeY; j++) {
+				for (int k = 0; k < sizeZ; k++) {
+					this.world[i][j][k] = Cube.byId(terrainTypes[i][j][k]);
+					if (getAt(new Position(i,j,k)).isPassable()) {
+						border.changeSolidToPassable(i,j,k);
+					}
+				}
+			}
+		}
 	}
 	
 	/**
@@ -207,7 +206,7 @@ public class World {
 				for (Entity entity : entityType) {
 					if (entity instanceof Unit) {
 						((Unit) entity).terminate();
-					} else{
+					} else {
 						entity.terminate();
 					}
 				}
@@ -220,7 +219,7 @@ public class World {
 	/**
 	 * Return the number of cubes in the x-direction.
 	 */
-	@Basic
+	@Basic @Immutable
 	public int getSizeX() {
 		return this.sizeX;
 	}
@@ -228,7 +227,7 @@ public class World {
 	/**
 	 * Return the number of cubes in the y-direction.
 	 */
-	@Basic
+	@Basic @Immutable
 	public int getSizeY() {
 		return this.sizeY;
 	}
@@ -236,7 +235,7 @@ public class World {
 	/**
 	 * Return the number of cubes in the z-direction.
 	 */
-	@Basic
+	@Basic @Immutable
 	public int getSizeZ() {
 		return this.sizeZ;
 	}
@@ -275,6 +274,9 @@ public class World {
 		setWorldVersion(getWorldVersion() + 1);
 	}
 	
+	/**
+	 * Return an object of the ConnectedToBorder class.
+	 */
 	public ConnectedToBorder getBorder() {
 		return this.border;
 	}
@@ -285,8 +287,15 @@ public class World {
 	 * @param  position
 	 *         The position to retrieve the cube type of.
 	 * @return The cube type of this world at the given position.
+	 * @throws IllegalArgumentException
+	 *         The given position is not effective or not a valid position.
 	 */
 	public Cube getAt(Position position) {
+		if (position == null) {
+			throw new IllegalArgumentException();
+		} else if (! isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
 		int[] coord = position.convertToIntegerArray();
 		return world[coord[0]][coord[1]][coord[2]];
 	}
@@ -302,8 +311,17 @@ public class World {
 	 * @effect The world version is updated.
 	 * @effect The model listener is notified that the cube type has changed at the
 	 *         given position.
+	 * @throws IllegalArgumentException
+	 *         The given position or the given cube are not effective.
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position.
 	 */
 	public void setAt(Position position, Cube cube) {
+		if (position == null || cube == null) {
+			throw new IllegalArgumentException();
+		} else if (! isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
 		Coordinate coord = position.convertToCoordinate();
 		world[coord.x()][coord.y()][coord.z()] = cube;
 		updateWorldVersion();
@@ -324,6 +342,7 @@ public class World {
 	 *         The given position or the given cube is not effective, the given cube type
 	 *         is air or the current cube type at the given position is not air.
 	 */
+	// Not used
 	public void place(Position position, Cube cube) throws IllegalArgumentException {
 		if (position == null || cube == null) {
 			throw new IllegalArgumentException();
@@ -365,7 +384,11 @@ public class World {
 	 *         air or of type workshop.
 	 */
 	public boolean isPassable(Position position) {
-		return getAt(position).isPassable();
+		try {
+			return getAt(position).isPassable();
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	/**
@@ -377,7 +400,7 @@ public class World {
 	 * @effect The given time step is added to the game time.
 	 * @effect For each entity in the list of all entities, do:
 	 * @effect If the entity is not a unit, and if the entity is falling
-	 *         or has no underlying solid cube, its fall behaviour is executed.
+	 *         or has no underlying solid cube, its fall behavior is executed.
 	 * @effect Otherwise, if the check if the unit has to rest because three
 	 *         minutes have passed yields true, the entity rests, whereafter
 	 *         the entity's state is advanced by the given time step.
@@ -385,7 +408,6 @@ public class World {
 	public void advanceTime(double deltaTime) {
 		makeValidDeltaTime(deltaTime);
 		gameTime = gameTime.add(new BigDecimal(deltaTime));
-		
 		for (Entity entity : getAllEntities()) {
 			if (!entity.isTerminated()) {
 				if (!(entity instanceof Unit)) {
@@ -408,9 +430,9 @@ public class World {
 	 * @param deltaTime
 	 *        The time step to control
 	 * @post  If the given time step is negative, the time step is
-	 *        set to zero.
-	 *      | if (deltaTime < 0)
-	 *      |   then deltaTime = 0
+	 *        set to a value greater than zero.
+	 *      | if (deltaTime <= 0)
+	 *      |   then deltaTime > 0
 	 * @post  If the given time step is greater than 0.2, the time
 	 *        step is set to 0.2.
 	 *      | if (deltaTime > 0.2)
@@ -450,10 +472,7 @@ public class World {
 	private boolean checkThreeMinuteRest(double deltaTime) {
 		JobStat.BigDec1 = gameTime.remainder(JobStat.THREEMINUTEREST);
 		JobStat.BigDec2 = gameTime.add(new BigDecimal(deltaTime)).remainder(JobStat.THREEMINUTEREST);
-		if (JobStat.BigDec1.compareTo(JobStat.BigDec2) > 0) {
-			return true;
-		}
-		return false;
+		return (JobStat.BigDec1.compareTo(JobStat.BigDec2) > 0);
 	}
 
 	// ENTITY METHODS
@@ -469,9 +488,8 @@ public class World {
 	 */
 	public boolean hasAsEntity(@Raw Entity entity) {
 		try {
-			getList(entity).contains(entity);
-		} catch (IllegalArgumentException e) {}
-		return false;
+			return getList(entity).contains(entity);
+		} catch (NullPointerException e) {return false;}
 	}
 
 	/**
@@ -523,10 +541,18 @@ public class World {
 		return getAllEntities().size();
 	}
 	
+	/**
+	 * Return the number of entities of a given type.
+	 * 
+	 * @param  type
+	 *         The entity type to search for.
+	 * @return The size of the list of entities of the given type. Zero if no
+	 *         such entities exist.
+	 */
 	@Model
 	private int getNbEntitiesOf(String type) {
 		if (entities.containsKey(type)) {
-			return getList(type).size();
+			return getAllEntitiesOf(type).size();
 		} else {
 			return 0;
 		}
@@ -546,7 +572,8 @@ public class World {
 	}
 	
 	/**
-	 * Return all active entities in this world.
+	 * Return all active entities in this world of the given type. Null is
+	 * returned if no such type exists.
 	 */
 	public HashSet<Entity> getAllEntitiesOf(String type) {
 		if (! entities.containsKey(type)) {
@@ -561,26 +588,27 @@ public class World {
 	 * 
 	 * @param  entity
 	 *         The entity to be added.
-	 * @pre    The given entity is effective and already references
-	 *         this world.
-	 * @post   If the given entity is of unit type, and the maximum number
-	 *         of active units in this world is not yet reached, this world
-	 *         has the given entity as one of its entities.
-	 * @post   If the given entity isn't already registered in this world,
-	 *         this world has the given entity as one of its entities.
+	 * @post   If the maximum number of entities of the given entity type is not yet
+	 *         reached and this world doesn't reference the given entity as one of its
+	 *         entities, the world references the given entity as one of its entities.
+	 * @throws IllegalArgumentException
+	 *         The given entity is not effective or it doesn't reference this
+	 *         world as the world to which it is attached.
 	 */
 	public void addEntity(@Raw Entity entity) throws IllegalArgumentException {
 		if (entity == null || entity.getWorld() != this) {
 			throw new IllegalArgumentException();
 		}
 		try { 
-			if (getNbEntitiesOf(Entity.getEntityId()) >= entity.maxEntities) {
+			if (getNbEntitiesOf(entity.getEntityId()) >= entity.MAX_ENTITIES) {
+				return;
+			} else if (entity instanceof Unit && getNbEntitiesOf(Unit.ENTITY_ID) >= MAX_UNITS) {
 				return;
 			} else if (! hasAsEntity(entity)) {
 				getList(entity).add(entity);
 			}
 		} catch (NullPointerException e) {
-			entities.put(Entity.getEntityId(), new HashSet<Entity>());
+			entities.put(entity.getEntityId(), new HashSet<Entity>());
 			getList(entity).add(entity);
 		}
 	}
@@ -590,17 +618,16 @@ public class World {
 	 * 
 	 * @param  entity
 	 *         The entity to be removed.
-	 * @pre    This world has the given entity as one of
-	 *         its entities, and the given entity does not
-	 *         reference any world.
 	 * @post   This world no longer has the given entity as
 	 *         one of its entities.
+	 * @throws This world doesn't have the given entity as one of its entities
+	 *         or the given entity doesn't reference this world as its world.
 	 */
 	public void removeEntity(Entity entity) throws IllegalArgumentException {
-//		if (!hasAsEntity(entity) || entity.getWorld() == this) {
-//			throw new IllegalArgumentException();
-//		}
-		entities.remove(entity);
+		if (!hasAsEntity(entity) || entity.getWorld() == this) {
+			throw new IllegalArgumentException();
+		}
+		getList(entity).remove(entity);
 	}
 	
 	/**
@@ -612,12 +639,28 @@ public class World {
 	 */
 	@Model
 	private HashSet<Entity> getList(Entity entity) {
-		return entities.get(Entity.getEntityId());
+		return entities.get(entity.getEntityId());
 	}
-
-	@Model
-	private HashSet<Entity> getList(String type) {
-		return entities.get(type);
+	
+	/**
+	 * Return all entities of the given type at the given position.
+	 * 
+	 * @param  position
+	 *         The position to search entities at.
+	 * @param  type
+	 *         The type to search entities of.
+	 * @return A list of all entities of the given type at the given position.
+	 */
+	public ArrayList<Entity> getEntitiesAt(Position position, String type) {
+		ArrayList<Entity> entities = new ArrayList<>();
+		if (getAllEntitiesOf(type) != null) {
+			for (Entity entity : getAllEntitiesOf(type)) {
+				if (entity.getPosition().getCubePosition().equals(position)) {
+					entities.add(entity);
+				}
+			}
+		}
+		return entities;
 	}
 
 	// FACTION-METHODS
@@ -643,7 +686,7 @@ public class World {
 	 * @param  faction
 	 *         The faction to check.
 	 * @return True if and only if the given faction is effective
-	 *         and that faction is a valid faction for any world.
+	 *         and that faction can have this world as its world.
 	 */
 	@Model
 	private boolean canHaveAsFaction(Faction faction) {
@@ -691,12 +734,14 @@ public class World {
 	 * 
 	 * @param  faction
 	 *         The faction to be added.
-	 * @pre    The given faction is effective and already references
-	 *         this world.
 	 * @post   If the maximum number of active factions in this world is
 	 *         not yet reached, and if this world doesn't reference the
 	 *         given faction as one of its factions, this world has the 
 	 *         given faction as one of its factions.
+	 * @throws IllegalArgumentException
+	 *         The given faction is not effective, or the world to which the
+	 *         given faction is attached is not equal to this world, or this
+	 *         world already references the given faction as one of its factions.
 	 */
 	public void addFaction(@Raw Faction faction) throws IllegalArgumentException {
 		if (faction == null || faction.getWorld() != this || hasAsFaction(faction)) {
@@ -712,11 +757,12 @@ public class World {
 	 * 
 	 * @param  faction
 	 *         The faction to be removed.
-	 * @pre    This world has the given faction as one of
-	 *         its factions, the given faction does not
-	 *         reference any world and the faction is effective.
 	 * @post   This world no longer has the given faction as
 	 *         one of its factions.
+	 * @throws IllegalArgumentException
+	 *         The given faction is not effective, or this world doesn't reference
+	 *         the given faction as one of its factions, or the given faction still
+	 *         references this world as the world to which it is attached.
 	 */
 	public void removeFaction(Faction faction) throws IllegalArgumentException {
 		if (faction == null || !hasAsFaction(faction) || faction.getWorld() == this) {
@@ -752,6 +798,11 @@ public class World {
 		return units;
 	}
 	
+	/**
+	 * Return all boulders of this world.
+	 * 
+	 * @return A set collecting all boulders of this world.
+	 */
 	public HashSet<Boulder> getAllBoulders() {
 		HashSet<Boulder> boulders = new HashSet<>();
 		for (Entity entity : getAllEntities()) {
@@ -762,6 +813,11 @@ public class World {
 		return boulders;
 	}
 	
+	/**
+	 * Return all logs of this world.
+	 * 
+	 * @return A set collecting all logs of this world.
+	 */
 	public HashSet<Log> getAllLogs() {
 		HashSet<Log> logs = new HashSet<>();
 		for (Entity entity : getAllEntities()) {
@@ -798,6 +854,11 @@ public class World {
 	 *         the given unit references this world as its world.
 	 * @effect If the maximum number of active units in this world is not yet reached,
 	 *         the given unit is added as an active entity of this world.
+	 * @effect If the maximum number of active units in this world is not yet reached,
+	 *         the priority faction references this world as the world to which it is attached.
+	 * @effect If the maximum number of active units in this world is not yet reached,
+	 *         and if this world doesn't reference the priority faction as one of its factions, 
+	 *         this world has the priority factions as one of its factions.
 	 */
 	public void addUnit(@Raw Unit unit) {
 		if (!(getNbUnits() >= World.MAX_UNITS)) {
@@ -807,23 +868,27 @@ public class World {
 			unit.setWorld(this);
 			addEntity(unit);
 			faction.setWorld(this);
-			addFaction(faction);
+			if (!hasAsFaction(faction)) {
+				addFaction(faction);
+			}
 		}
 	}
 	
 	/**
 	 * Initialize a unit with random initial attributes.
 	 * 
+	 * @param  enableDefaultBehavior
+	 *         Whether or not the default behavior of the new unit is enabled.
 	 * @effect A new unit with random initial attributes and a random initial
 	 *         position is created.
 	 */
-	public Unit createRandomUnit(boolean enableDefaultBehaviour) {
+	public Unit createRandomUnit(boolean enableDefaultBehavior) {
 		int a = Unit.getMinInitialAttributeValue();
 		int b = Unit.getMaxInitialAttributeValue();
 		int[] position = getSpawnPosition().convertToIntegerArray();
 		return new Unit(position, Unit.getRandomizedName(), Unit.getRandomizedValueBetween(a, b), 
 				Unit.getRandomizedValueBetween(a, b), Unit.getRandomizedValueBetween(a, b), 
-				Unit.getRandomizedValueBetween(a, b), enableDefaultBehaviour);
+				Unit.getRandomizedValueBetween(a, b), enableDefaultBehavior);
 	}
 	
 	/**
@@ -859,7 +924,7 @@ public class World {
 	private List<Position> getAllPositions() {
 		List<Position> allPositions = new ArrayList<Position>();
 		for (int x=0; x<getSizeX(); x++) {
-			for (int y=0; x<getSizeY(); y++) {
+			for (int y=0; y<getSizeY(); y++) {
 				for (int z=0; z<getSizeZ(); z++) {
 					Position pos = new Position(x,y,z);
 					allPositions.add(pos);
@@ -1135,9 +1200,9 @@ public class World {
 			int multiplier = random.nextInt(radius) + 1;
 			for (int i = 0; i < 3; i++) {
 				spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
-				if (isValidPosition(spot)) {
-					return spot;
 				}
+			if (isValidPosition(spot)) {
+				return spot;
 			}
 		}
 	}
@@ -1185,7 +1250,7 @@ public class World {
 	Position getRandomAccessibleNeighbouringPositionOnSameZ(Position position) {
 		while (true) {
 			Position pos = getRandomAccessibleNeighbouringPosition(position);
-			if (pos.z() == position.z()) {
+			if (pos.getCenterPosition().z() == position.getCenterPosition().z()) {
 				return pos;
 			}
 		}
@@ -1225,15 +1290,8 @@ public class World {
 	 *         cube. Else, true if and only if the underlying cube is not passable.
 	 */
 	public boolean hasUnderlyingSolid(Position position) {
-		if (getAllNeighbours(position).size() < 26) {
-			if (!isValidPosition(position.add(Position.Z, -1))) {
-				return true;
-			}
-		}
-		if (!getAt(position.add(Position.Z, -1)).isPassable()) {
-			return true;
-		}
-		return false;
+		return (!isValidPosition(position.add(Position.Z, -1)) ||
+				!getAt(position.add(Position.Z, -1)).isPassable());
 	}
 	
 	/**
@@ -1253,18 +1311,5 @@ public class World {
 		} else {
 			return 1;
 		}
-	}
-	
-	public ArrayList<Entity> getEntitiesAt(Position position, String type) {
-		ArrayList<Entity> entities = new ArrayList<>();
-		
-		if (getAllEntitiesOf(type) != null) {
-			for (Entity entity : getAllEntitiesOf(type)) {
-				if (entity.getPosition().equals(position)) {
-					entities.add(entity);
-				}
-			}
-		}
-		return entities;
 	}
 }

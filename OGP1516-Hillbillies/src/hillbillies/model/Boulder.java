@@ -1,5 +1,6 @@
 package hillbillies.model;
 
+import be.kuleuven.cs.som.annotate.Basic;
 import hillbillies.model.ItemEntity;
 import hillbillies.world.Position;
 
@@ -19,7 +20,8 @@ public class Boulder extends ItemEntity {
 	 */
 	public static final String ENTITY_ID = "item_entity:boulder";
 	
-	public static String getEntityId() {
+	@Override @Basic
+	public String getEntityId() {
 		return ENTITY_ID;
 	}
 	
@@ -48,12 +50,12 @@ public class Boulder extends ItemEntity {
 	 *         The world to drop a boulder in.
 	 * @param  position
 	 *         The position to drop a boulder at.
-	 * @effect If an item entity will be dropped, a new boulder is spawned
-	 *         in the given world at the given position.
+	 * @effect If an item entity will be dropped, a new boulder is added
+	 *         to the given world at the given position.
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			new Boulder(world, position).spawn();
+			world.addEntity(new Boulder(world, position));
 		}
 	}
 }

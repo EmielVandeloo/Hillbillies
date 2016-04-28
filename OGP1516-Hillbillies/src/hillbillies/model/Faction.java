@@ -214,15 +214,12 @@ public class Faction {
 	public static String getRandomizedName() {
 		Random random = new Random();
 		String name = "The ";
-
 		String[] adjectives = {"drunken", "lovely", "monstrous", "different", "basic", "western",
 				"agressive", "bureaucratic", "invisible", "tiny", "national", "amazing"};
 		name += adjectives[random.nextInt(adjectives.length)];
-
 		String[] nouns = {"athletics", "mathematicians", "knights", "fathers", "force", "collective",
 				"democrats", "admireres", "drunks", "dwarves", "faction", "abominations"};
 		name += nouns[random.nextInt(nouns.length)];
-
 		return name;
 	}
 

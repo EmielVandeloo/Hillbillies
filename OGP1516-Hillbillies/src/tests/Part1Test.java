@@ -38,8 +38,8 @@ public class Part1Test {
 		assertEquals(50, validUnitWithDefault.getWeight());
 		assertEquals(50, validUnitWithDefault.getToughness());
 		assertTrue(validUnitWithDefault.getPosition().equals(new Position(5.5,5.5,5.5)));
-		assertTrue(validUnitWithDefault.doesDefaultBehaviour());
-		assertFalse(validUnitWithoutDefault.doesDefaultBehaviour());
+		assertTrue(validUnitWithDefault.doesDefaultBehavior());
+		assertFalse(validUnitWithoutDefault.doesDefaultBehavior());
 		assertEquals(50, validUnitWithDefault.getNbHitPoints());
 		assertEquals(50, validUnitWithDefault.getNbStaminaPoints());
 	}
@@ -375,9 +375,9 @@ public class Part1Test {
 	@Test
 	public void startStopDefaultBehaviour() {
 		validUnitWithDefault.startDefaultBehaviour();
-		assertTrue(validUnitWithDefault.doesDefaultBehaviour());
+		assertTrue(validUnitWithDefault.doesDefaultBehavior());
 		validUnitWithDefault.stopDefaultBehaviour();
-		assertFalse(validUnitWithDefault.doesDefaultBehaviour());
+		assertFalse(validUnitWithDefault.doesDefaultBehavior());
 	}
 	
 	@Test

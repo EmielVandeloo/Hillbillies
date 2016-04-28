@@ -47,7 +47,7 @@ public abstract class Entity {
 	 * Variable registering the maximal amount of this
 	 * type allowed in the game world.
 	 */
-	public final int maxEntities = Integer.MAX_VALUE;
+	public final int MAX_ENTITIES = Integer.MAX_VALUE;
 	
 	/**
 	 * Variable registering whether this entity is terminated.
@@ -57,7 +57,7 @@ public abstract class Entity {
 	// CONSTRUCTORS
 
 	/**
-	 * Initialize this new entity with given world.
+	 * Initialize this new entity with given world and given position.
 	 * 
 	 * @param  world
 	 *         The world for this new entity.
@@ -122,10 +122,7 @@ public abstract class Entity {
 	 *         to which it is attached.
 	 */
 	@Raw
-	void setWorld(World world) throws IllegalArgumentException {
-//		if (!canHaveAsWorld(world)) {
-//			throw new IllegalArgumentException();
-//		}
+	public void setWorld(World world) throws IllegalArgumentException {
 		this.world = world;
 	}
 
@@ -240,15 +237,15 @@ public abstract class Entity {
 	 * Return the entity ID of an entity.
 	 */
 	@Basic
-	public static String getEntityId() {
+	public String getEntityId() {
 		return ENTITY_ID;
 	}
 
 	/**
-	 * Execute the fall behaviour of this entity according to the given time step.
+	 * Execute the fall behavior of this entity according to the given time step.
 	 * 
 	 * @param  deltaTime
-	 *         The time step by which to execute this entity's fall behaviour.
+	 *         The time step by which to execute this entity's fall behavior.
 	 * @effect Update the position according to the given time step and the
 	 *         fall vector.
 	 * @effect If this entity has reached ground, the entity stops falling and
@@ -256,10 +253,11 @@ public abstract class Entity {
 	 *         currently occupies.
 	 */
 	public void fallBehavior(double deltaTime) {
-	updatePosition(deltaTime, World.FALL_VECTOR);
-	if (hasReachedGround()) {
-		stopFalling();
-		setPosition(getPosition().getCenterPosition());
+		startFalling();
+		updatePosition(deltaTime, World.FALL_VECTOR);
+		if (hasReachedGround()) {
+			stopFalling();
+			setPosition(getPosition().getCenterPosition());
 		}
 	}
 
@@ -271,11 +269,8 @@ public abstract class Entity {
 	 *         underlying solid in the world to which this entity is attached.
 	 */
 	private boolean hasReachedGround() {
-		if ((getPosition().z() % 1) > 0 && (getPosition().z() % 1) < 0.5 && 
-			 getWorld().hasUnderlyingSolid(getPosition())) {
-			return true;
-		}
-		return false;
+		return (getPosition().z() % 1) > 0 && (getPosition().z() % 1) < 0.5 && 
+			 getWorld().hasUnderlyingSolid(getPosition());
 	}
 
 	/**

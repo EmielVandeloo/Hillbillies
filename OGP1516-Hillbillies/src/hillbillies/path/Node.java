@@ -11,9 +11,8 @@ import hillbillies.world.Coordinate;
  * @invar  The gCost of each Node must be a valid gCost for any
  *         Node.
  *       | isValidGCost(getGCost())
- **@invar  The hCost of each Node must be a valid hCost for any
- *         Node.
- *       | isValidHCost(getHCost())
+ * @invar  Each node can have its fCost as fCost.
+ *       | canHaveAsFCost(this.getFCost())
  *       
  * @author Pieter-Jan
  */
@@ -27,18 +26,16 @@ public class Node implements Comparable<Node> {
 	private final Coordinate coordinate;
 
 	/**
-	 * Variable registering the hCost of this Node.
+	 * Variable registering the fCost of this node.
 	 */
-	private double hCost = Double.POSITIVE_INFINITY;
+	private double fCost = Double.POSITIVE_INFINITY;
 
 	/**
 	 * Variable registering the gCost of this Node.
 	 */
 	private double gCost = Double.POSITIVE_INFINITY;
 
-
 	// CONSTRUCTOR
-
 
 	/**
 	 * Initialize this new node with given coordinate.
@@ -63,9 +60,7 @@ public class Node implements Comparable<Node> {
 		this.coordinate = coordinate;
 	}
 
-
 	// GETTERS AND SETTERS
-
 
 	/**
 	 * Return the coordinate of this node.
@@ -89,47 +84,6 @@ public class Node implements Comparable<Node> {
 	}
 
 	/**
-	 * Return the hCost of this Node.
-	 */
-	@Basic @Raw
-	public double getHCost() {
-		return this.hCost;
-	}
-
-	/**
-	 * Check whether the given hCost is a valid hCost for
-	 * any Node.
-	 *  
-	 * @param  hCost
-	 *         The hCost to check.
-	 * @return 
-	 *       | result == (hCost >= 0)
-	 */
-	public static boolean isValidHCost(double hCost) {
-		return (hCost >= 0);
-	}
-
-	/**
-	 * Set the hCost of this Node to the given hCost.
-	 * 
-	 * @param  hCost
-	 *         The new hCost for this Node.
-	 * @post   The hCost of this new Node is equal to
-	 *         the given hCost.
-	 *       | new.getHCost() == hCost
-	 * @throws IllegalArgumentException
-	 *         The given hCost is not a valid hCost for any
-	 *         Node.
-	 *       | ! isValidHCost(getHCost())
-	 */
-	@Raw
-	public void setHCost(double hCost) throws IllegalArgumentException {
-		if (! isValidHCost(hCost))
-			throw new IllegalArgumentException();
-		this.hCost = hCost;
-	}
-
-	/**
 	 * Return the gCost of this Node.
 	 */
 	@Basic @Raw
@@ -144,7 +98,7 @@ public class Node implements Comparable<Node> {
 	 * @param  gCost
 	 *         The gCost to check.
 	 * @return 
-	 *       | result == (gCost > 0)
+	 *       | result == (gCost >= 0)
 	 */
 	public static boolean isValidGCost(double gCost) {
 		return (gCost >= 0);
@@ -169,18 +123,53 @@ public class Node implements Comparable<Node> {
 			throw new IllegalArgumentException();
 		this.gCost = gCost;
 	}
+	
+	/**
+	 * Return the fCost of this node.
+	 */
+	@Basic @Raw @Immutable
+	public double getFCost() {
+		return this.fCost;
+	}
 
+	/**
+	 * Set the fCost of this Node to the given fCost.
+	 * 
+	 * @param  fCost
+	 *         The new fCost for this Node.
+	 * @post   The gCost of this new Node is equal to
+	 *         the given fCost.
+	 *       | new.getFCost() == fCost
+	 * @throws IllegalArgumentException
+	 *         The given gCost is not a valid fCost for any
+	 *         Node.
+	 *       | ! isValidFCost(getFCost())
+	 */
+	@Raw
+	public void setFCost(double fCost) throws IllegalArgumentException {
+		if (! isValidGCost(fCost))
+			throw new IllegalArgumentException();
+		this.fCost = fCost;
+	}
+
+	/**
+	 * Check whether this node can have the given fCost as its fCost.
+	 *  
+	 * @param  fCost
+	 *         The fCost to check.
+	 * @return 
+	 *       | result == (fCost >= 0)
+	 */
+	@Raw
+	public boolean canHaveAsFCost(double fCost) {
+		return (fCost >= 0);
+	}
 
 	// METHODS
-
-	public double getFCost() {
-		return getGCost() + getHCost();
-	}
 
 	public static double getDistanceBetween(Node start, Node end) {
 		return Coordinate.getDistance(start.getCoordinate(), end.getCoordinate());
 	}
-
 
 	// OVERRIDE
 
@@ -196,15 +185,15 @@ public class Node implements Comparable<Node> {
 	}
 
 	@Override
+	public String toString() {
+		return "Node\n  " + coordinate + ",\n  fCost=" + fCost;
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((coordinate == null) ? 0 : coordinate.hashCode());
-		long temp;
-		temp = Double.doubleToLongBits(gCost);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(hCost);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
 
@@ -229,10 +218,4 @@ public class Node implements Comparable<Node> {
 		}
 		return true;
 	}
-
-	@Override
-	public String toString() {
-		return "Node [coordinate=" + coordinate + ", hCost=" + hCost + ", gCost=" + gCost + "]";
-	}	
-
 }

@@ -6,10 +6,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import hillbillies.model.Boulder;
 import hillbillies.model.Entity;
 import hillbillies.model.Faction;
@@ -131,13 +129,12 @@ public class WorldTest {
 	public void getAllEntitiesOf_EntitiesExist() {
 		Set<Entity> entitySet = new HashSet<>();
 		entitySet.add(randomUnit);
-		assertEquals(entitySet, world.getAllEntitiesOf(Unit.getEntityId()));
+		assertEquals(entitySet, world.getAllEntitiesOf(Unit.ENTITY_ID));
 	}
 	
 	@Test
 	public void getAllEntitiesOf_EntityDoesNotExist() {
-		Set<Entity> entitySet = new HashSet<>();
-		assertEquals(entitySet, world.getAllEntitiesOf(Boulder.getEntityId()));
+		assertNull(world.getAllEntitiesOf(Boulder.ENTITY_ID));
 	}
 	
 	@Test
@@ -149,6 +146,7 @@ public class WorldTest {
 	
 	@Test
 	public void removeEntity_PossibleCase() {
+		randomUnit.setWorld(null);
 		world.removeEntity(randomUnit);
 		assertFalse(world.hasAsEntity(randomUnit));
 	}
@@ -156,6 +154,29 @@ public class WorldTest {
 	@Test (expected=IllegalArgumentException.class)
 	public void removeEntity_ImpossibleCase() {
 		world.removeEntity(new Boulder(world, new Position(0,0,0)));
+	}
+	
+	@Test
+	public void getEntitiesAt_ExistsEntity() {
+		List<Entity> entities = new ArrayList<>();
+		entities.add(randomUnit);
+		assertEquals(entities, world.getEntitiesAt(new Position(0,0,0), Unit.ENTITY_ID));
+	}
+	
+	@Test
+	public void getEntitiesAt_ExistsNoEntity() {
+		List<Entity> entities = new ArrayList<>();
+		assertEquals(entities, world.getEntitiesAt(new Position(0,0,0), Log.ENTITY_ID));
+	}
+	
+	@Test
+	public void hasAsFaction() {
+		assertTrue(world.hasAsFaction(randomUnit.getFaction()));
+	}
+	
+	@Test
+	public void getNbFactions() {
+		assertEquals((int) 1, (int) world.getNbFactions(), 0);
 	}
 	
 	@Test
@@ -216,11 +237,11 @@ public class WorldTest {
 		assertTrue(unit.getWorld() == world);
 	}
 	
-//	@Test
-//	public void createRandomUnit() {
-//		Unit unit = world.createRandomUnit(true);
-//		assertTrue(unit.doesDefaultBehaviour());
-//	}
+	@Test
+	public void createRandomUnit() {
+		Unit unit = world.createRandomUnit(true);
+		assertTrue(unit.doesDefaultBehavior());
+	}
 	
 	@Test
 	public void isValidPosition_TrueCase() {
@@ -237,15 +258,15 @@ public class WorldTest {
 		assertFalse(world.isValidPosition(new Position(-1,0,0)));
 	}
 	
-//	@Test
-//	public void existsPathBetween_TrueCase() {
-//		assertTrue(world.existsPathBetween(new Position(0,0,0), new Position(2,0,0)));
-//	}
+	@Test
+	public void existsPathBetween_TrueCase() {
+		assertTrue(world.existsPathBetween(new Position(0,0,0), new Position(2,0,0)));
+	}
 	
-//	@Test
-//	public void existsPathBetween_FalseCase() {
-//		assertFalse(world.existsPathBetween(new Position(0,0,0), new Position(3,3,3)));
-//	}
+	@Test
+	public void existsPathBetween_FalseCase() {
+		assertFalse(world.existsPathBetween(new Position(0,0,0), new Position(3,3,3)));
+	}
 	
 	@Test
 	public void hasSolidNeighbour_TrueCase() {
@@ -265,18 +286,5 @@ public class WorldTest {
 	@Test
 	public void hasUnderlyingSolid_FalseCase() {
 		assertFalse(world.hasUnderlyingSolid(new Position(1,1,4)));
-	}
-	
-	@Test
-	public void getEntitiesAt_ExistsEntity() {
-		List<Entity> entities = new ArrayList<>();
-		entities.add(randomUnit);
-		assertEquals(entities, world.getEntitiesAt(new Position(0,0,0), Unit.getEntityId()));
-	}
-	
-	@Test
-	public void getEntitiesAt_ExistsNoEntity() {
-		List<Entity> entities = new ArrayList<>();
-		assertEquals(entities, world.getEntitiesAt(new Position(0,0,0), Log.getEntityId()));
 	}
 }

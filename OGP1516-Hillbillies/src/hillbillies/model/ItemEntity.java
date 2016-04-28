@@ -63,7 +63,7 @@ public abstract class ItemEntity extends Entity {
 	 * @throws IllegalArgumentException
 	 *         This new item entity cannot have the given weight as its weight.
 	 */
-	public ItemEntity(World world, Position position, int weight) throws IllegalArgumentException {
+	private ItemEntity(World world, Position position, int weight) throws IllegalArgumentException {
 		super(world, position);
 		if (!canHaveAsWeight(weight)) {
 			throw new IllegalArgumentException();
@@ -152,8 +152,8 @@ public abstract class ItemEntity extends Entity {
 	/**
 	 * Advance the state of this item entity by the given time step.
 	 * 
-	 * @param deltaTime
-	 *        The time step, in seconds, by which to advance this item entity's state.
+	 * @param  deltaTime
+	 *         The time step, in seconds, by which to advance this item entity's state.
 	 * @effect If this item entity is currently falling, its fall behaviour is performed.
 	 * @effect Otherwise, if this item entity cannot stand on its current position, its
 	 *         fall behaviour is performed.
@@ -165,30 +165,4 @@ public abstract class ItemEntity extends Entity {
 			fallBehavior(deltaTime);
 		}
 	}
-
-	/**
-	 * Spawn this item entity in its world.
-	 * 
-	 * @effect This item entity is added to its world.
-	 */
-	public void spawn() {
-		getWorld().addEntity(this);
-	}
-	
-	/**
-	 * Despawn this item entity from its world.
-	 * 
-	 * @effect This item entity is removed from its world.
-	 */
-	public void despawn() {
-		getWorld().removeEntity(this);
-	}
-
-	/**
-	 * 
-	 */
-	public static void drop(World world, Position position) {}
-	
-	// TODO Hashcode and equals.
-	
 }

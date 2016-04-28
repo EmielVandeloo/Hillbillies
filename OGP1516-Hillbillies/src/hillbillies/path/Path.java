@@ -1,28 +1,30 @@
 package hillbillies.path;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import hillbillies.world.Position;
 
 public class Path {
 
-	private LinkedList<Position> path;
-	private final int worldVersion;
+	private ArrayList<Position> path;
+	private int worldVersion;
 
 	public Path(int worldVersion) {
 		this.worldVersion = worldVersion;
 	}
 
-	public Path(LinkedList<Position> path, int worldVersion) {
+	public Path(ArrayList<Position> path, int worldVersion) {
 		this.path = path;
 		this.worldVersion = worldVersion;
 	}
 
 	public Position popNextPosition() {
-		if (path.isEmpty()) {
+		if (path == null) {
+			return null;
+		} else if (path.isEmpty()) {
 			return null;
 		} else {
-			return path.removeFirst();
+			return path.remove(path.size() - 1);
 		}
 	}
 

@@ -117,7 +117,6 @@ public class Coordinate {
 		this((int) pos[0], (int) pos[1], (int) pos[2]);
 	}
 
-
 	// X-POSITION
 
 	/**
@@ -144,7 +143,6 @@ public class Coordinate {
 	public void setX(int x) throws IllegalArgumentException {
 		this.x = x;
 	}
-
 
 	// Y-POSITION
 
@@ -173,7 +171,6 @@ public class Coordinate {
 		this.y = y;
 	}
 
-
 	// Z-POSITION
 
 	/**
@@ -198,11 +195,8 @@ public class Coordinate {
 	 */
 	@Raw
 	public void setZ(int z) throws IllegalArgumentException {
-		//			if (! isValidZ(z))
-		//				throw new IllegalArgumentException();
 		this.z = z;
 	}
-
 
 	// SHORT-ACCESS
 
@@ -340,10 +334,8 @@ public class Coordinate {
 	public Coordinate add(int i, int amount) {
 		Coordinate coordinate = new Coordinate(convertToDoubleArray());
 		coordinate.setAt(i, getAt(i) + amount);
-
 		return coordinate;
 	}
-
 
 	// CONVERSIONS
 
@@ -362,7 +354,6 @@ public class Coordinate {
 	public Position toCenter() {
 		return this.toPosition().getCenterPosition();
 	}
-
 
 	// METHODS
 	
@@ -392,23 +383,21 @@ public class Coordinate {
 	}	
 
 	public ArrayList<Coordinate> getDirectNeighbours() {
-		ArrayList<Coordinate> neighebours = new ArrayList<>();
-
+		ArrayList<Coordinate> neighbours = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {
 			for (int j = -1; j < 2; j++) {
 				if (j != 0) {
 					try {
-						neighebours.add(this.add(i, j));
+						neighbours.add(this.add(i, j));
 					} catch (IllegalArgumentException e) {}
 				}
 			}
 		}
-		return neighebours;
+		return neighbours;
 	}
 
 	public ArrayList<Coordinate> getAllNeighbours() {
 		ArrayList<Coordinate> neighbours = new ArrayList<>();
-
 		for (int i = -1; i < 2; i++) {
 			for (int j = -1; j < 2; j++) {
 				for (int k = -1; k < 2; k++) {
@@ -441,7 +430,6 @@ public class Coordinate {
 		Random random = new Random();
 		Position spot = new Position();
 		double multiplier = random.nextInt(radius - 1) + 1;
-
 		while (true) {
 			try {
 				for (int i = 0; i < 3; i++) {
@@ -471,7 +459,6 @@ public class Coordinate {
 			return Z;
 		}
 	}
-	
 	
 	// OVERRIDE
 	
@@ -513,5 +500,4 @@ public class Coordinate {
 		}
 		return true;
 	}
-
 }

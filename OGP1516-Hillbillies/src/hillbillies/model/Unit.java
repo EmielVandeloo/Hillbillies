@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
+import hillbillies.model.character.JobSelector;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
@@ -12,12 +12,11 @@ import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.character.Inventory;
 import hillbillies.model.character.JobStat;
 import hillbillies.path.Path;
-import hillbillies.world.Cube;
 import hillbillies.world.Position;
 
 /**
  * A class of units involving a name, a weight, a strength, an agility, a toughness,
- * a number of hitpoints, a number of stamina points and a certain position in the game world.
+ * a number of hit points, a number of stamina points and a certain position in the game world.
  * 
  * @invar The name of each unit must be a valid name for any unit. 
  *      | isValidName(getName())
@@ -32,7 +31,7 @@ import hillbillies.world.Position;
  * @invar The toughness of each unit must be a valid toughness for any
  *        unit.
  *      | isValidToughness(getToughness())
- * @invar The number of hitpoints of each unit must be a valid number of hitpoints for any
+ * @invar The number of hit points of each unit must be a valid number of hit points for any
  *        unit.
  *      | isValidNbHitPoints(getNbHitPoints())
  * @invar The number of stamina points of each unit must be a valid number of stamina points for any
@@ -41,9 +40,9 @@ import hillbillies.world.Position;
  * @invar The position of each unit must be a valid position for any
  *        unit.
  *      | isValidPosition(getPosition())
- * @invar  The inventory of each unit must be a valid inventory for any
- *         unit.
- *       | isValidInventory(getInventory())
+ * @invar The inventory of each unit must be a valid inventory for any
+ *        unit.
+ *      | isValidInventory(getInventory())
  *      
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
@@ -104,7 +103,7 @@ public class Unit extends Entity {
 	private int toughness;
 
 	/**
-	 * Variable registering the number of hitpoints of this unit.
+	 * Variable registering the number of hit points of this unit.
 	 */
 	private int nbHitPoints;
 
@@ -181,9 +180,9 @@ public class Unit extends Entity {
 	private boolean resting = false;
 
 	/**
-	 * Variable registering whether or not the default behaviour of this unit is enabled.
+	 * Variable registering whether or not the default behavior of this unit is enabled.
 	 */
-	private boolean doesDefaultBehaviour = false;
+	private boolean doesDefaultBehavior = false;
 
 	/**
 	 * Variable registering the job time of a unit's current job.
@@ -222,11 +221,16 @@ public class Unit extends Entity {
 	 * Field representing the identification of this entity.
 	 */
 	public static final String ENTITY_ID = "entity:unit";
+	
+	/**
+	 * Variable registering the inventory of this unit.
+	 */
+	private Inventory inventory = new Inventory();
 
 	/**
 	 * Initialize this unit with given name, given strength, given agility, given weight, given toughness,
-	 * the maximum value of the number of hitpoints and the number of stamina points, given initial
-	 * position and a possibility to enable the unit's default behaviour.
+	 * the maximum value of the number of hit points and the number of stamina points, given initial
+	 * position and a possibility to enable the unit's default behavior.
 	 * 
 	 * @param  name
 	 *         The name for this new unit.
@@ -241,7 +245,7 @@ public class Unit extends Entity {
 	 * @param  position
 	 * 		   The position for this new unit.
 	 * @param  enableDefaultBehaviour
-	 * 		   Whether or not the default behaviour of this unit is enabled.
+	 * 		   Whether or not the default behavior of this unit is enabled.
 	 * @effect The unit is initialized as a new entity with the given position
 	 *         and a non-effective world.
 	 *       | super(null, position)
@@ -255,22 +259,20 @@ public class Unit extends Entity {
 	 *       | setInitialWeight(weight)
 	 * @effect The initial toughness of this new unit is set to the given toughness.
 	 *       | setInitialToughness(toughness)
-	 * @effect The initial number of hitpoints of this new unit is set to the maximum number of hitpoints.
+	 * @effect The initial number of hit points of this new unit is set to the maximum number of hit points.
 	 *       | setNbHitPoints(getMaxNbHitPoints())
-	 * @effect The initial number of stamina points of this new unit is eset to 
+	 * @effect The initial number of stamina points of this new unit is set to 
 	 *         the maximum number of stamina points.
 	 *       | setNbStaminaPoints(getMaxNbStaminaPoints())
-	 * @effect The inventory of this new unit is set to
-	 *         the given inventory.
-	 *       | this.setInventory(new Inventory(getWorld(), getPosition()))
-	 * @post   The possibility for a unit to perform its default behaviour is equal to the given flag.
+	 * @effect The inventory of this new unit is set to a newly initialized inventory.
+	 *       | setInventory(new Inventory())
+	 * @post   The possibility for a unit to perform its default behavior is equal to the given flag.
 	 *       | new.doesdefaultBehaviour == enableDefaultBehaviour.
 	 */
 	@Raw
 	public Unit(int[] position, String name, int strength, int agility, int weight,
-			int toughness, boolean enableDefaultBehaviour) throws IllegalArgumentException {
+			int toughness, boolean enableDefaultBehavior) throws IllegalArgumentException {
 		super(null, Position.convertToPosition(position));
-		setInventory(new Inventory(getWorld(), getPosition()));
 		setName(name);
 		setInitialStrength(strength);
 		setInitialAgility(agility);
@@ -278,8 +280,8 @@ public class Unit extends Entity {
 		setInitialWeight(weight);
 		setNbHitPoints(getMaxNbHitPoints());
 		setNbStaminaPoints(getMaxNbStaminaPoints());
-		this.doesDefaultBehaviour = enableDefaultBehaviour;
-		
+		setInventory(new Inventory());
+		this.doesDefaultBehavior = enableDefaultBehavior;
 	}
 
 	/**
@@ -287,12 +289,16 @@ public class Unit extends Entity {
 	 * 
 	 * @post This unit is terminated.
 	 *     | new.isTerminated()
+	 * @post This unit carries no longer any items in its inventory.
+	 *     | new.getInventory().getNbItems() == 0
 	 * @post This unit no longer references a world as the world
 	 *       to which it is attached.
 	 *     | new.getWorld() == null
 	 * @post This unit no longer references a faction as the faction
 	 *       to which it is attached.
 	 *     | new.getFaction() == null
+	 * @post This unit's inventory is terminated.
+	 *     | (new getInventory).isTerminated() == true
 	 * @post If this unit was not already terminated, the world to 
 	 *       which this unit was attached no longer references this
 	 *       unit as an active unit of the game world.
@@ -307,6 +313,7 @@ public class Unit extends Entity {
 	@Override
 	public void terminate() {
 		if (!isTerminated()) {
+			getInventory().dropInventory(getPosition(), getWorld());
 			Faction formerFaction = getFaction();
 			super.terminate();
 			setFaction(null);
@@ -317,6 +324,14 @@ public class Unit extends Entity {
 	}
 
 	// GETTERS AND SETTERS
+
+	/**
+	 * Return the entity id of this unit.
+	 */
+	@Override @Basic
+	public String getEntityId() {
+		return ENTITY_ID;
+	}
 
 	/**
 	 * Return the name of this unit.
@@ -1017,7 +1032,6 @@ public class Unit extends Entity {
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid position for this unit.
 	 *       | !isValidPosition(position)
-	 * 
 	 */
 	public boolean canStandOn(Position position) throws IllegalArgumentException {
 		if (! getWorld().isValidPosition(position)) {
@@ -1144,21 +1158,16 @@ public class Unit extends Entity {
 	 * 
 	 * @param  deltaTime
 	 *         The time period, in seconds, by which to advance the unit's state.
-	 * @effect If this unit's current number of hitpoints is not positive, this unit
-	 *         is terminated.
-	 *       | ...
-	 * @effect The given time step is made a valid time step.
-	 *       | ...
-	 * @effect If this unit is currently falling, its fall behaviour is performed.
+	 * @effect If this unit is currently falling, its fall behavior is performed.
 	 *         Otherwise, if this unit currently has no solid neighbouring cube, the
 	 *         position where the unit starts falling is set to the center position
-	 *         of the cube this unit currently occupies and this unit's fall behaviour
+	 *         of the cube this unit currently occupies and this unit's fall behavior
 	 *         is performed. Else:
 	 *       | ...
 	 *         If this unit is currently attacking, the attack is performed
 	 *       | ...
 	 *         If this unit is currently defending, this unit stops moving
-	 *         and the attack orientation is set according to the opponent and
+	 *         and the attack orientation is set according to the opponent's and
 	 *         this unit's position.
 	 *       | ...
 	 *         If this unit is currently working, the work is performed on this unit's
@@ -1169,11 +1178,13 @@ public class Unit extends Entity {
 	 *         If this unit's current objective position is effective, the unit
 	 *         walks for the given time period.
 	 *       | ...
-	 *         If this unit's default behaviour is enabled, a random default
-	 *         behaviour is chosen.
+	 *         If this unit's default behavior is enabled, a random default
+	 *         behavior is chosen.
 	 *       | ...
 	 * @effect One of this unit's attributes may be increased because of the gain
 	 *         of experience points in the current time step.
+	 *       | ...
+	 * @effect If the current number of hit points is not positive, this unit is terminated.
 	 *       | ...
 	 */
 	public void advanceTime(double deltaTime) {
@@ -1196,8 +1207,8 @@ public class Unit extends Entity {
 				performRest(deltaTime);
 			} else if (getObjectivePosition() != null) {
 				walk(deltaTime);
-			} else if (doesDefaultBehaviour()) {
-				chooseDefaultBehaviour();
+			} else if (doesDefaultBehavior()) {
+				chooseDefaultBehavior();
 			}
 		int div2 = getNbExperiencePoints() / 10;
 		while (div2 > div1) {
@@ -1215,7 +1226,7 @@ public class Unit extends Entity {
 	 * 
 	 * @param  deltaTime
 	 *         The time period by which to walk.
-	 * @effect If this unit does its default behaviour and if it is currently not sprinting
+	 * @effect If this unit does its default behavior and if it is currently not sprinting
 	 *         and if its current number of stamina points is greater than zero, this unit
 	 *         may start sprinting.
 	 *       | if (doesDefaultBehaviour() && ! isSprinting() && getNbStaminaPoints() > 0)
@@ -1235,12 +1246,13 @@ public class Unit extends Entity {
 	 *       | else
 	 *       |   updatePosition(deltaTime, getWalkingSpeed(getPosition().getCenterPosition().
 	 *       |             z(), getTargetPosition.getCenterPosition.z()))
-	 * @effect If the unit has reached its target, the movement is stopped, and if the unit has 
-	 *         reached its objective position, the unit's target position and the unit's objective 
-	 *         position are set to null. 
+	 * @effect If the unit has reached its target, the movement is stopped, this unit's number of
+	 *         experience points is increased, and if the unit has reached its objective position, 
+	 *         the unit's target position and the unit's objective position are set to null. 
 	 *         Else, the unit continues pathing if it can still reach its objective.
 	 *       | if (hasReachedTarget())
 	 *       |   then stopMovement()
+	 *       |   then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForStep())
 	 *       | if (hasReachedTarget() && hasReachedObjective())
 	 *       |   then setTargetPosition(null)
 	 *       |   then setObjectivePosition(null)
@@ -1253,13 +1265,13 @@ public class Unit extends Entity {
 	 */
 	@Raw @Model
 	private void walk(double deltaTime) {
-		if (doesDefaultBehaviour() && ! isSprinting() && getNbStaminaPoints() > 0) {
+		if (doesDefaultBehavior() && ! isSprinting() && getNbStaminaPoints() > 0) {
 			double random = new Random().nextDouble();
 			if (random < deltaTime / 10.0) {
 				startSprinting();
 			}
 		}
-		double speed = 0;
+		double speed;
 		if (isSprinting()) {
 			speed = getSprintingSpeed(getPosition().getCenterPosition().z(), 
 					getTargetPosition().getCenterPosition().z());
@@ -1272,9 +1284,9 @@ public class Unit extends Entity {
 			setCurrentSpeed(speed);
 			updatePosition(deltaTime, speed);
 		}
-		if (hasReachedTarget(deltaTime)) {
+		if (hasReachedTarget()) {
 			stopMovement();
-
+			setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForStep());
 			if (hasReachedObjective()) {
 				setTargetPosition(null);
 				setObjectivePosition(null);
@@ -1327,13 +1339,13 @@ public class Unit extends Entity {
 	// FALL BEHAVIOUR
 
 	/**
-	 * Perform the fall behaviour of this unit.
+	 * Perform the fall behavior of this unit.
 	 * 
 	 * @param  deltaTime
-	 *         The time step, in seconds, by which to perform this unit's fall behaviour.
+	 *         The time step, in seconds, by which to perform this unit's fall behavior.
 	 * @effect The list of all attackers is cleared.
 	 *       | getAllAttackers().clear()
-	 * @effect All this unit's jobs are reset and its default behaviour is stopped.
+	 * @effect All this unit's jobs are reset and its default behavior is stopped.
 	 *       | resetAllJobs()
 	 *       | stopDefaultBehaviour()
 	 * @effect This unit's start and target positions are set to null.
@@ -1341,9 +1353,9 @@ public class Unit extends Entity {
 	 *       | setTargetPosition(null)
 	 * @effect This unit's current speed is set to 3.
 	 *       | setCurrentSpeed(3)
-	 * @effect The entity's fall behaviour is performed.
-	 *       | super.fallBehaviour(deltaTime)
-	 * @effect If this unit is not falling anymore, the new number of hitpoints is calculated
+	 * @effect The entity's fall behavior is performed.
+	 *       | super.fallBehavior(deltaTime)
+	 * @effect If this unit is not falling anymore, the new number of hit points is calculated
 	 *         from the position from which this unit started falling, this unit's movement
 	 *         is stopped and the position from which this unit starts falling is set to null.
 	 *       | if (!isFalling())
@@ -1439,6 +1451,10 @@ public class Unit extends Entity {
 	 * 
 	 * @param  objective
 	 *         The objective position of this unit.
+	 * @effect If the given objective is not effective or not a valid position for any entity,
+	 *         no action is performed.
+	 *       | if (!isValidPosition(objective))
+	 *       |   then return
 	 * @effect The path to follow is set to the calculated path.
 	 *       | setPath(getWorld().calculatePathBetween(getPosition(), objective.getCenterPosition()))
 	 * @effect If there doesn't exist a path between this unit's position and the given objective, this
@@ -1451,16 +1467,19 @@ public class Unit extends Entity {
 	 *       |     then return
 	 *         Otherwise, the objective position is set to the given objective and the unit starts pathing.
 	 *       | else
-	 *       |   setObjectivePosition(objective)
+	 *       |   setObjectivePosition(objective.getCenterPosition())
 	 *       |   moveToAdjacent(pos)
 	 * @throws IllegalArgumentException
-	 *         The given objective is not effective or it is an invalid position for any unit.
-	 *       | objective == null || ! isValidPosition(objective)
+	 *         The given objective is not effective.
+	 *       | objective == null
 	 */
 	@Raw
 	public void moveTo(Position objective) throws IllegalArgumentException {
-		if (objective == null || !isValidPosition(objective)) {
+		if (objective == null) {
 			throw new IllegalArgumentException();
+		}
+		if (!isValidPosition(objective)) {
+			return;
 		}
 		setPath(getWorld().calculatePathBetween(getPosition(), objective.getCenterPosition()));
 		Position pos = getPath().popNextPosition();
@@ -1468,7 +1487,7 @@ public class Unit extends Entity {
 			stopMovement();
 			return;
 		}
-		setObjectivePosition(objective);
+		setObjectivePosition(objective.getCenterPosition());
 		moveToAdjacent(pos);
 	}
 
@@ -1638,7 +1657,7 @@ public class Unit extends Entity {
 	 *       |             Position.getDistance(getStartPosition(), getTargetPosition())
 	 */
 	@Model @Raw
-	private boolean hasReachedTarget(double deltaTime) {
+	private boolean hasReachedTarget() {
 		double startToUnit = Position.getDistance(getStartPosition(), getPosition());
 		double startToTarget = Position.getDistance(getStartPosition(), getTargetPosition());
 		return startToUnit >= startToTarget;
@@ -1678,14 +1697,14 @@ public class Unit extends Entity {
 	 *         this unit is moving to is on the same z-level.
 	 *       | if (z == targZ)
 	 *       |    then result == getBaseSpeed()
-	 * @return Half the base speed if the z-level of the cube the unit currently occupies 
+	 * @return Less than the base speed if the z-level of the cube the unit currently occupies 
 	 *         is one level lower than the z-level of the cube the unit is moving to.
-	 *       | if (z - targZ == -1)
-	 *       |    then result == 0.5 * getBaseSpeed()
-	 * @return 1.2 times the base speed if the z-level of the cube the unit currently occupies
+	 *       | if (z - targZ < 0)
+	 *       |    then result < getBaseSpeed()
+	 * @return More than the base speed if the z-level of the cube the unit currently occupies
 	 *         is one level higher than the z-level of the cube the unit is moving to.
-	 *       | if (z - targZ == 1)
-	 *       |    then result == 1.2 * getBaseSpeed()
+	 *       | if (z - targZ > 0)
+	 *       |    then result > getBaseSpeed()
 	 */
 	@Raw @Model
 	private double getWalkingSpeed(double z, double targZ) {
@@ -1747,8 +1766,8 @@ public class Unit extends Entity {
 	 *         The z-coordinate of the cube the unit currently occupies.
 	 * @param  targZ
 	 *         The z-coordinate of the cube the unit is moving to.
-	 * @return Two times the walking speed of this unit.
-	 *       | result == 2 * getWalkingSpeed(z, targZ)
+	 * @return A double with a higher value than the walking speed of this unit.
+	 *       | result > getWalkingSpeed(z, targZ)
 	 */
 	@Raw @Model
 	private double getSprintingSpeed(double z, double targZ) {
@@ -1899,7 +1918,7 @@ public class Unit extends Entity {
 	 * 
 	 * @effect If the unit has no objective and is not falling, if the unit is not attacking 
 	 *         another unit, if the unit isn't already working and if the unit isn't performing 
-	 *         its default behaviour, then:
+	 *         its default behavior, then:
 	 *       | if ((getObjectivePosition() == null) && !isAttacking() && !isWorking() && !doesDefaultBehaviour()
 	 *       |        && !isFalling())
 	 *         All jobs of the unit are reset.
@@ -1911,7 +1930,7 @@ public class Unit extends Entity {
 	 */
 	@Raw @Deprecated
 	public void work() {
-		if ((getObjectivePosition() == null) && !isAttacking() && !isWorking() && !doesDefaultBehaviour()
+		if ((getObjectivePosition() == null) && !isAttacking() && !isWorking() && !doesDefaultBehavior()
 				&& !isFalling()) {
 			resetAllJobs();
 			startWorking();
@@ -1980,12 +1999,12 @@ public class Unit extends Entity {
 	 * @param  z
 	 *         The z-coordinate of the cube to work at.
 	 * @effect If the given coordinates belong to a neighbouring cube or to the same cube that this unit
-	 *         currently occupies and if the cube that contains the given coordinates is not passable, then:
+	 *         currently occupies, then:
 	 *       | if (getWorld().getAllNeighboursAndSame(getPosition().getCubePosition()).contains(position))
 	 *		 |   then:
 	 *         If the unit has no objective and is not falling, if the unit is not attacking 
 	 *         another unit, if the unit isn't already working and if the unit isn't performing 
-	 *         its default behaviour, then:
+	 *         its default behavior, then:
 	 *       | if ((getObjectivePosition() == null) && !isAttacking() && !isWorking() && !doesDefaultBehaviour()
 	 *       |        && !isFalling())
 	 *         All jobs of the unit are reset.
@@ -2001,7 +2020,7 @@ public class Unit extends Entity {
 	public void workAt(int x, int y, int z) {
 		Position position = new Position(x,y,z);
 		if (getWorld().getAllNeighboursAndSame(getPosition().getCubePosition()).contains(position)) {
-			if ((getObjectivePosition() == null) && !isAttacking() && !isWorking() && !doesDefaultBehaviour()
+			if ((getObjectivePosition() == null) && !isAttacking() && !isWorking() && !doesDefaultBehavior()
 					&& !isFalling()) {
 				resetAllJobs();
 				setWorkPosition(position);
@@ -2014,12 +2033,8 @@ public class Unit extends Entity {
 	/**
 	 * Make this unit work during its default behaviour.
 	 * 
-	 * @effect The work position is set to a random work position, if possible. If not, no action
-	 *         is performed.
-	 *       | let
-	 *       |   position = selectRandomWorkPosition()
-	 *       | in
-	 *       |   setWorkPosition(position)
+	 * @effect The work position is set to a random work position.
+	 *       | setWorkPosition(selectRandomWorkPosition())
 	 * @effect The unit starts working.
 	 *       | startWorking()
 	 * @effect The job time of the unit is set to the work time.
@@ -2030,15 +2045,13 @@ public class Unit extends Entity {
 		// Not needed to control a possible performance of jobs nor to invoke resetAllJobs:
 		// This unit can't be performing a default
 		// job because successive default actions can't interrupt each other.
-		Position position = selectRandomWorkPosition();
-		setWorkPosition(position);
+		setWorkPosition(selectRandomWorkPosition());
 		startWorking();
 		setJobTime(getWorkTime());
 	}
 
 	/**
 	 * Make this unit perform its working behaviour on the given position.
-	 * TODO work position no solid cube
 	 * @param  deltaTime
 	 * 	       The time period, in seconds, by which to advance a unit's working behaviour.
 	 * @param  position
@@ -2053,8 +2066,7 @@ public class Unit extends Entity {
 	 *       |    else
 	 *       |      then setJobTime(timeLeft)
 	 * @effect If the time left for this unit to finish its job is less than or equal to zero, the
-	 *         job time is set to zero, this unit stops working, the given position is removed if it is solid
-	 *         (otherwise: ...................),
+	 *         job time is set to zero, this unit stops working, this unit's work logic is performed,
 	 *         this unit's work position is set to null and the number of experience points is updated.
 	 *       | let
 	 *       |    timeLeft = getJobtime() - (float) deltaTime
@@ -2062,9 +2074,7 @@ public class Unit extends Entity {
 	 *       |    if (timeLeft <= 0)
 	 *       |      then setJobTime(0)
 	 *       |      then stopWorking()
-	 *       |      then if (!getWorld().isPassable(getWorkPosition()))
-	 *       |             then getWorld().remove(position)
-	 *       |           else ...................
+	 *       |      then workLogic(position)
 	 *       |      then setWorkPosition(null)
 	 *       |      then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForWork())
 	 */
@@ -2074,9 +2084,7 @@ public class Unit extends Entity {
 		if (timeLeft <= 0) {
 			setJobTime(0);
 			stopWorking();
-			
 			workLogic(position);
-			
 			setWorkPosition(null);
 			setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForWork());
 		} else {
@@ -2089,68 +2097,78 @@ public class Unit extends Entity {
 	 * 
 	 * @param  position
 	 * 		   The position to work at. 
-	 * @effect If the inventory contains any items, drop them.
+	 * @effect If this unit's inventory contains a boulder or a log, a boulder or a log is dropped
+	 *         at the center of the cube this unit currently occupies.
 	 * 		 | if (! getInventory().isEmpty())
-	 * 		 |   getInventory().dropItem(getInventory().getItem())
+	 * 		 |   getInventory().dropItem(getInventory().getItem(), getPosition(), getWorld())
 	 * @effect If the unit is currently working on a tile containing
 	 * 		   a workbench and is standing on a boulder and a log,
 	 * 		   the unit will upgrade its capabilities.
 	 * 		 | if ((getWorld().getAt(position).getId() == Cube.WORKBENCH.getId()) && 
-	 * 		 |		(! logs.isEmpty()) && 
-	 * 		 |		(! boulders.isEmpty()))
+	 * 		 |		(! getWorld().getEntitiesAt(position, Log.ENTITY_ID).isEmpty()) && 
+	 * 		 |		(! getWorld().getEntitiesAt(position, Boulder.ENTITY_ID).isEmpty()))
 	 * 		 |   then
 	 * 		 |     getWorld().removeEntity(logs.get(0));
 	 * 		 |     getWorld().removeEntity(boulders.get(0));
 	 * 		 |     upgrade();
-	 * @effect If there are boulders on the work spot, the unit
-	 * 		   will pick one up.
+	 * @effect If there are boulders on the work spot, the unit will pick up a boulder, adding
+	 *         it to it's inventory and removing it from the world.
 	 * 		 | let
 	 * 		 |   boulders = getWorld().getEntitiesAt(position, Boulder.getEntityId());
 	 * 		 | in
 	 * 		 |   if (! boulders.isEmpty())
 	 * 		 |     then getInventory().addItem((ItemEntity) boulders.get(0));
-	 * @effect If there are logs on the work spot, the unit
-	 * 		   will pick one up.
+	 *       |     then boulders.get(0).setWorld(null)
+	 *       |     then getWorld.removeEntity(boulders.get(0))
+	 * @effect If there are logs on the work spot, the unit will pick up a log, adding it to
+	 *         it's inventory and removing it from the world.
 	 * 		 | let
 	 * 		 |   logs = getWorld().getEntitiesAt(position, Log.getEntityId());
 	 * 		 | in
 	 * 		 |   if (! logs.isEmpty())
 	 * 		 |     then getInventory().addItem((ItemEntity) logs.get(0));
+	 *       |     then logs.get(0).setWorld(null)
+	 *       |     then getWorld.removeEntity(logs.get(0))
 	 * @effect If the work spot is a solid cube, this cube will be broken.
 	 * 		 | if (! getWorld().isPassable(getWorkPosition())
 	 * 		 |   then getWorld().remove(position);
 	 */
 	private void workLogic(Position position) {
-		ArrayList<Entity> logs = getWorld().getEntitiesAt(position, Log.getEntityId());
-		ArrayList<Entity> boulders = getWorld().getEntitiesAt(position, Boulder.getEntityId());
-		
-		if (! getInventory().isEmpty()) {
-			getInventory().dropItem(getInventory().getItem());
-		}
-		else if ((getWorld().getAt(position).getId() == Cube.WORKBENCH.getId()) &&
-				(! logs.isEmpty()) && 
-				(! boulders.isEmpty())) {
+		ArrayList<Entity> logs = getWorld().getEntitiesAt(position, Log.ENTITY_ID);
+		ArrayList<Entity> boulders = getWorld().getEntitiesAt(position, Boulder.ENTITY_ID);
+		switch (JobSelector.getJob(getWorld(), getPosition(), getWorkPosition(), getInventory())) {
+		case DROP:
+			getInventory().dropItem(getInventory().getItem(), getPosition(), getWorld());
+			break;
+		case UPGRADE:
 			getWorld().removeEntity(logs.get(0));
 			getWorld().removeEntity(boulders.get(0));
 			upgrade();
-		}
-		else if (! boulders.isEmpty()) {
+			break;
+		case PICK_UP_BOULDER:
 			getInventory().addItem((ItemEntity) boulders.get(0));
-		}
-		else if (! logs.isEmpty()) {
+			boulders.get(0).setWorld(null);
+			getWorld().removeEntity(boulders.get(0));
+			break;
+		case PICK_UP_LOG:
 			getInventory().addItem((ItemEntity) logs.get(0));
-		}
-		else if (! getWorld().isPassable(getWorkPosition())) {
+			logs.get(0).setWorld(null);
+			getWorld().removeEntity(logs.get(0));
+			break;
+		case REMOVE_BLOCK:
 			getWorld().remove(position);
-		} 
+			break;
+		default:
+			break;
+		}
 	}
 
 	/**
-	 * A method to upgrade this unit.
+	 * Upgrade this unit.
 	 * 
-	 * @effect Increase the weight by one.
+	 * @effect Increase this unit's weight by one.
 	 * 		 | setWeight(getWeight() + 1);
-	 * @effect Increase the toughness by one.
+	 * @effect Increase this unit's toughness by one.
 	 * 		 | setToughness(getToughness() + 1);
 	 */
 	private void upgrade() {
@@ -2367,7 +2385,7 @@ public class Unit extends Entity {
 	 * 
 	 * @param  defender
 	 * 		   The unit this unit is going to attack.
-	 * @effect If this unit has no objective and if it doesn't perform its default behaviour and if it
+	 * @effect If this unit has no objective and if it doesn't perform its default behavior and if it
 	 *         currently is not attacking and if this unit and the defender are from different factions 
 	 *         and if they are not falling, then:
 	 *       | if ((getObjectivePosition() == null) && !doesDefaultBehaviour() && !isAttacking() &&
@@ -2380,7 +2398,7 @@ public class Unit extends Entity {
 	 */
 	@Raw
 	public void attack(@Raw Unit defender) {
-		if ((getObjectivePosition() == null) && !doesDefaultBehaviour() && !isAttacking() &&
+		if ((getObjectivePosition() == null) && !doesDefaultBehavior() && !isAttacking() &&
 				canFight(defender) && !isFalling() && !defender.isFalling()) {
 			if (Position.isAdjacentToOrSame(getPosition(), defender.getPosition())) {
 				controlAttack(defender);
@@ -2825,7 +2843,7 @@ public class Unit extends Entity {
 	 * 
 	 * @effect If the unit has no objective and is not falling, if the unit is not currently 
 	 *         attacking another unit, if the unit isn't already resting and if the unit isn't 
-	 *         performing its default behaviour, then:
+	 *         performing its default behavior, then:
 	 *       | if ((getObjectivePosition() == null) && !isAttacking() &&! isResting() && !doesDefaultBehaviour()
 	 *       |         && !isFalling())
 	 *         The unit's other jobs are reset.
@@ -2845,7 +2863,7 @@ public class Unit extends Entity {
 	 */
 	@Raw
 	public void rest() {
-		if ((getObjectivePosition() == null) && !isAttacking() && !isResting() && !doesDefaultBehaviour()
+		if ((getObjectivePosition() == null) && !isAttacking() && !isResting() && !doesDefaultBehavior()
 				&& !isFalling()) {
 			resetAllJobs();
 			startResting();
@@ -2944,22 +2962,22 @@ public class Unit extends Entity {
 	 * Return whether or not this unit is currently performing default behavior.
 	 */
 	@Basic @Raw
-	public boolean doesDefaultBehaviour() {
-		return this.doesDefaultBehaviour;
+	public boolean doesDefaultBehavior() {
+		return this.doesDefaultBehavior;
 	}
 
 	/**
 	 * Make this unit start performing default behavior.
 	 * 
 	 * @post if the unit is currently not moving and currently has no job,
-	 *       the new default behaviour of the unit is equal to true.
+	 *       the new default behavior of the unit is equal to true.
 	 *     | if (! isMoving() && ! hasJob())
 	 *     |   then new.doesDefaultBehaviour() == true
 	 */
 	@Raw
 	public void startDefaultBehaviour() {
 		if (! isMoving() && ! hasJob()) {
-			this.doesDefaultBehaviour = true;
+			this.doesDefaultBehavior = true;
 		}
 	}
 
@@ -2986,17 +3004,17 @@ public class Unit extends Entity {
 		stopSprinting();
 		stopMoving();
 		resetAllJobs();
-		this.doesDefaultBehaviour = false;
+		this.doesDefaultBehavior = false;
 	}
 
 	/**
-	 * Choose a random default behaviour for this unit.
+	 * Choose a random default behavior for this unit.
 	 * 
 	 * @post The unit is working or resting or moving to a random position or attacking.
 	 *     | new.isWorking() || new.isResting() || new.isMoving() || new.isAttacking()
 	 */
 	@Model @Raw
-	private void chooseDefaultBehaviour() {
+	private void chooseDefaultBehavior() {
 		Random random = new Random();
 		int i = random.nextInt(4);
 		if (i == 0) {
@@ -3104,8 +3122,8 @@ public class Unit extends Entity {
 	 *       |   then result == (faction == null)
 	 *       | else result == (faction != null && !faction.isTerminated())
 	 */
-	@Raw
-	public boolean canHaveAsFaction(Faction faction) {
+	@Raw @Model
+	private boolean canHaveAsFaction(Faction faction) {
 		if (isTerminated()) {
 			return (faction == null);
 		} else {
@@ -3123,8 +3141,8 @@ public class Unit extends Entity {
 	 *       |   then result == false
 	 *       | else result == getFaction().hasAsUnit(this)
 	 */
-	@Raw
-	public boolean hasProperFaction() {
+	@Raw @Model
+	private boolean hasProperFaction() {
 		if (!canHaveAsFaction(getFaction())) {
 			return false;
 		}
@@ -3173,7 +3191,7 @@ public class Unit extends Entity {
 				"Agressive", "Stoic", "Black", "Little", "Greedy", "Amazing"};
 		name += adjectives[random.nextInt(adjectives.length)];
 		String[] nouns = {"Bob", "Mark", "Tom", "Leo", "Bart", "Suzanne",
-				"Diana", "Lily", "Anna", "Kate", "Pieter-Jan", "Emiel"};
+				"Diana", "Lily", "Anna", "Kate", "PieterJan", "Emiel"};
 		name += nouns[random.nextInt(nouns.length)];
 		return name;
 	}
@@ -3206,9 +3224,7 @@ public class Unit extends Entity {
 		return random;
 	}	
 
-
 	// INVENTORY
-
 
 	/**
 	 * Return the inventory of this unit.
@@ -3224,8 +3240,8 @@ public class Unit extends Entity {
 	 *  
 	 * @param  inventory
 	 *         The inventory to check.
-	 * @return 
-	 *       | result == (inventory != null)
+	 * @return Always true.
+	 *       | result == true
 	 */
 	public static boolean isValidInventory(Inventory inventory) {
 		return true;
@@ -3245,20 +3261,46 @@ public class Unit extends Entity {
 	 *       | ! isValidInventory(getInventory())
 	 */
 	@Raw
-	public void setInventory(Inventory inventory) throws IllegalArgumentException {
+	private void setInventory(Inventory inventory) throws IllegalArgumentException {
 		if (! isValidInventory(inventory))
 			throw new IllegalArgumentException();
 		this.inventory = inventory;
 	}
-
-	/**
-	 * Variable registering the inventory of this unit.
-	 */
-	private Inventory inventory = new Inventory(null, getPosition());
 	
-	@Override
-	public void setWorld(World world) {
-		super.setWorld(world);
+	/**
+	 * Return whether this unit is currently carrying a boulder.
+	 * 
+	 * @return True if and only if this unit's inventory contains a boulder.
+	 *       | for some i in getInventory().getNbItems()
+	 *       |   if (getInventory().getItemAt(i) instanceof Boulder)
+	 *       |     then result == true 
+	 */
+	@Raw
+	public boolean isCarryingBoulder() {
+		for (int i = 1 ; i <= getInventory().getNbItems() ; i++) {
+			if (getInventory().getItemAt(i) instanceof Boulder) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Return whether this unit is currently carrying a log.
+	 * 
+	 * @return True if and only if this unit's inventory contains a log.
+	 *       | for some i in getInventory().getNbItems()
+	 *       |   if (getInventory().getAt(i) instanceof Log)
+	 *       |     then result == true
+	 */
+	@Raw
+	public boolean isCarryingLog() {
+		for (int i=1 ; i<=getInventory().getNbItems() ; i++) {
+			if (getInventory().getItemAt(i) instanceof Log) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
 

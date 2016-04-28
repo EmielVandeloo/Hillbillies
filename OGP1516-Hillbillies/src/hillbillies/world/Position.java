@@ -248,7 +248,6 @@ public class Position {
 		setZ(z);
 	}
 
-
 	// ABSTRACT POSITIONS
 
 	/**
@@ -377,9 +376,9 @@ public class Position {
 	public Position getCenterPosition() {
 		int[] cubePosition = getCubePosition().convertToIntegerArray();
 		Position centerPosition = new Position(
-				cubePosition[0] + World.CUBE_LENGTH / 2,
-				cubePosition[1] + World.CUBE_LENGTH / 2,
-				cubePosition[2] + World.CUBE_LENGTH / 2);
+				cubePosition[0] + (double) World.CUBE_LENGTH / 2,
+				cubePosition[1] + (double) World.CUBE_LENGTH / 2,
+				cubePosition[2] + (double) World.CUBE_LENGTH / 2);
 		return centerPosition;
 	}
 	

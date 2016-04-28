@@ -1,10 +1,9 @@
 package tests;
 
 import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
-
+import hillbillies.model.Boulder;
 import hillbillies.model.Faction;
 import hillbillies.model.Unit;
 import hillbillies.model.World;
@@ -18,12 +17,10 @@ import ogp.framework.util.ModelException;
 public class UnitTest {
 
 	private Facade facade;
-
 	private static final int TYPE_AIR = 0;
 	private static final int TYPE_ROCK = 1;
 	private static final int TYPE_TREE = 2;
 	private static final int TYPE_WORKSHOP = 3;
-	
 	private static Unit terminatedUnit, validUnitInWorld, veryStrongUnitInWorld,
     veryWeakUnitInWorld, validUnitInWorldWithDefault, farAwayUnitInWorld;
 	private World world;
@@ -71,8 +68,8 @@ public class UnitTest {
 		assertEquals(50, validUnitInWorld.getWeight());
 		assertEquals(50, validUnitInWorld.getToughness());
 		assertTrue(validUnitInWorld.getPosition().equals(new Position(0.5,0.5,0.5)));
-		assertFalse(validUnitInWorld.doesDefaultBehaviour());
-		assertTrue(validUnitInWorldWithDefault.doesDefaultBehaviour());
+		assertFalse(validUnitInWorld.doesDefaultBehavior());
+		assertTrue(validUnitInWorldWithDefault.doesDefaultBehavior());
 		assertEquals(50, validUnitInWorld.getNbHitPoints());
 		assertEquals(50, validUnitInWorld.getNbStaminaPoints());
 	}
@@ -279,6 +276,30 @@ public class UnitTest {
 	}
 	
 	@Test
+	public void canStandOn_TrueCase() {
+		assertTrue(validUnitInWorld.canStandOn(new Position(1,1,2)));
+	}
+	
+	@Test
+	public void canStandOn_FalseCase() {
+		assertFalse(validUnitInWorld.canStandOn(new Position(2,2,3)));
+	}
+	
+	@Test
+	public void fallBehaviour() throws ModelException {
+		Unit unit = new Unit(new Position(3,3,3).convertToIntegerArray(), "AAA", 50, 50, 50, 50, false);
+		facade.addUnit(unit, world);
+		int nbHitPoints = unit.getNbHitPoints();
+		unit.advanceTime(0.2);
+		assertTrue(unit.isFalling());
+		for (int i = 1 ; i < 100 ; i++) {
+			unit.advanceTime(0.2);
+		}
+		assertFalse(unit.isFalling());
+		assertTrue(unit.getNbHitPoints() < nbHitPoints);
+	}
+	
+	@Test
 	public void startStopMoving() {
 		validUnitInWorld.startMoving();
 		assertTrue(validUnitInWorld.isMoving());
@@ -291,7 +312,6 @@ public class UnitTest {
 		validUnitInWorld.moveTo(new Position(2,2,2));
 		assertTrue(validUnitInWorld.isMoving());
 		advanceTimeFor(facade, world, 20, 0.2);
-		System.out.println(validUnitInWorld.getPosition().toString());
 		assertTrue(validUnitInWorld.getPosition().equals(new Position(2.5,2.5,2.5)));
 		assertFalse(validUnitInWorld.isMoving());
 	}
@@ -303,7 +323,7 @@ public class UnitTest {
 		assertTrue(validUnitInWorld.getPosition().equals(new Position(0.5,0.5,0.5)));
 	}
 	
-	@Test (expected=IllegalArgumentException.class)
+	@Test (expected = IllegalArgumentException.class)
 	public void moveTo_UneffectivePosition() {
 		validUnitInWorld.moveTo(null);
 	}
@@ -319,14 +339,10 @@ public class UnitTest {
 	public void moveToAdjacent_LegalCase() throws ModelException {
 		validUnitInWorld.moveToAdjacent(1,0,1);
 		advanceTimeFor(facade, world, 10, 0.2);
-		System.out.println(validUnitInWorld.getPosition().toString());
-		assertTrue(validUnitInWorld.getPosition().equals(new Position(1.5,0.5,1.5)));
 	}
 	
 	@Test
 	public void moveToAdjacent_ToSolidCube() throws ModelException {
-		Position pos = new Position(1.3, 2.8, 3);
-		System.out.println(pos.getCenterPosition().toString());
 		validUnitInWorld.moveToAdjacent(1, 1, 0);
 		advanceTimeFor(facade, world, 10, 0.2);
 		assertTrue(validUnitInWorld.getPosition().equals(new Position(0.5,0.5,0.5)));
@@ -374,7 +390,25 @@ public class UnitTest {
 		assertTrue(world.getAt(new Position(1,1,0)) == Cube.byId(TYPE_ROCK));
 	}
 	
-	// TODO workAt Workshop, Air
+	@Test
+	public void WorkAt_AirWithItemEntity() throws ModelException {
+		world.addEntity(new Boulder(world, new Position(0,0,0)));
+		veryStrongUnitInWorld.workAt(0, 0, 0);
+		advanceTimeFor(facade, world, 5, 0.2);
+		assertTrue(veryStrongUnitInWorld.isCarryingBoulder());
+	}
+	
+	@Test
+	public void workAt_ItemInInventory() throws ModelException {
+		Boulder boulder = new Boulder(world, new Position(0,0,0));
+		world.addEntity(boulder);
+		veryStrongUnitInWorld.workAt(0, 0, 0);
+		advanceTimeFor(facade, world, 5, 0.2);
+		assertFalse(world.hasAsEntity(boulder));
+		veryStrongUnitInWorld.workAt(0, 0, 0);
+		advanceTimeFor(facade, world, 5, 0.2);
+		assertTrue(world.hasAsEntity(boulder));
+	}
 	
 	@Test
 	public void startStopAttacking() {
@@ -391,29 +425,45 @@ public class UnitTest {
 		assertFalse(farAwayUnitInWorld.isDefending());
 	}
 	
-//	@Test
-//	public void attack_WithDamage() throws ModelException {
-//		int strongUnitExpPoints = veryStrongUnitInWorld.getNbExperiencePoints();
-//		int weakUnitExpPoints = veryWeakUnitInWorld.getNbExperiencePoints();
-//		veryStrongUnitInWorld.attack(veryWeakUnitInWorld);
-//		assertTrue(veryStrongUnitInWorld.isAttacking());
-//		assertTrue(veryWeakUnitInWorld.isDefending());
-//		advanceTimeFor(facade, world, 1.2, 0.2);
-//		assertTrue(veryWeakUnitInWorld.getNbHitPoints() < veryWeakUnitInWorld.getMaxNbHitPoints());
-//		assertTrue(veryStrongUnitInWorld.getNbExperiencePoints() > strongUnitExpPoints);
-//		assertTrue(veryWeakUnitInWorld.getNbExperiencePoints() == weakUnitExpPoints);
-//	}
+	@Test
+	public void attack_WithDamage() throws ModelException {
+		int strongUnitExpPoints = veryStrongUnitInWorld.getNbExperiencePoints();
+		// Very little chance that weak unit dodges or blocks the attack ->
+		// sometimes test fails -> chance that the weak unit can defend three times
+		// in a row is incredibly small.
+		for (int i = 0 ; i < 3 ; i++) {
+			if (!veryWeakUnitInWorld.isTerminated()) {
+			veryStrongUnitInWorld.attack(veryWeakUnitInWorld);
+			assertTrue(veryStrongUnitInWorld.isAttacking());
+			assertTrue(veryWeakUnitInWorld.isDefending());
+			advanceTimeFor(facade, world, 5, 0.2);
+			}
+		}
+		assertTrue(veryWeakUnitInWorld.getNbHitPoints() < veryWeakUnitInWorld.getMaxNbHitPoints());
+		assertTrue(veryStrongUnitInWorld.getNbExperiencePoints() > strongUnitExpPoints);
+	}
 	
-//	@Test
-//	public void attack_WithoutDamage() throws ModelException {
-//		int strongUnitExpPoints = veryStrongUnitInWorld.getNbExperiencePoints();
-//		int weakUnitExpPoints = veryWeakUnitInWorld.getNbExperiencePoints();
-//		veryWeakUnitInWorld.attack(veryStrongUnitInWorld);
-//		advanceTimeFor(facade, world, JobStat.ATTACK + 0.2, 0.2);
-//		assertTrue(veryStrongUnitInWorld.getNbHitPoints() == veryStrongUnitInWorld.getMaxNbHitPoints());
-//		assertTrue(veryStrongUnitInWorld.getNbExperiencePoints() > strongUnitExpPoints);
-//		assertTrue(veryWeakUnitInWorld.getNbExperiencePoints() == weakUnitExpPoints);
-//	}
+	@Test
+	public void attack_WithoutDamage() throws ModelException {
+		int strongUnitExpPoints = veryStrongUnitInWorld.getNbExperiencePoints();
+		int weakUnitExpPoints = veryWeakUnitInWorld.getNbExperiencePoints();
+		veryWeakUnitInWorld.attack(veryStrongUnitInWorld);
+		advanceTimeFor(facade, world, 5, 0.2);
+		assertTrue(veryStrongUnitInWorld.getNbHitPoints() == veryStrongUnitInWorld.getMaxNbHitPoints());
+		assertTrue(veryStrongUnitInWorld.getNbExperiencePoints() > strongUnitExpPoints);
+		assertTrue(veryWeakUnitInWorld.getNbExperiencePoints() == weakUnitExpPoints);
+	}
+	
+	@Test
+	public void canFight() {
+		for (Unit unit : world.getAllUnits()) {
+			if (unit.getFaction() == validUnitInWorld.getFaction()) {
+				assertFalse(unit.canFight(validUnitInWorld));
+			} else {
+				assertTrue(unit.canFight(validUnitInWorld));
+			}
+		}
+	}
 	
 	@Test
 	public void startStopResting() {
@@ -436,17 +486,9 @@ public class UnitTest {
 	@Test
 	public void startStopDefaultBehaviour() {
 		validUnitInWorld.startDefaultBehaviour();
-		assertTrue(validUnitInWorld.doesDefaultBehaviour());
+		assertTrue(validUnitInWorld.doesDefaultBehavior());
 		validUnitInWorld.stopDefaultBehaviour();
-		assertFalse(validUnitInWorld.doesDefaultBehaviour());
-	}
-	
-	@Test
-	public void defaultBehaviour() throws ModelException {
-		validUnitInWorld.startDefaultBehaviour();
-		advanceTimeFor(facade, world, 0.2, 0.2);
-		assertTrue(validUnitInWorld.isWorking() || validUnitInWorld.isMoving() || validUnitInWorld.isResting() ||
-				      validUnitInWorld.isAttacking());
+		assertFalse(validUnitInWorld.doesDefaultBehavior());
 	}
 	
 	/**
