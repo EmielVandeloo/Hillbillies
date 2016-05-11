@@ -1,4 +1,4 @@
-package hillbillies.activity;
+package hillbillies.statement;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;

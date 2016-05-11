@@ -245,7 +245,11 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addUnit(Unit unit, World world) throws ModelException {
-		world.addUnit(unit);
+		try {
+			world.addUnit(unit);
+		} catch (Exception e) {
+			throw new ModelException();
+		}
 	}
 
 	@Override
@@ -265,7 +269,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isAlive(Unit unit) throws ModelException {
-		return unit.isTerminated();
+		return !unit.isTerminated();
 	}
 
 	@Override

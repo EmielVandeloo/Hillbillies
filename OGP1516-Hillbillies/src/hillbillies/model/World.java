@@ -831,8 +831,7 @@ public class World {
 	/**
 	 * Add a randomly initialized unit to this world.
 	 * 
-	 * @effect  
-	 *         a randomly initialized unit is added to this world at a random position.
+	 * @effect A randomly initialized unit is added to this world at a random position.
 	 */
 	@Model
 	private void addUnit(boolean enableDefaultBehaviour) {
@@ -886,9 +885,11 @@ public class World {
 		int a = Unit.getMinInitialAttributeValue();
 		int b = Unit.getMaxInitialAttributeValue();
 		int[] position = getSpawnPosition().convertToIntegerArray();
-		return new Unit(position, Unit.getRandomizedName(), Unit.getRandomizedValueBetween(a, b), 
+		Unit unit = new Unit(position, Unit.getRandomizedName(), Unit.getRandomizedValueBetween(a, b), 
 				Unit.getRandomizedValueBetween(a, b), Unit.getRandomizedValueBetween(a, b), 
 				Unit.getRandomizedValueBetween(a, b), enableDefaultBehavior);
+		addUnit(unit);
+		return unit;
 	}
 	
 	/**
@@ -1155,13 +1156,20 @@ public class World {
 		if (position == null || !hasSolidNeighbour(position)) {
 			throw new IllegalArgumentException();
 		}
-		Position pos = new Position();
-		while (true) {
-			pos = getRandomPosition();
+//		Position pos = new Position();
+//		while (true) {
+//			pos = getRandomPosition();
+//			if (existsPathBetween(position, pos)) {
+//				return pos;
+//			}
+//		}
+		List<Position> positions = new ArrayList<>();
+		for (Position pos : getAllPassablePositionsWithSolidNeighbour()) {
 			if (existsPathBetween(position, pos)) {
-				return pos;
+				positions.add(pos);
 			}
 		}
+		return positions.get(new Random().nextInt(positions.size()));
 	}
 	
 	/**
@@ -1180,34 +1188,6 @@ public class World {
 	}
 	
 	/**
-	 * Find a random position of this world in a given radius around a given position.
-	 * 
-	 * @param  Position
-	 *         The position to search around.
-	 * @param  radius
-	 * 		   The radius around this position to search in.
-	 * @return Return a random position that is no more than #radius cubes (also 
-	 *         diagonally) from the given position.
-	 */
-	@Model @Raw
-	private Position getRandomPosition(Position position, int radius) throws IllegalArgumentException {
-		if (radius < 1) {
-			throw new IllegalArgumentException();
-		}
-		Random random = new Random();
-		Position spot = new Position();
-		while (true) {
-			int multiplier = random.nextInt(radius) + 1;
-			for (int i = 0; i < 3; i++) {
-				spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
-				}
-			if (isValidPosition(spot)) {
-				return spot;
-			}
-		}
-	}
-	
-	/**
 	 * Return a random neighbouring cube of this world (also diagonally) as the given position.
 	 * 
 	 * @param  position
@@ -1215,26 +1195,14 @@ public class World {
 	 * @return A random position of this world in a radius of one around the given position.
 	 */
 	@Model
-	private Position getRandomNeighbouringPosition(Position position) {
-		return getRandomPosition(position, 1);
-	}
-	
-	/**
-	 * Return a random accessible neighbouring cube (also diagonally) as the
-	 * given position.
-	 * 
-	 * @param  position
-	 *         The position to search next to.
-	 * @return A random neighbouring position that is passable and has a solid neighbour.
-	 */
-	@Model
 	private Position getRandomAccessibleNeighbouringPosition(Position position) {
-		while (true) {
-			Position pos = getRandomNeighbouringPosition(position);
-			if (getAt(pos).isPassable() && hasSolidNeighbour(pos)) {
-				return pos;
+		List<Position> positions = new ArrayList<>();
+		for (Position pos : getAllNeighbours(position)) {
+			if (hasSolidNeighbour(pos) && getAt(pos).isPassable()) {
+				positions.add(pos);
 			}
 		}
+		return positions.get(new Random().nextInt(positions.size()));
 	}
 	
 	/**

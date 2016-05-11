@@ -1,4 +1,4 @@
-package hillbillies.activity;
+package hillbillies.statement;
 
 public class Void extends Activity {
 

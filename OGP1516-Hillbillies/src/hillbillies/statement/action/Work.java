@@ -1,11 +1,11 @@
-package hillbillies.activity.action;
+package hillbillies.statement.action;
 
-public class Attack extends Action {
+public class Work extends Action {
 
 	@Override
 	public void perform() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

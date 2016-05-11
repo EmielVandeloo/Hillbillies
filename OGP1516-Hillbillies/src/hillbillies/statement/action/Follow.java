@@ -1,6 +1,6 @@
-package hillbillies.activity.action;
+package hillbillies.statement.action;
 
-public class Work extends Action {
+public class Follow extends Action {
 
 	@Override
 	public void perform() {
