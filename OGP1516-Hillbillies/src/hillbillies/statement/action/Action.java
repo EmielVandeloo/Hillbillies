@@ -1,7 +1,12 @@
 package hillbillies.statement.action;
 
-import hillbillies.statement.Activity;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.statement.Statement;
 
-public abstract class Action<E> extends Activity {
+public abstract class Action extends Statement {
+	
+	public Action(SourceLocation sl) {
+		super(sl);
+	}
 
 }

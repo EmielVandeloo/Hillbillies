@@ -1,19 +1,18 @@
 package hillbillies.expression.bool;
 
+
 import hillbillies.expression.Expression;
-import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
 
-public abstract class BooleanExpression extends Expression {
+public abstract class BooleanExpression extends Expression<Boolean> {
 	
-	// CONSTRUCTOR
-	
-	public BooleanExpression(Unit unit) throws IllegalArgumentException {
-		super(unit);
+	public BooleanExpression(SourceLocation sl) throws IllegalArgumentException {
+		super(sl);
 	}
-	
-	
-	// ABSTRACT METHODS
 
-	public abstract boolean getResult();
+	public boolean getResult() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

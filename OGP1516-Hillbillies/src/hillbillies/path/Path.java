@@ -31,5 +31,9 @@ public class Path {
 	public boolean needsUpdate(int worldVersion) {
 		return (this.worldVersion != worldVersion);
 	}
+	
+	public ArrayList<Position> getPath() {
+		return path;
+	}
 
 }

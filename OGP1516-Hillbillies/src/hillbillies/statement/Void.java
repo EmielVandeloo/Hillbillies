@@ -1,11 +1,17 @@
 package hillbillies.statement;
 
-public class Void extends Activity {
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
+
+public class Void extends Statement {
+
+	public Void(SourceLocation sl) {
+		super(sl);
+	}
 
 	@Override
-	public void perform() {
-		start();
-		finish();
+	public void perform(Program program) {
+		// Do nothing.
 	}
 
 }

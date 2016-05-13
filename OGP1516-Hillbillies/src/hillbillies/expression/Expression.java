@@ -3,6 +3,7 @@ package hillbillies.expression;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
 
 /**
  * A class of expressions.
@@ -14,7 +15,7 @@ import hillbillies.model.Unit;
  * @author Pieter-Jan
  *
  */
-public abstract class Expression {
+public abstract class Expression<E> {
 	
 	// FIELDS
 
@@ -35,12 +36,22 @@ public abstract class Expression {
 	 *         the given unit.
 	 *       | this.setUnit(unit)
 	 */
-	public Expression(Unit unit) throws IllegalArgumentException {
-		this.setUnit(unit);
+	public Expression(SourceLocation sl) throws IllegalArgumentException {
+		setSourceLocation(sl);
 	}
 
 	
 	// GETTERS AND SETTERS
+	
+	public SourceLocation getSourceLocation() {
+		return this.sourceLocation;
+	}
+	
+	private void setSourceLocation(SourceLocation sourceLocation) {
+		this.sourceLocation = sourceLocation;
+	}
+	
+	private SourceLocation sourceLocation;
 
 	/**
 	 * Return the unit of this expression.
@@ -82,5 +93,7 @@ public abstract class Expression {
 			throw new IllegalArgumentException();
 		this.unit = unit;
 	}
+	
+	public abstract E evaluate();
 
 }

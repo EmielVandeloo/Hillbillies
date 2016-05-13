@@ -1291,7 +1291,9 @@ public class Unit extends Entity {
 				setTargetPosition(null);
 				setObjectivePosition(null);
 			} else {
-				setPath(getWorld().calculatePathBetween(getPosition(), getObjectivePosition()));
+				if (getPath().needsUpdate(getWorld().getWorldVersion())) {
+					setPath(getWorld().calculatePathBetween(getPosition(), getObjectivePosition()));
+				}
 				Position next = getPath().popNextPosition();
 				if (next == null) {
 					setTargetPosition(null);
@@ -1482,6 +1484,12 @@ public class Unit extends Entity {
 			return;
 		}
 		setPath(getWorld().calculatePathBetween(getPosition(), objective.getCenterPosition()));
+		
+		System.out.println("\n\n\nPath:");
+		for (Position position : getPath().getPath()) {
+			System.out.println(position.toString());
+		}
+		
 		Position pos = getPath().popNextPosition();
 		if (pos == null) {
 			stopMovement();
@@ -3187,7 +3195,7 @@ public class Unit extends Entity {
 	public static String getRandomizedName() {
 		Random random = new Random();
 		String name = "";
-		String[] adjectives = {"Drunken", "Dovely", "Monstrous", "Fat", "Gross", "Great",
+		String[] adjectives = {"Drunken ", "Lovely", "Monstrous", "Fat", "Gross", "Great",
 				"Agressive", "Stoic", "Black", "Little", "Greedy", "Amazing"};
 		name += adjectives[random.nextInt(adjectives.length)];
 		String[] nouns = {"Bob", "Mark", "Tom", "Leo", "Bart", "Suzanne",

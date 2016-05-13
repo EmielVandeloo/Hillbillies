@@ -1156,18 +1156,12 @@ public class World {
 		if (position == null || !hasSolidNeighbour(position)) {
 			throw new IllegalArgumentException();
 		}
-//		Position pos = new Position();
-//		while (true) {
-//			pos = getRandomPosition();
-//			if (existsPathBetween(position, pos)) {
-//				return pos;
-//			}
-//		}
 		List<Position> positions = new ArrayList<>();
 		for (Position pos : getAllPassablePositionsWithSolidNeighbour()) {
-			if (existsPathBetween(position, pos)) {
+//			if (existsPathBetween(position, pos)) {
 				positions.add(pos);
-			}
+//			}
+			// TODO Berekenen? Of random kiezen en path berekenen
 		}
 		return positions.get(new Random().nextInt(positions.size()));
 	}
@@ -1183,6 +1177,7 @@ public class World {
 	 * @return True if and only if their exists a first position in the path between the given 
 	 *         start position and the given end position. 
 	 */
+	@Deprecated
 	public boolean existsPathBetween(Position start, Position end) {
 		return (PathFinder.findPath(this, start, end).popNextPosition() != null);
 	}
