@@ -2,6 +2,8 @@ package hillbillies.program;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import hillbillies.model.Unit;
 import hillbillies.statement.Break;
 import hillbillies.statement.Conditional;
 import hillbillies.statement.Loop;
@@ -16,6 +18,7 @@ public class Program {
 	private double timer = Double.MAX_VALUE;
 	private boolean timeDepleted = false;
 	public double TIME_UNIT = 0.001;
+	private Unit unit;
 	
 	public Program(Statement mainStatement, Map<String, Object> globalVariables){
 		setGlobalVariables(globalVariables);
@@ -40,6 +43,14 @@ public class Program {
 
 	public void setTimer(double timer) {
 		this.timer = timer;
+	}
+	
+	public Unit getUnit() {
+		return this.unit;
+	}
+	
+	private void setUnit(Unit unit) {
+		this.unit = unit;
 	}
 	
 	public void decreaseTimerOneUnit() {

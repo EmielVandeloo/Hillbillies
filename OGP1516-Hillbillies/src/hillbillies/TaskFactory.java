@@ -2,12 +2,24 @@ package hillbillies;
 
 import java.util.List;
 import hillbillies.expression.Expression;
+import hillbillies.expression.bool.BooleanExpression;
+import hillbillies.expression.position.PositionExpression;
+import hillbillies.expression.unit.UnitExpression;
 import hillbillies.model.Task;
 import hillbillies.part3.programs.ITaskFactory;
 import hillbillies.part3.programs.SourceLocation;
+import hillbillies.statement.Assignment;
+import hillbillies.statement.Break;
+import hillbillies.statement.Conditional;
+import hillbillies.statement.Loop;
 import hillbillies.statement.Print;
+import hillbillies.statement.Queue;
+import hillbillies.statement.action.Attack;
+import hillbillies.statement.action.Follow;
+import hillbillies.statement.action.MoveTo;
+import hillbillies.statement.action.Work;
 
-public class TaskFactory implements ITaskFactory<Expression<? extends Object>, hillbillies.statement.Statement, Task> {
+public class TaskFactory implements ITaskFactory<Expression<?>, hillbillies.statement.Statement, Task> {
 
 	@Override
 	public List<Task> createTasks(String name, int priority, hillbillies.statement.Statement activity,
@@ -17,225 +29,216 @@ public class TaskFactory implements ITaskFactory<Expression<? extends Object>, h
 	}
 
 	@Override
-	public hillbillies.statement.Statement createAssignment(String variableName, Expression<? extends Object> value,
+	public hillbillies.statement.Statement createAssignment(String variableName, Expression<?> value,
 			SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Assignment(variableName, value, sourceLocation);
 	}
 
 	@Override
-	public hillbillies.statement.Statement createWhile(Expression<? extends Object> condition,
+	public hillbillies.statement.Statement createWhile(Expression<?> condition,
 			hillbillies.statement.Statement body, SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Loop((BooleanExpression) condition, body, sourceLocation);
 	}
 
 	@Override
-	public hillbillies.statement.Statement createIf(Expression<? extends Object> condition,
+	public hillbillies.statement.Statement createIf(Expression<?> condition,
 			hillbillies.statement.Statement ifBody, hillbillies.statement.Statement elseBody,
 			SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Conditional((BooleanExpression) condition, ifBody, sourceLocation);
 	}
 
 	@Override
 	public hillbillies.statement.Statement createBreak(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Break(sourceLocation);
 	}
 
 	@Override
-	public hillbillies.statement.Statement createPrint(Expression<? extends Object> value,
+	public hillbillies.statement.Statement createPrint(Expression<?> value,
 			SourceLocation sourceLocation) {
-		return new Print<>(value, sourceLocation);
+		return new Print(value, sourceLocation);
 	}
 
 	@Override
 	public hillbillies.statement.Statement createSequence(List<hillbillies.statement.Statement> statements,
 			SourceLocation sourceLocation) {
+		return new Queue(statements, sourceLocation);
+	}
+
+	@Override
+	public hillbillies.statement.Statement createMoveTo(Expression<?> position,
+			SourceLocation sourceLocation) {
+		return new MoveTo((PositionExpression) position, sourceLocation);
+	}
+
+	@Override
+	public hillbillies.statement.Statement createWork(Expression<?> position,
+			SourceLocation sourceLocation) {
+		return new Work((PositionExpression) position, sourceLocation);
+	}
+
+	@Override
+	public hillbillies.statement.Statement createFollow(Expression<?> unit,
+			SourceLocation sourceLocation) {
+		return new Follow((UnitExpression) unit, sourceLocation);
+	}
+
+	@Override
+	public hillbillies.statement.Statement createAttack(Expression<?> unit,
+			SourceLocation sourceLocation) {
+		return new Attack((UnitExpression) unit, sourceLocation);
+	}
+
+	@Override
+	public Expression<?> createReadVariable(String variableName, SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public hillbillies.statement.Statement createMoveTo(Expression<? extends Object> position,
+	public Expression<?> createIsSolid(Expression<?> position,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public hillbillies.statement.Statement createWork(Expression<? extends Object> position,
+	public Expression<?> createIsPassable(Expression<?> position,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public hillbillies.statement.Statement createFollow(Expression<? extends Object> unit,
+	public Expression<?> createIsFriend(Expression<?> unit,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public hillbillies.statement.Statement createAttack(Expression<? extends Object> unit,
+	public Expression<?> createIsEnemy(Expression<?> unit,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createReadVariable(String variableName, SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createIsSolid(Expression<? extends Object> position,
+	public Expression<?> createIsAlive(Expression<?> unit,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createIsPassable(Expression<? extends Object> position,
+	public Expression<?> createCarriesItem(Expression<?> unit,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createIsFriend(Expression<? extends Object> unit,
+	public Expression<?> createNot(Expression<?> expression,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createIsEnemy(Expression<? extends Object> unit,
+	public Expression<?> createAnd(Expression<?> left, Expression<?> right,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createIsAlive(Expression<? extends Object> unit,
+	public Expression<?> createOr(Expression<?> left, Expression<?> right,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createCarriesItem(Expression<? extends Object> unit,
+	public Expression<?> createHerePosition(SourceLocation sourceLocation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Expression<?> createLogPosition(SourceLocation sourceLocation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Expression<?> createBoulderPosition(SourceLocation sourceLocation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Expression<?> createWorkshopPosition(SourceLocation sourceLocation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Expression<?> createSelectedPosition(SourceLocation sourceLocation) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Expression<?> createNextToPosition(Expression<? extends Object> position,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createNot(Expression<? extends Object> expression,
+	public Expression<?> createPositionOf(Expression<? extends Object> unit,
 			SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createAnd(Expression<? extends Object> left, Expression<? extends Object> right,
-			SourceLocation sourceLocation) {
+	public Expression<?> createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createOr(Expression<? extends Object> left, Expression<? extends Object> right,
-			SourceLocation sourceLocation) {
+	public Expression<?> createThis(SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createHerePosition(SourceLocation sourceLocation) {
+	public Expression<?> createFriend(SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createLogPosition(SourceLocation sourceLocation) {
+	public Expression<?> createEnemy(SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createBoulderPosition(SourceLocation sourceLocation) {
+	public Expression<?> createAny(SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createWorkshopPosition(SourceLocation sourceLocation) {
+	public Expression<?> createTrue(SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Expression<? extends Object> createSelectedPosition(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createNextToPosition(Expression<? extends Object> position,
-			SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createPositionOf(Expression<? extends Object> unit,
-			SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createLiteralPosition(int x, int y, int z, SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createThis(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createFriend(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createEnemy(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createAny(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createTrue(SourceLocation sourceLocation) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Expression<? extends Object> createFalse(SourceLocation sourceLocation) {
+	public Expression<?> createFalse(SourceLocation sourceLocation) {
 		// TODO Auto-generated method stub
 		return null;
 	}

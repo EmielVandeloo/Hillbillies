@@ -10,10 +10,10 @@ public class Loop extends Statement {
 	private Statement body;
 	private boolean performAgain = false;
 	
-	public Loop(BooleanExpression expression, Statement body, SourceLocation sourceLocation){
-		super(sourceLocation);
-		this.setExpression(expression);
-		this.setBody(body);
+	public Loop(BooleanExpression expression, Statement body, SourceLocation sl){
+		super(sl);
+		setExpression(expression);
+		setBody(body);
 	}
 	
 	
@@ -45,12 +45,12 @@ public class Loop extends Statement {
 	}
 	
 	public void perform(Program program){
-		if (this.isToBeExecuted() && !program.hasStopped()) {
+		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {				
 				while (((getExpression().evaluate() == true && program.hasTimeForStatement()) && 
 						isToBeExecuted() || getPerformAgain() == true) && !program.hasStopped()) {
 					if (getPerformAgain() == true) {
-						this.setPerformAgain(false);
+						setPerformAgain(false);
 					} else {
 						program.decreaseTimerOneUnit();
 						getBody().setToBeExecuted(true);
@@ -59,7 +59,7 @@ public class Loop extends Statement {
 				}
 				// Stopped the loop because condition yielded false.
 				if (getExpression().evaluate() == false) {
-					this.setToBeExecuted(false);
+					setToBeExecuted(false);
 				} 
 				// Current time step finished, but condition still true.
 				else if (program.isTimeDepleted()) {
@@ -68,7 +68,7 @@ public class Loop extends Statement {
 				else {
 					setPerformAgain(true);
 					program.setTimeDepleted(true);
-					this.setToBeExecuted(true);
+					setToBeExecuted(true);
 				}
 			} else {
 				program.setTimeDepleted(true);

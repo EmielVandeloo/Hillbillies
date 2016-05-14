@@ -4,11 +4,11 @@ import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
-public class Print<E> extends Statement {
+public class Print extends Statement {
 	
 	private Expression<?> expression;
 	
-	public Print(Expression<E> value, SourceLocation sl) throws IllegalArgumentException {
+	public Print(Expression<?> value, SourceLocation sl) throws IllegalArgumentException {
 		super(sl);
 		this.expression = value;
 	}

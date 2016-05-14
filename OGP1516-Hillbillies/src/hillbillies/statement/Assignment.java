@@ -25,7 +25,7 @@ public class Assignment extends Statement {
 	
 	@Override
 	public void perform(Program program) {
-		if (this.isToBeExecuted() && !program.hasStopped()){
+		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				Object valueToSet;
 				try {
@@ -36,7 +36,7 @@ public class Assignment extends Statement {
 				}
 				program.decreaseTimerOneUnit();
 				program.putGlobalVariable(getName(), valueToSet);
-				this.setToBeExecuted(false);
+				setToBeExecuted(false);
 			} else {
 				program.setTimeDepleted(true);
 			}

@@ -12,6 +12,7 @@ import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.model.character.Inventory;
 import hillbillies.model.character.JobStat;
 import hillbillies.path.Path;
+import hillbillies.path.PathFinder;
 import hillbillies.world.Position;
 
 /**
@@ -1257,11 +1258,12 @@ public class Unit extends Entity {
 	 *       |   then setTargetPosition(null)
 	 *       |   then setObjectivePosition(null)
 	 *       | if (hasReachedTarget() && ! hasReachedObjective)
-	 *       |   then setPath(getWorld().calculatePathBetween(getPosition(), getObjectivePosition()))
-	 *       |   then if (getPath.popNextPosition() == null)
-	 *       |          then setTargetPosition(null)
-	 *       |          then setObjectivePosition(null)
-	 *       |        else moveToAdjacent(getPath().popNextPosition())
+	 *       |   then if (getPath().needsUpdate(getWorld().getWorldVersion()))
+	 *       |     then setPath(getWorld().calculatePathBetween(getPosition(), getObjectivePosition())
+	 *       |   if (getPath.popNextPosition() == null)
+	 *       |     then setTargetPosition(null)
+	 *       |     then setObjectivePosition(null)
+	 *       |   else moveToAdjacent(getPath().popNextPosition())
 	 */
 	@Raw @Model
 	private void walk(double deltaTime) {
@@ -1484,12 +1486,6 @@ public class Unit extends Entity {
 			return;
 		}
 		setPath(getWorld().calculatePathBetween(getPosition(), objective.getCenterPosition()));
-		
-		System.out.println("\n\n\nPath:");
-		for (Position position : getPath().getPath()) {
-			System.out.println(position.toString());
-		}
-		
 		Position pos = getPath().popNextPosition();
 		if (pos == null) {
 			stopMovement();
@@ -1526,8 +1522,13 @@ public class Unit extends Entity {
 	 *	     |   targetPosition.setZ(getPosition().z() + z)
 	 *       | in
 	 *       |   setObjectivePosition(targetPosition)
-	 * @effect The unit is moved to the new objective position.
-	 *       | moveToAdjacent(getObjectivePosition())
+	 * @effect If there is no corner between the unit's current position and the target position,
+	 *         the unit is moved to the new objective position. Else, no action is performed.
+	 *       | if (!PathFinder.isCornerAllowed(getWorld, getPosition(), targetPosition)
+	 *       |   then moveToAdjacent(getObjectivePosition())
+	 *       | else 
+	 *       |   setObjectivePosition(null)
+	 *       |   return
 	 */
 	@Raw
 	public void moveToAdjacent(int x, int y, int z) {
@@ -1540,6 +1541,10 @@ public class Unit extends Entity {
 			targetPosition.setY(getPosition().y() + y);
 			targetPosition.setZ(getPosition().z() + z);
 			setObjectivePosition(targetPosition);
+			if (!PathFinder.isCornerAllowed(getWorld(), getPosition(), targetPosition)) {
+				setObjectivePosition(null);
+				return;
+			}
 			moveToAdjacent(targetPosition);
 		} catch (IllegalArgumentException exc) {
 			return;
@@ -2107,8 +2112,12 @@ public class Unit extends Entity {
 	 * 		   The position to work at. 
 	 * @effect If this unit's inventory contains a boulder or a log, a boulder or a log is dropped
 	 *         at the center of the cube this unit currently occupies.
-	 * 		 | if (! getInventory().isEmpty())
-	 * 		 |   getInventory().dropItem(getInventory().getItem(), getPosition(), getWorld())
+	 *       | let
+	 *       |   itemEntity = getInventoy.get(0)
+	 *       | in
+	 * 		 |   if (! getInventory().isEmpty())
+	 * 		 |     then getInventory().dropItem(itemEntity, getWorkPosition(), getWorld())
+	 *       |     then setWeight(getWeight() + itemEntity.getWeight)
 	 * @effect If the unit is currently working on a tile containing
 	 * 		   a workbench and is standing on a boulder and a log,
 	 * 		   the unit will upgrade its capabilities.
@@ -2116,27 +2125,32 @@ public class Unit extends Entity {
 	 * 		 |		(! getWorld().getEntitiesAt(position, Log.ENTITY_ID).isEmpty()) && 
 	 * 		 |		(! getWorld().getEntitiesAt(position, Boulder.ENTITY_ID).isEmpty()))
 	 * 		 |   then
-	 * 		 |     getWorld().removeEntity(logs.get(0));
-	 * 		 |     getWorld().removeEntity(boulders.get(0));
+	 *       |     logs.get(0).setWorld(null)
+	 *       |     boulders.get(0).setWorld(null)
+	 * 		 |     getWorld().removeEntity(logs.get(0))
+	 * 		 |     getWorld().removeEntity(boulders.get(0))
 	 * 		 |     upgrade();
 	 * @effect If there are boulders on the work spot, the unit will pick up a boulder, adding
-	 *         it to it's inventory and removing it from the world.
+	 *         it to it's inventory, removing it from the world and increasing its weight.
 	 * 		 | let
 	 * 		 |   boulders = getWorld().getEntitiesAt(position, Boulder.getEntityId());
+	 *       |   boulder = boulders.get(0)
 	 * 		 | in
 	 * 		 |   if (! boulders.isEmpty())
-	 * 		 |     then getInventory().addItem((ItemEntity) boulders.get(0));
-	 *       |     then boulders.get(0).setWorld(null)
-	 *       |     then getWorld.removeEntity(boulders.get(0))
+	 * 		 |     then getInventory().addItem(boulder)
+	 *       |     then boulder.setWorld(null)
+	 *       |     then getWorld.removeEntity(boulder)
+	 *       |     then setWeight(getWeight() + boulder.getWeight())
 	 * @effect If there are logs on the work spot, the unit will pick up a log, adding it to
 	 *         it's inventory and removing it from the world.
 	 * 		 | let
-	 * 		 |   logs = getWorld().getEntitiesAt(position, Log.getEntityId());
+	 * 		 |   logs = getWorld().getEntitiesAt(position, Log.getEntityId())
+	 *       |   log = logs.get(0)
 	 * 		 | in
 	 * 		 |   if (! logs.isEmpty())
-	 * 		 |     then getInventory().addItem((ItemEntity) logs.get(0));
-	 *       |     then logs.get(0).setWorld(null)
-	 *       |     then getWorld.removeEntity(logs.get(0))
+	 * 		 |     then getInventory().addItem(log);
+	 *       |     then log.setWorld(null)
+	 *       |     then getWorld.removeEntity(log)
 	 * @effect If the work spot is a solid cube, this cube will be broken.
 	 * 		 | if (! getWorld().isPassable(getWorkPosition())
 	 * 		 |   then getWorld().remove(position);
@@ -2146,22 +2160,30 @@ public class Unit extends Entity {
 		ArrayList<Entity> boulders = getWorld().getEntitiesAt(position, Boulder.ENTITY_ID);
 		switch (JobSelector.getJob(getWorld(), getPosition(), getWorkPosition(), getInventory())) {
 		case DROP:
-			getInventory().dropItem(getInventory().getItem(), getPosition(), getWorld());
+			ItemEntity itemEntity = getInventory().getItem();
+			getInventory().dropItem(itemEntity, getPosition(), getWorld());
+			setWeight(getWeight() - itemEntity.getWeight());
 			break;
 		case UPGRADE:
+			logs.get(0).setWorld(null);
+			boulders.get(0).setWorld(null);
 			getWorld().removeEntity(logs.get(0));
 			getWorld().removeEntity(boulders.get(0));
 			upgrade();
 			break;
 		case PICK_UP_BOULDER:
-			getInventory().addItem((ItemEntity) boulders.get(0));
-			boulders.get(0).setWorld(null);
-			getWorld().removeEntity(boulders.get(0));
+			ItemEntity boulder = (ItemEntity) boulders.get(0);
+			getInventory().addItem(boulder);
+			boulder.setWorld(null);
+			getWorld().removeEntity(boulder);
+			setWeight(getWeight() + boulder.getWeight());
 			break;
 		case PICK_UP_LOG:
-			getInventory().addItem((ItemEntity) logs.get(0));
-			logs.get(0).setWorld(null);
-			getWorld().removeEntity(logs.get(0));
+			ItemEntity log = (ItemEntity) logs.get(0);
+			getInventory().addItem(log);
+			log.setWorld(null);
+			getWorld().removeEntity(log);
+			setWeight(getWeight() + log.getWeight());
 			break;
 		case REMOVE_BLOCK:
 			getWorld().remove(position);
@@ -2180,8 +2202,8 @@ public class Unit extends Entity {
 	 * 		 | setToughness(getToughness() + 1);
 	 */
 	private void upgrade() {
-		setWeight(getWeight() + 1);
 		setToughness(getToughness() + 1);
+		setWeight(getWeight() + 1);
 	}
 
 	/**
@@ -3195,8 +3217,8 @@ public class Unit extends Entity {
 	public static String getRandomizedName() {
 		Random random = new Random();
 		String name = "";
-		String[] adjectives = {"Drunken ", "Lovely", "Monstrous", "Fat", "Gross", "Great",
-				"Agressive", "Stoic", "Black", "Little", "Greedy", "Amazing"};
+		String[] adjectives = {"Drunken ", "Lovely ", "Monstrous ", "Fat ", "Gross ", "Great ",
+				"Agressive ", "Stoic ", "Black ", "Little ", "Greedy ", "Amazing "};
 		name += adjectives[random.nextInt(adjectives.length)];
 		String[] nouns = {"Bob", "Mark", "Tom", "Leo", "Bart", "Suzanne",
 				"Diana", "Lily", "Anna", "Kate", "PieterJan", "Emiel"};

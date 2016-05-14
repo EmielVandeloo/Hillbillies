@@ -364,6 +364,7 @@ public class World {
 	 * @effect The cube type at the given position is set to air.
 	 * @effect All cubes that are not anymore connected to the border
 	 *         are removed.
+	 * @effect The world version is updated.
 	 */
 	public void remove(Position position) {
 		getAt(position).drop(this, position);
@@ -373,6 +374,7 @@ public class World {
 		for (int[] coord : list) {
 			remove(new Position(coord));
 		}
+		updateWorldVersion();
 	}
 
 	/**
@@ -879,7 +881,7 @@ public class World {
 	 * @param  enableDefaultBehavior
 	 *         Whether or not the default behavior of the new unit is enabled.
 	 * @effect A new unit with random initial attributes and a random initial
-	 *         position is created.
+	 *         position is created and added to this world.
 	 */
 	public Unit createRandomUnit(boolean enableDefaultBehavior) {
 		int a = Unit.getMinInitialAttributeValue();
@@ -1151,19 +1153,31 @@ public class World {
 	 *         The given position is not a valid unit position.
 	 */
 	@Model
-	Position getRandomReachablePositionStartingFrom(Position position) 
-	                    throws IllegalArgumentException {
-		if (position == null || !hasSolidNeighbour(position)) {
+	Position getRandomReachablePositionStartingFrom(Position position) throws IllegalArgumentException {
+		if (position == null || !hasSolidNeighbour(position) || !isPassable(position)) {
 			throw new IllegalArgumentException();
 		}
-		List<Position> positions = new ArrayList<>();
-		for (Position pos : getAllPassablePositionsWithSolidNeighbour()) {
-//			if (existsPathBetween(position, pos)) {
-				positions.add(pos);
-//			}
-			// TODO Berekenen? Of random kiezen en path berekenen
+		
+		ArrayList<Position> detected = new ArrayList<>();
+		detected.add(position.getCenterPosition());
+		ArrayList<Position> toEvaluate = new ArrayList<>();
+		
+		while (! toEvaluate.isEmpty()) {
+			Position candidate = toEvaluate.remove(0);
+			detected.add(candidate);
+			
+			for (Position neighbour : getAllNeighbours(position)) {
+				Position center = neighbour.getCenterPosition();
+				
+				if (isPassable(center) && hasSolidNeighbour(center)) {
+					if (! detected.contains(center) && ! toEvaluate.contains(center)) {
+						toEvaluate.add(center);
+					}
+				}
+			}
 		}
-		return positions.get(new Random().nextInt(positions.size()));
+		
+		return detected.get(new Random().nextInt(detected.size())).getCenterPosition();
 	}
 	
 	/**

@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import hillbillies.model.Boulder;
 import hillbillies.model.Faction;
+import hillbillies.model.Log;
 import hillbillies.model.Unit;
 import hillbillies.model.World;
 import hillbillies.part2.facade.Facade;
@@ -374,12 +375,14 @@ public class UnitTest {
 	
 	@Test
 	public void workAt_Rock() throws ModelException {
+		int worldVersion = world.getWorldVersion();
 		veryStrongUnitInWorld.workAt(1, 1, 0);
 		assertTrue(veryStrongUnitInWorld.isWorking());
 		assert veryStrongUnitInWorld.getWorld()!= null;
 		advanceTimeFor(facade, world, 20, 0.2);
 		assertTrue(world.getAt(new Position(1,1,0)) == Cube.byId(TYPE_AIR));
 		assertTrue(world.getAt(new Position (1,1,1)) == Cube.byId(TYPE_AIR));
+		assertTrue(world.getWorldVersion() > worldVersion);
 	}
 	
 	@Test
@@ -400,14 +403,36 @@ public class UnitTest {
 	
 	@Test
 	public void workAt_ItemInInventory() throws ModelException {
+		int weight = veryStrongUnitInWorld.getWeight();
 		Boulder boulder = new Boulder(world, new Position(0,0,0));
 		world.addEntity(boulder);
 		veryStrongUnitInWorld.workAt(0, 0, 0);
 		advanceTimeFor(facade, world, 5, 0.2);
 		assertFalse(world.hasAsEntity(boulder));
+		assertTrue(veryStrongUnitInWorld.getWeight() == weight + boulder.getWeight());
 		veryStrongUnitInWorld.workAt(0, 0, 0);
 		advanceTimeFor(facade, world, 5, 0.2);
 		assertTrue(world.hasAsEntity(boulder));
+		assertFalse(veryStrongUnitInWorld.isCarryingBoulder());
+		assertTrue(veryStrongUnitInWorld.getWeight() == weight);
+	}
+	
+	@Test
+	public void workAt_WorkShopWithBoulderAndLog() throws ModelException {
+		Boulder boulder = new Boulder(world, new Position(1,1,2));
+		Log log = new Log(world, new Position(1,1,2));
+		world.addEntity(boulder);
+		world.addEntity(log);
+		int toughness = veryStrongUnitInWorld.getToughness();
+		int weight = veryStrongUnitInWorld.getWeight();
+		veryStrongUnitInWorld.moveTo(new Position(1,1,2));
+		advanceTimeFor(facade, world, 20, 0.2);
+		veryStrongUnitInWorld.workAt(1, 1, 2);
+		advanceTimeFor(facade, world, 20, 0.2);
+		assertFalse(world.hasAsEntity(log));
+		assertFalse(world.hasAsEntity(boulder));
+		assertTrue(veryStrongUnitInWorld.getToughness() >= toughness);
+		assertTrue(veryStrongUnitInWorld.getWeight() >= weight);
 	}
 	
 	@Test

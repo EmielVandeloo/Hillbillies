@@ -48,7 +48,7 @@ public abstract class Statement {
 		}
 		while (!(nestingStatement instanceof Loop)) {
 			nestingStatement = nestingStatement.getNestingStatement();
-			if (nestingStatement == null){
+			if (nestingStatement == null) {
 				return null;
 			}
 		}

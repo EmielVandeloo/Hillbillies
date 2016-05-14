@@ -13,9 +13,9 @@ public class Conditional extends Statement {
 	public Conditional(BooleanExpression expression, Statement ifStatement, Statement elseStatement, SourceLocation sl) 
 			throws IllegalArgumentException {
 		super(sl);
-		this.expression = expression;
-		this.ifStatement = ifStatement;
-		this.elseStatement = elseStatement;
+		setExpression(expression);
+		setIfStatement(ifStatement);
+		setElseStatement(elseStatement);
 	}
 	
 	public Conditional(BooleanExpression expression, Statement ifStatement, SourceLocation sl) 
