@@ -13,6 +13,7 @@ import hillbillies.model.character.Inventory;
 import hillbillies.model.character.JobStat;
 import hillbillies.path.Path;
 import hillbillies.path.PathFinder;
+import hillbillies.program.Program;
 import hillbillies.world.Position;
 
 /**
@@ -227,6 +228,16 @@ public class Unit extends Entity {
 	 * Variable registering the inventory of this unit.
 	 */
 	private Inventory inventory = new Inventory();
+	
+	/**
+	 * Variable referencing the program to which this unit is linked.
+	 */
+	private Program program;
+	
+	/**
+	 * Variable referencing the task of this unit.
+	 */
+	private Task task;
 
 	/**
 	 * Initialize this unit with given name, given strength, given agility, given weight, given toughness,
@@ -1188,9 +1199,10 @@ public class Unit extends Entity {
 	 * @effect If the current number of hit points is not positive, this unit is terminated.
 	 *       | ...
 	 */
+	@Override
 	public void advanceTime(double deltaTime) {
 		int div1 = getNbExperiencePoints() / 10;
-		setWeight(getWeight());
+		setWeight(getWeight() + getInventory().getWeight());
 		if (isFalling()) {
 			fallBehavior(deltaTime);
 		} else if (!getWorld().hasSolidNeighbour(getPosition())) {
@@ -1208,6 +1220,10 @@ public class Unit extends Entity {
 				performRest(deltaTime);
 			} else if (getObjectivePosition() != null) {
 				walk(deltaTime);
+			} else if (getFaction().getScheduler().isTaskAvailable()) {
+				getFaction().getScheduler().assignTopPriorityTask(this);
+				setProgram(new Program(getTask().getStatement(), null));
+				getProgram().execute(deltaTime);
 			} else if (doesDefaultBehavior()) {
 				chooseDefaultBehavior();
 			}
@@ -2028,6 +2044,10 @@ public class Unit extends Entity {
 	 *       | then startWorking()
 	 *         The job time of the unit is set to the work time.
 	 *       | then setJobTime(getWorkTime())
+	 *         The orientation is set according to this unit's position and the coordinates
+	 *         of the cube to work at.
+	 *       | setOrientation(Math.atan2(getWorkPosition().y() - getPosition().getCubePosition().y(), 
+						getWorkPosition().x() - getPosition().getCubePosition().x()))
 	 */
 	@Raw
 	public void workAt(int x, int y, int z) {
@@ -2039,6 +2059,8 @@ public class Unit extends Entity {
 				setWorkPosition(position);
 				startWorking();
 				setJobTime(getWorkTime());
+				setOrientation(Math.atan2(getWorkPosition().y() - getPosition().getCubePosition().y(), 
+						getWorkPosition().x() - getPosition().getCubePosition().x()));
 			}
 		}
 	}
@@ -2172,14 +2194,14 @@ public class Unit extends Entity {
 			upgrade();
 			break;
 		case PICK_UP_BOULDER:
-			ItemEntity boulder = (ItemEntity) boulders.get(0);
+			ItemEntity boulder = (Boulder) boulders.get(0);
 			getInventory().addItem(boulder);
 			boulder.setWorld(null);
 			getWorld().removeEntity(boulder);
 			setWeight(getWeight() + boulder.getWeight());
 			break;
 		case PICK_UP_LOG:
-			ItemEntity log = (ItemEntity) logs.get(0);
+			ItemEntity log = (Log) logs.get(0);
 			getInventory().addItem(log);
 			log.setWorld(null);
 			getWorld().removeEntity(log);
@@ -3331,6 +3353,79 @@ public class Unit extends Entity {
 			}
 		}
 		return false;
+	}
+	
+	// TASKS
+	
+	/**
+	 * Return the current task of this unit.
+	 */
+	@Basic
+	public Task getTask() {
+		return this.task;
+	}
+	
+	/**
+	 * Check whether the given task is a valid task for any unit.
+	 * 
+	 * @param  task
+	 *         The task to check.
+	 * @return Always true
+	 *       | result == true
+	 */
+	public static boolean isValidTask(Task task) {
+		return true;
+	}
+	
+	/**
+	 * Set the task of this unit to the given task.
+	 * 
+	 * @param task
+	 *        The new task of this unit.
+	 * @post  The new task of this unit is equal to the given task.
+	 *      | new.getTask() == task
+	 */
+	public void setTask(Task task) {
+		this.task = task;
+	}
+	
+	// PROGRAM
+	
+	/**
+	 * Return the program to which this unit is linked.
+	 */
+	@Basic
+	public Program getProgram() {
+		return this.program;
+	}
+	
+	/**
+	 * Check whether the given program is a valid program for any unit.
+	 * 
+	 * @param  program
+	 *         The program to check.
+	 * @return True if and only if the given program is not effective, or
+	 *         if the program has not stopped and the main statement of the
+	 *         program is well formed.
+	 *       | result == (program == null) || (!program.hasStopped() &&
+	 *       |           program.getMainStatement().isWellFormed())
+	 */
+	public static boolean isValidProgram(Program program) {
+		return program == null || (!program.hasStopped() && 
+				program.getMainStatement().isWellFormed());
+	}
+	
+	/**
+	 * Set the program to which this unit is currently linked to the given program.
+	 * 
+	 * @param program
+	 *        The new program for this unit.
+	 * @post  The new program of this unit is equal to the given program.
+	 *      | new.getProgram() == program
+	 */
+	private void setProgram(Program program) {
+		this.program = program;
+		program.setUnit(this);
 	}
 }
 

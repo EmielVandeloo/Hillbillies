@@ -1,21 +1,22 @@
 package hillbillies.expression.bool;
 
-import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
 
 public class False extends BooleanExpression {
-	
-	// CONSTRUCTOR
 
-	public False(Unit unit) throws IllegalArgumentException {
-		super(unit);
+	public False(SourceLocation sourceLocation) throws IllegalArgumentException {
+		super(sourceLocation);
 	}
-	
-	
-	// OVERRIDE
 
 	@Override
-	public boolean getResult() {
+	public Boolean evaluate(Program program) {
 		return false;
+	}
+	
+	@Override
+	public String toString() {
+		return "false";
 	}
 
 }

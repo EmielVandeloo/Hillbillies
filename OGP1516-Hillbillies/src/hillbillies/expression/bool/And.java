@@ -1,21 +1,16 @@
 package hillbillies.expression.bool;
 
-import hillbillies.model.Unit;
+import hillbillies.expression.bool.checker.DoubleBoolChecker;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
 
 /**
  * A class of and expressions.
  * 
- * @invar  The first expression of each and expression must be a valid first expression for any
- *         and expression.
- *       | isValidFirst(getFirst())
- * @invar  The second expression of each and expression must be a valid second expression for any
- *         and expression.
- *       | isValidSecond(getSecond())
- * 
- * @author Pieter-Jan
- *
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
  */
-public class And extends DoubleExpression {
+public class And extends DoubleBoolChecker {
 	
 	// CONSTRUCTOR
 
@@ -35,17 +30,23 @@ public class And extends DoubleExpression {
 	 *         the given second expression.
 	 *       | this.setSecond(second)
 	 */
-	public And(Unit unit, BooleanExpression first, BooleanExpression second) 
+	public And(SourceLocation sourceLocation, BooleanExpression first, BooleanExpression second) 
 			throws IllegalArgumentException {
-		super(unit, first, second);
+		
+		super(sourceLocation, first, second);
 	}
 	
 	
 	// OVERRIDE
 
 	@Override
-	public boolean getResult() {
-		return (getFirst().getResult() && getSecond().getResult());
+	public Boolean evaluate(Program program) {
+		return getFirst().evaluate(program) && getSecond().evaluate(program);
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + getFirst().toString() + " and " + getSecond().toString() + ")";
 	}
 
 }

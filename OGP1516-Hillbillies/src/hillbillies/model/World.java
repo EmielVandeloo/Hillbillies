@@ -24,11 +24,11 @@ import hillbillies.world.Position;
 /**
  * A class of game worlds.
  * 
- * @invar   Each world must have proper entities.
- * @invar   Each world must have proper factions.
+ * @invar Each world must have proper entities.
+ * @invar Each world must have proper factions.
  * 
- * @author  Pieter-Jan Van den Broecke: EltCw
- * 		    Emiel Vandeloo: WtkCw
+ * @author Pieter-Jan Van den Broecke: EltCw
+ * 		   Emiel Vandeloo: WtkCw
  * @version Final version Part 2: 10/04/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
@@ -36,11 +36,6 @@ import hillbillies.world.Position;
 public class World {
 
 	// FIELDS
-
-	/**
-	 * Variable registering the game time passed.
-	 */
-	private static BigDecimal gameTime = new BigDecimal(0.0);
 	
 	/**
 	 * Variable containing the maximum amount of factions
@@ -100,6 +95,11 @@ public class World {
 	 * Variable referencing the game world.
 	 */
 	private Cube[][][] world;
+	
+	/**
+	 * Variable registering the game time passed.
+	 */
+	private static BigDecimal gameTime = new BigDecimal(0.0);
 
 	/**
 	 * Variable referencing a set collecting all the entities
@@ -125,7 +125,7 @@ public class World {
 	 * Variable registering whether or not this world is terminated.
 	 */
 	private boolean isTerminated;
-
+	
 	// CONSTRUCTORS AND DESTRUCTOR 
 
 	/**
@@ -157,23 +157,26 @@ public class World {
 	@Raw
 	public World(int[][][] terrainTypes, TerrainChangeListener modelListener) 
 			throws IllegalArgumentException, IndexOutOfBoundsException {
+		
 		if (terrainTypes == null) {
 			throw new IllegalArgumentException();
 		}
 		if (modelListener == null) {
 			throw new IllegalArgumentException();
 		}
+		
 		this.modelListener = modelListener;
 		this.sizeX = terrainTypes.length;
 		this.sizeY = terrainTypes[0].length;
 		this.sizeZ = terrainTypes[0][0].length;
-		setWorldVersion(0);
+		this.setWorldVersion(0);
 		this.world = new Cube[sizeX][sizeY][sizeZ];
 		this.border = new ConnectedToBorder(sizeX, sizeY, sizeZ);
+		
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
 				for (int k = 0; k < sizeZ; k++) {
-					this.world[i][j][k] = Cube.byId(terrainTypes[i][j][k]);
+					world[i][j][k] = Cube.byId(terrainTypes[i][j][k]);
 					if (getAt(new Position(i,j,k)).isPassable()) {
 						border.changeSolidToPassable(i,j,k);
 					}
@@ -213,7 +216,7 @@ public class World {
 			}
 		}
 	}
-
+	
 	// GETTERS AND SETTERS
 
 	/**
@@ -296,6 +299,7 @@ public class World {
 		} else if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
+		
 		int[] coord = position.convertToIntegerArray();
 		return world[coord[0]][coord[1]][coord[2]];
 	}
@@ -322,6 +326,7 @@ public class World {
 		} else if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
+		
 		Coordinate coord = position.convertToCoordinate();
 		world[coord.x()][coord.y()][coord.z()] = cube;
 		updateWorldVersion();
@@ -364,17 +369,16 @@ public class World {
 	 * @effect The cube type at the given position is set to air.
 	 * @effect All cubes that are not anymore connected to the border
 	 *         are removed.
-	 * @effect The world version is updated.
 	 */
 	public void remove(Position position) {
 		getAt(position).drop(this, position);
 		setAt(position, Cube.AIR);
 		List<int[]> list = 
 				border.changeSolidToPassable((int) position.x(), (int) position.y(), (int) position.z());
+		
 		for (int[] coord : list) {
 			remove(new Position(coord));
 		}
-		updateWorldVersion();
 	}
 
 	/**
@@ -410,6 +414,7 @@ public class World {
 	public void advanceTime(double deltaTime) {
 		makeValidDeltaTime(deltaTime);
 		gameTime = gameTime.add(new BigDecimal(deltaTime));
+		
 		for (Entity entity : getAllEntities()) {
 			if (!entity.isTerminated()) {
 				if (!(entity instanceof Unit)) {
@@ -524,6 +529,7 @@ public class World {
 	private boolean hasProperEntities() {
 		for (HashSet<Entity> entityType : entities.values()) {
 			for (Entity entity : entityType) {
+				
 				if (!canHaveAsEntity(entity))
 					return false;
 				if (entity.getWorld() != this)
@@ -773,6 +779,7 @@ public class World {
 		factions.remove(faction);
 	}
 	
+	
 	// USAGE-METHODS
 	
 	/**
@@ -833,7 +840,8 @@ public class World {
 	/**
 	 * Add a randomly initialized unit to this world.
 	 * 
-	 * @effect A randomly initialized unit is added to this world at a random position.
+	 * @effect  
+	 *         a randomly initialized unit is added to this world at a random position.
 	 */
 	@Model
 	private void addUnit(boolean enableDefaultBehaviour) {
@@ -881,7 +889,8 @@ public class World {
 	 * @param  enableDefaultBehavior
 	 *         Whether or not the default behavior of the new unit is enabled.
 	 * @effect A new unit with random initial attributes and a random initial
-	 *         position is created and added to this world.
+	 *         position is created, and that unit is added to this world.
+	 * @return The newly initialized unit is returned.
 	 */
 	public Unit createRandomUnit(boolean enableDefaultBehavior) {
 		int a = Unit.getMinInitialAttributeValue();
@@ -917,6 +926,7 @@ public class World {
 			return fac;
 		}
 	}
+	
 	
 	// POSITIONS
 	
@@ -1029,6 +1039,7 @@ public class World {
 	private Position getSpawnPosition() {
 		List<Position> allPossibleSpawnPositions = getPossibleSpawnPositions();
 		int random = new Random().nextInt(allPossibleSpawnPositions.size());
+		
 		return allPossibleSpawnPositions.get(random);
 	}
 	
@@ -1095,9 +1106,11 @@ public class World {
 		for (int i = -1; i < 2; i++) {
 			for (int j = -1; j < 2; j++) {
 				for (int k = -1; k < 2; k++) {
+					
 					if (i != 0 || j != 0 || k != 0) {
-						if (isValidPosition(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k))) {
-							neighbours.add(position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k));
+						Position temp = position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k);
+						if (isValidPosition(temp)) {
+							neighbours.add(temp);
 						}
 					}
 				}
@@ -1107,12 +1120,13 @@ public class World {
 	}
 	
 	/**
-	 * Return a list of positions containing this position and all neighbouring (also diagonally) positions
-	 * of the given position.
+	 * Return a list of positions containing this position and all neighbouring 
+	 * (also diagonally) positions of the given position.
 	 * 
 	 * @param  position
 	 *         The position to search around.
-	 * @return A list containing this position and all neighbouring (also diagonally) positions of the given position..
+	 * @return A list containing this position and all neighbouring (also diagonally) 
+	 * 		   positions of the given position..
 	 */
 	@Model
 	List<Position> getAllNeighboursAndSame(Position position) {
@@ -1139,6 +1153,7 @@ public class World {
 		int x = new Random().nextInt(getSizeX());
 		int y = new Random().nextInt(getSizeY());
 		int z = new Random().nextInt(getSizeZ());
+		
 		return new Position(x,y,z);
 	}
 	
@@ -1153,20 +1168,20 @@ public class World {
 	 *         The given position is not a valid unit position.
 	 */
 	@Model
-	Position getRandomReachablePositionStartingFrom(Position position) throws IllegalArgumentException {
+	public Position getRandomReachablePositionStartingFrom(Position position) throws IllegalArgumentException {
 		if (position == null || !hasSolidNeighbour(position) || !isPassable(position)) {
 			throw new IllegalArgumentException();
 		}
 		
 		ArrayList<Position> detected = new ArrayList<>();
-		detected.add(position.getCenterPosition());
 		ArrayList<Position> toEvaluate = new ArrayList<>();
+		toEvaluate.add(position.getCenterPosition());
 		
 		while (! toEvaluate.isEmpty()) {
 			Position candidate = toEvaluate.remove(0);
 			detected.add(candidate);
 			
-			for (Position neighbour : getAllNeighbours(position)) {
+			for (Position neighbour : getAllNeighbours(candidate)) {
 				Position center = neighbour.getCenterPosition();
 				
 				if (isPassable(center) && hasSolidNeighbour(center)) {
@@ -1197,6 +1212,34 @@ public class World {
 	}
 	
 	/**
+	 * Find a random position of this world in a given radius around a given position.
+	 * 
+	 * @param  Position
+	 *         The position to search around.
+	 * @param  radius
+	 * 		   The radius around this position to search in.
+	 * @return Return a random position that is no more than #radius cubes (also 
+	 *         diagonally) from the given position.
+	 */
+	@Model @Raw
+	private Position getRandomPosition(Position position, int radius) throws IllegalArgumentException {
+		if (radius < 1) {
+			throw new IllegalArgumentException();
+		}		
+		Random random = new Random();
+		Position spot = new Position();
+		while (true) {
+			int multiplier = random.nextInt(radius) + 1;
+			for (int i = 0; i < 3; i++) {
+				spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
+				}
+			if (isValidPosition(spot)) {
+				return spot;
+			}
+		}
+	}
+	
+	/**
 	 * Return a random neighbouring cube of this world (also diagonally) as the given position.
 	 * 
 	 * @param  position
@@ -1204,14 +1247,26 @@ public class World {
 	 * @return A random position of this world in a radius of one around the given position.
 	 */
 	@Model
+	public Position getRandomNeighbouringPosition(Position position) {
+		return getRandomPosition(position, 1);
+	}
+	
+	/**
+	 * Return a random accessible neighbouring cube (also diagonally) as the
+	 * given position.
+	 * 
+	 * @param  position
+	 *         The position to search next to.
+	 * @return A random neighbouring position that is passable and has a solid neighbour.
+	 */
+	@Model
 	private Position getRandomAccessibleNeighbouringPosition(Position position) {
-		List<Position> positions = new ArrayList<>();
-		for (Position pos : getAllNeighbours(position)) {
-			if (hasSolidNeighbour(pos) && getAt(pos).isPassable()) {
-				positions.add(pos);
+		while (true) {
+			Position pos = getRandomNeighbouringPosition(position);
+			if (getAt(pos).isPassable() && hasSolidNeighbour(pos)) {
+				return pos;
 			}
 		}
-		return positions.get(new Random().nextInt(positions.size()));
 	}
 	
 	/**
@@ -1289,4 +1344,99 @@ public class World {
 			return 1;
 		}
 	}
+	
+	/**
+	 * Return a random unit.
+	 */
+	public Unit getRandomUnit() {
+		return (Unit) getRandomElement(getAllUnits());
+	}
+	
+	/**
+	 * Return a random unit, the given one excluded.
+	 */
+	public Unit getRandomUnit(Unit excluded) {
+		Unit unit;
+		do {
+			unit = getRandomUnit();
+		} while (unit.equals(excluded));
+		return unit;
+	}
+	
+	/**
+	 * Return a random element from the given set.
+	 */
+	public static Object getRandomElement(HashSet<? extends Object> set) {
+		int nb = new Random().nextInt(set.size());
+		int i = 0;
+		
+		for (Object object : set) {
+			if (nb == i) {
+				return object;
+			}
+			i++;
+		}
+		return null;
+	}
+	
+	/**
+	 * Return the entity of the given set that is closest to the given position.
+	 * 
+	 * @param  set
+	 *         The set to search the entity in.
+	 * @param  position
+	 *         The position to compare with.
+	 * @return The entity for which the distance between the position of that entity
+	 *         and the given position is minimal. Null if no such entity exists or if
+	 *         the given position is not effective.
+	 */
+	public static Entity getClosestElement(HashSet<? extends Entity> set, Position position) {
+		if (position == null) {
+			return null;
+		}
+		
+		Entity closest = null;
+		double distance = Double.POSITIVE_INFINITY;
+		for (Entity entity : set) {
+			double newDistance = Position.getDistance(position, entity.getPosition());
+			
+			if (newDistance < distance) {
+				closest = entity;
+				distance = newDistance;
+			}
+		}
+		return closest;
+	}
+	
+	/**
+	 * Return the workshop closest to the given position.
+	 * 
+	 * @param  position
+	 *         The position to compare with.
+	 * @return The position of the cube that is of workshop type and that is
+	 *         closest to the given position.
+	 */
+	public Position getClosestWorkshop(Position position) {
+		Position closest = null;
+		double distance = Double.POSITIVE_INFINITY;
+		
+		for (int i = 0; i < getSizeX(); i++) {
+			for (int j = 0; j < getSizeY(); j++) {
+				for (int k = 0; k < getSizeZ(); k++) {
+					
+					Position newPosition = new Position(i, j, k);
+					if (getAt(newPosition).getId() == Cube.WORKBENCH.getId()) {
+						double newDistance = Position.getDistance(newPosition, position);
+						
+						if (newDistance < distance) {
+							closest = newPosition;
+							distance = newDistance;
+						}
+					}
+				}
+			}
+		}
+		return closest;
+	}
+		
 }

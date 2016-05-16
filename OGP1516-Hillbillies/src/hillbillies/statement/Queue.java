@@ -53,5 +53,15 @@ public class Queue extends Statement {
 			}
 		}
 	}
+	
+	@Override
+	public String toString() {
+		String string = new String();
+		string += "Queue: /n";
+		for (Statement statement : getStatements()) {
+			string += statement.toString() + "/n";
+		}
+		return string;
+	}
 
 }

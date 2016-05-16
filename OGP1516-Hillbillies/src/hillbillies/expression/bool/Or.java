@@ -1,8 +1,17 @@
 package hillbillies.expression.bool;
 
-import hillbillies.model.Unit;
+import hillbillies.expression.bool.checker.DoubleBoolChecker;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
 
-public class Or extends DoubleExpression {
+
+/**
+ * A class of or-expressions.
+ * 
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ */
+public class Or extends DoubleBoolChecker {
 	
 	// CONSTRUCTOR
 
@@ -20,17 +29,17 @@ public class Or extends DoubleExpression {
 	 *         the given second expression.
 	 *       | this.setSecond(second)
 	 */
-	public Or(Unit unit, BooleanExpression first, BooleanExpression second) 
+	public Or(SourceLocation sourceLocation, BooleanExpression first, BooleanExpression second) 
 			throws IllegalArgumentException {
-		super(unit, first, second);
+		super(sourceLocation, first, second);
 	}
 	
 	
 	// OVERRIDE
 
 	@Override
-	public boolean getResult() {
-		return (getFirst().getResult() || getSecond().getResult());
+	public Boolean evaluate(Program program) {
+		return getFirst().evaluate(program) || getSecond().evaluate(program);
 	}
 
 }

@@ -1,19 +1,13 @@
 package hillbillies.expression.position;
 
 import hillbillies.expression.Expression;
-import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.world.Position;
 
-public abstract class PositionExpression extends Expression {
-	
-	// CONSTRUCTOR
-	
-	public PositionExpression(Unit unit) throws IllegalArgumentException {
-		super(unit);
+public abstract class PositionExpression extends Expression<Position> {
+
+	public PositionExpression(SourceLocation sourceLocation) throws IllegalArgumentException {
+		super(sourceLocation);
 	}
 	
-	
-	// ABSTRACT METHODS
-
-	public abstract boolean returnPosition();
-
 }

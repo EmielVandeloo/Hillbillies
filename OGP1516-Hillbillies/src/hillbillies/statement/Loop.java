@@ -47,7 +47,7 @@ public class Loop extends Statement {
 	public void perform(Program program){
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {				
-				while (((getExpression().evaluate() == true && program.hasTimeForStatement()) && 
+				while (((getExpression().evaluate(program) == true && program.hasTimeForStatement()) && 
 						isToBeExecuted() || getPerformAgain() == true) && !program.hasStopped()) {
 					if (getPerformAgain() == true) {
 						setPerformAgain(false);
@@ -58,7 +58,7 @@ public class Loop extends Statement {
 					getBody().perform(program);
 				}
 				// Stopped the loop because condition yielded false.
-				if (getExpression().evaluate() == false) {
+				if (getExpression().evaluate(program) == false) {
 					setToBeExecuted(false);
 				} 
 				// Current time step finished, but condition still true.
@@ -83,6 +83,5 @@ public class Loop extends Statement {
 			getBody().setToBeExecuted(toBeExecuted);
 		}
 	}
-
 
 }

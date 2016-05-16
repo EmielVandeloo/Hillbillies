@@ -2,12 +2,8 @@ package hillbillies.program;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import hillbillies.model.Unit;
-import hillbillies.statement.Break;
-import hillbillies.statement.Conditional;
-import hillbillies.statement.Loop;
-import hillbillies.statement.Queue;
+import hillbillies.model.World;
 import hillbillies.statement.Statement;
 
 public class Program {
@@ -49,7 +45,7 @@ public class Program {
 		return this.unit;
 	}
 	
-	private void setUnit(Unit unit) {
+	public void setUnit(Unit unit) {
 		this.unit = unit;
 	}
 	
@@ -66,9 +62,11 @@ public class Program {
 	}
 	
 	public void setGlobalVariables(Map<String, Object> globalVariables) {
-		for (Map.Entry<String, Object> entry : globalVariables.entrySet()){
+		try {
+			for (Map.Entry<String, Object> entry : globalVariables.entrySet()) {
 			putGlobalVariable(entry.getKey(), entry.getValue());
-		}
+			}
+		} catch (NullPointerException e) {}
 	}
 	
 	public void putGlobalVariable(String string, Object obj) {
@@ -103,33 +101,8 @@ public class Program {
 		this.timeDepleted = timeDepleted;
 	}
 	
-	// TODO Well-formedness of Expressions
-	public boolean isWellFormed(Statement statement) {
-		if (statement instanceof Queue) {
-			for (Statement subStatement : ((Queue) statement).getStatements()) {
-				if (!isWellFormed(subStatement)){
-					return false;
-				}
-			}
-			return true;
-		} else if (statement instanceof Conditional) {
-			return (isWellFormed(((Conditional) statement).getIfStatement()) && 
-					isWellFormed(((Conditional) statement).getElseStatement()));
-		} else if (statement instanceof Loop) {
-			return isWellFormed(((Loop) statement).getBody());
-		} else if (statement instanceof Break) {
-			if (statement.getLoopStatement() instanceof Loop) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return true;
-		}
-	}
-	
-	public boolean isWellFormed() {
-		return isWellFormed(getMainStatement());
+	public World getWorld() {
+		return getUnit().getWorld();
 	}
 	
 }

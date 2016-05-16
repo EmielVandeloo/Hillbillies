@@ -29,7 +29,7 @@ public class Assignment extends Statement {
 			if (program.hasTimeForStatement()) {
 				Object valueToSet;
 				try {
-					valueToSet = getExpression().evaluate();
+					valueToSet = getExpression().evaluate(program);
 				} catch (NullPointerException exc){
 					program.stop();
 					return;

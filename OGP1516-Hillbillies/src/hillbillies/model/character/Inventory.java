@@ -81,6 +81,18 @@ public class Inventory {
 	public double getMaximalWeight() {
 		return this.maximalWeight;
 	}
+	
+	/**
+	 * Return the weight of this inventory.
+	 */
+	@Basic @Raw
+	public int getWeight() {
+		int weight = 0;
+		for (int i=0 ; i<getNbItems() ; i++) {
+			weight += items.get(i).getWeight();
+		}
+		return weight;
+	}
 
 	/**
 	 * Check whether the given maximal weight is a valid maximal weight for

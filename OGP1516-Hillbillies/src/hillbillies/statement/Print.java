@@ -26,7 +26,7 @@ public class Print extends Statement {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
-				System.out.println(getExpression().evaluate());
+				System.out.println(getExpression().evaluate(program).toString());
 				this.setToBeExecuted(false);
 			} else {
 				program.setTimeDepleted(true);

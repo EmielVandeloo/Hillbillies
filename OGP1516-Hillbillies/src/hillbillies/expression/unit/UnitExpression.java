@@ -2,18 +2,12 @@ package hillbillies.expression.unit;
 
 import hillbillies.expression.Expression;
 import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
 
-public abstract class UnitExpression extends Expression {
-	
-	// CONSTRUCTOR
-	
-	public UnitExpression(Unit unit) throws IllegalArgumentException {
-		super(unit);
-	}
-	
-	
-	// ABSTRACT METHODS
+public abstract class UnitExpression extends Expression<Unit> {
 
-	public abstract Unit returnUnit();
-
+	public UnitExpression(SourceLocation sourceLocation) throws IllegalArgumentException {
+		super(sourceLocation);
+	}	
+	
 }

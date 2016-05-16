@@ -1,6 +1,8 @@
 package hillbillies.expression.bool;
 
-import hillbillies.model.Unit;
+import hillbillies.expression.bool.checker.BoolChecker;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
 
 /**
  * A class of brackets.
@@ -9,10 +11,11 @@ import hillbillies.model.Unit;
  *         bracket expression.
  *       | isValidExpression(getExpression())
  * 
- * @author Pieter-Jan
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
  *
  */
-public class Bracket extends SingleExpression {
+public class Bracket extends BoolChecker {
 
 	// CONSTRUCTOR
 
@@ -27,17 +30,23 @@ public class Bracket extends SingleExpression {
 	 *         the given expression.
 	 *       | this.setExpression(expression)
 	 */
-	public Bracket(Unit unit, BooleanExpression expression) throws IllegalArgumentException {
-		super(unit, expression);
+	public Bracket(SourceLocation sourceLocation, BooleanExpression expression) 
+			throws IllegalArgumentException {
+		
+		super(sourceLocation, expression);
 	}
 
 
 	// OVERRIDE
 
 	@Override
-	public boolean getResult() {
-		// TODO Nog niet zeker van deze uitwerking.
-		return getExpression().getResult();
+	public Boolean evaluate(Program program) {
+		return getExpression().evaluate(program);
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + getExpression().toString() + ")";
 	}
 
 }

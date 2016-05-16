@@ -27,10 +27,16 @@ public class Follow extends Action {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
-				while (!getExpression().evaluate().isTerminated() && !Position.isAdjacentToOrSame(
-						program.getUnit().getPosition(), getExpression().evaluate().getPosition()));
+				while (!getExpression().evaluate(program).isTerminated() && !Position.isAdjacentToOrSame(
+						program.getUnit().getPosition(), getExpression().evaluate(program).getPosition()));
 			}
+			setToBeExecuted(false);
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "Follow " + getExpression().toString();
 	}
 
 }

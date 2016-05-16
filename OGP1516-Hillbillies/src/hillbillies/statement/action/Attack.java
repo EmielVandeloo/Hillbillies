@@ -26,11 +26,15 @@ public class Attack extends Action {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
-				program.getUnit().attack(getExpression().evaluate());
+				program.getUnit().attack(getExpression().evaluate(program));
 			}
+			setToBeExecuted(false);
 		}
 	}
 
-	
+	@Override
+	public String toString() {
+		return "Attack " + getExpression().toString();
+	}
 
 }

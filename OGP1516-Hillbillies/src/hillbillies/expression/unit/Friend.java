@@ -1,17 +1,24 @@
 package hillbillies.expression.unit;
 
 import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
 
 public class Friend extends UnitExpression {
 
-	public Friend(Unit unit) throws IllegalArgumentException {
-		super(unit);
+	public Friend(SourceLocation sourceLocation) throws IllegalArgumentException {
+		super(sourceLocation);
 	}
 
 	@Override
-	public Unit returnUnit() {
-		// TODO getUnit().getFaction().getRandomFriend();
-		return null;
+	public Unit evaluate(Program program) {
+		Unit unit = program.getUnit();
+		return unit.getFaction().getClosestMember(program.getUnit());
+	}
+	
+	@Override
+	public String toString() {
+		return "friend";
 	}
 
 }

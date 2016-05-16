@@ -54,7 +54,7 @@ public class Conditional extends Statement {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
-				if (getExpression().evaluate() == true) {
+				if (getExpression().evaluate(program) == true) {
 					getIfStatement().perform(program);
 				} else if (getElseStatement() != null) {
 					getElseStatement().perform(program);

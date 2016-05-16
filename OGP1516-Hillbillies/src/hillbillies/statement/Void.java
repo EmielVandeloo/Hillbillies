@@ -13,5 +13,10 @@ public class Void extends Statement {
 	public void perform(Program program) {
 		// Do nothing.
 	}
+	
+	@Override
+	public String toString() {
+		return "Do nothing";
+	}
 
 }

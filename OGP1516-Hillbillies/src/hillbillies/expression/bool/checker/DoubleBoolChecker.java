@@ -1,8 +1,9 @@
-package hillbillies.expression.bool;
+package hillbillies.expression.bool.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.model.Unit;
+import hillbillies.expression.bool.BooleanExpression;
+import hillbillies.part3.programs.SourceLocation;
 
 /**
  * A class of double expressions.
@@ -14,10 +15,10 @@ import hillbillies.model.Unit;
  *         double expression.
  *       | isValidSecond(getSecond())
  * 
- * @author Pieter-Jan
- *
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
  */
-public abstract class DoubleExpression extends BooleanExpression {
+public abstract class DoubleBoolChecker extends BooleanExpression {
 
 	// FIELD
 
@@ -48,10 +49,10 @@ public abstract class DoubleExpression extends BooleanExpression {
 	 *         the given second expression.
 	 *       | this.setSecond(second)
 	 */
-	public DoubleExpression(Unit unit, BooleanExpression first, BooleanExpression second) 
+	public DoubleBoolChecker(SourceLocation sourceLocation, BooleanExpression first, BooleanExpression second) 
 			throws IllegalArgumentException {
-		super(unit);
 		
+		super(sourceLocation);
 		this.setFirst(first);
 		this.setSecond(second);
 	}
@@ -139,22 +140,6 @@ public abstract class DoubleExpression extends BooleanExpression {
 		if (! isValidSecond(second))
 			throw new IllegalArgumentException();
 		this.second = second;
-	}
-
-
-	// OVERRIDE
-
-	@Override
-	public boolean getResult() {
-		return (getFirst().getResult() && getSecond().getResult());
-	}
-
-	@Override
-	public void setUnit(Unit unit) {
-		super.setUnit(unit);
-
-		getFirst().setUnit(unit);
-		getSecond().setUnit(unit);
 	}
 
 }

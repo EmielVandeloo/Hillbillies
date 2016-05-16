@@ -3,7 +3,6 @@ package hillbillies.statement.action;
 import hillbillies.expression.position.PositionExpression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
-import hillbillies.world.Position;
 
 public class MoveTo extends Action {
 
@@ -26,9 +25,15 @@ public class MoveTo extends Action {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
-				program.getUnit().moveTo(getExpression().evaluate());
+				program.getUnit().moveTo(getExpression().evaluate(program));
 			}
+			setToBeExecuted(false);
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "Move to " + getExpression().toString();
 	}
 	
 }

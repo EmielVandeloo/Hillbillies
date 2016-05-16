@@ -21,4 +21,9 @@ public class Break extends Statement {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return "Break loop " + getLoopStatement().toString();
+	}
+	
 }

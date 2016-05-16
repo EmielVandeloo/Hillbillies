@@ -1,20 +1,16 @@
 package hillbillies.expression.bool;
 
-import hillbillies.model.Unit;
+import hillbillies.part3.programs.SourceLocation;
+import hillbillies.program.Program;
 
 public class True extends BooleanExpression {
-	
-	// CONSTRUCTOR
 
-	public True(Unit unit) throws IllegalArgumentException {
-		super(unit);
+	public True(SourceLocation sourceLocation) throws IllegalArgumentException {
+		super(sourceLocation);
 	}
-	
-	
-	// OVERRIDE
 
 	@Override
-	public boolean getResult() {
+	public Boolean evaluate(Program program) {
 		return true;
 	}
 

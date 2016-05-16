@@ -8,6 +8,7 @@ import hillbillies.model.Log;
 import hillbillies.model.Unit;
 import hillbillies.model.World;
 import hillbillies.part2.listener.TerrainChangeListener;
+import hillbillies.world.Cube;
 import hillbillies.world.Position;
 import ogp.framework.util.ModelException;
 
@@ -230,7 +231,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void setCubeType(World world, int x, int y, int z, int value) throws ModelException {
-		world.setAt(new Position(x,y,z), hillbillies.world.Cube.byId(value));
+		world.setAt(new Position(x,y,z), Cube.byId(value));
 	}
 
 	@Override

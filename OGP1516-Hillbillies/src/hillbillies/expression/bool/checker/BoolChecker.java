@@ -1,8 +1,9 @@
-package hillbillies.expression.bool;
+package hillbillies.expression.bool.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.model.Unit;
+import hillbillies.expression.bool.BooleanExpression;
+import hillbillies.part3.programs.SourceLocation;
 
 /**
  * A class of single expressions.
@@ -14,7 +15,7 @@ import hillbillies.model.Unit;
  * @author Pieter-Jan
  *
  */
-public abstract class SingleExpression extends BooleanExpression {
+public abstract class BoolChecker extends BooleanExpression {
 	
 	// FIELDS
 	
@@ -35,12 +36,15 @@ public abstract class SingleExpression extends BooleanExpression {
 	 *         the given expression.
 	 *       | this.setExpression(expression)
 	 */
-	public SingleExpression(Unit unit, BooleanExpression expression) throws IllegalArgumentException {
-		super(unit);
+	public BoolChecker(SourceLocation sourceLocation, BooleanExpression expression) 
+			throws IllegalArgumentException {
 		
+		super(sourceLocation);
 		this.setExpression(expression);
 	}
 
+	
+	// GETTERS AND SETTERS
 
 	/**
 	 * Return the expression of this single expression.
@@ -83,13 +87,4 @@ public abstract class SingleExpression extends BooleanExpression {
 		this.expression = expression;
 	}
 	
-	// OVERRIDE
-	
-	@Override
-	public void setUnit(Unit unit) {
-		super.setUnit(unit);
-		
-		getExpression().setUnit(unit);
-	}
-
 }
