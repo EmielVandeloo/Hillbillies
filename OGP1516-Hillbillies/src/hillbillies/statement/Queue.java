@@ -8,10 +8,12 @@ import hillbillies.program.Program;
 public class Queue extends Statement {
 
 	private List<Statement> statements = new ArrayList<>();
+	private boolean toBeExecuted = true;
+	private int index = 0;
 
 	public Queue(List<Statement> statements, SourceLocation sl) throws IllegalArgumentException {
 		super(sl);
-		this.statements = statements;
+		setStatements(statements);
 	}
 	
 	public List<Statement> getStatements() {
@@ -28,30 +30,27 @@ public class Queue extends Statement {
 	}
 
 	@Override
-	public void perform(Program program){
+	public void perform(Program program) {
 		if (isToBeExecuted() && !program.hasStopped()) {
-			if (getStatements() != null) {
-				for (Statement statement : getStatements()) {
-					if (program.hasTimeForStatement()) {
-						statement.perform(program);
-					}
-				}
-			} else {
-				program.setTimeDepleted(true);
+			try {
+				getStatements().get(getIndex()).perform(program);
+			} catch (IndexOutOfBoundsException e) {
+				setToBeExecuted(false);
+				try {
+					getNestingStatement().setToBeExecuted(false);
+				} catch (NullPointerException exc) {}
 			}
 		}
 	}
 	
 	@Override
+	public boolean isToBeExecuted() {
+		return this.toBeExecuted;
+	}
+	
+	@Override
 	public void setToBeExecuted(boolean toBeExecuted) {
-		super.setToBeExecuted(toBeExecuted);
-		if (getStatements() != null) {
-			for (Statement statement : getStatements()) {
-				if (statement != null) {
-					statement.setToBeExecuted(toBeExecuted);
-				}
-			}
-		}
+		this.toBeExecuted = toBeExecuted;
 	}
 	
 	@Override
@@ -63,5 +62,33 @@ public class Queue extends Statement {
 		}
 		return string;
 	}
-
+	
+	public int getIndex() {
+		return this.index;
+	}
+	
+	public void setIndex(int index) {
+		this.index = index;
+	}
+	
+	public int getIndexOfToBeExecuted() {
+		for (Statement statement : getStatements()) {
+			if (statement.isToBeExecuted()) {
+				return getStatements().indexOf(statement);
+			}
+		}
+		return -1;
+	}
+	
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+		setIndex(0);
+		for (Statement statement : getStatements()) {
+			statement.resetAll();
+		}
+	}
+	
 }
+
+

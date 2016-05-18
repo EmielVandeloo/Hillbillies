@@ -546,6 +546,15 @@ public class Unit extends Entity {
 	public int getWeight() {
 		return this.weight;
 	}
+	
+	/**
+	 * Return the effective weight of this unit.
+	 */
+	@Basic @Raw
+	public int getEffectiveWeight() {
+		return getWeight() + getInventory().getWeight();
+	}
+	
 	/**
 	 * Check whether the given weight is a valid weight for any unit.
 	 * 
@@ -1202,7 +1211,7 @@ public class Unit extends Entity {
 	@Override
 	public void advanceTime(double deltaTime) {
 		int div1 = getNbExperiencePoints() / 10;
-		setWeight(getWeight() + getInventory().getWeight());
+		//setWeight(getWeight() + getInventory().getWeight());
 		if (isFalling()) {
 			fallBehavior(deltaTime);
 		} else if (!getWorld().hasSolidNeighbour(getPosition())) {
@@ -1220,7 +1229,11 @@ public class Unit extends Entity {
 				performRest(deltaTime);
 			} else if (getObjectivePosition() != null) {
 				walk(deltaTime);
+			} else if (hasTask()) {
+				System.out.println("Perform task (same program)");
+				getProgram().execute(deltaTime);
 			} else if (getFaction().getScheduler().isTaskAvailable()) {
+				System.out.println("\nInitialise new task from scheduler.");
 				getFaction().getScheduler().assignTopPriorityTask(this);
 				setProgram(new Program(getTask().getStatement(), null));
 				getProgram().execute(deltaTime);
@@ -1712,7 +1725,7 @@ public class Unit extends Entity {
 	 */
 	@Raw @Model
 	private double getBaseSpeed() {
-		return 1.5 * (getStrength() + getAgility()) / (200 * getWeight() / 100);
+		return 1.5 * (getStrength() + getAgility()) / (200 * getEffectiveWeight() / 100);
 	}
 
 	/**
@@ -2184,7 +2197,7 @@ public class Unit extends Entity {
 		case DROP:
 			ItemEntity itemEntity = getInventory().getItem();
 			getInventory().dropItem(itemEntity, getPosition(), getWorld());
-			setWeight(getWeight() - itemEntity.getWeight());
+			//setWeight(getWeight() - itemEntity.getWeight());
 			break;
 		case UPGRADE:
 			logs.get(0).setWorld(null);
@@ -2198,14 +2211,14 @@ public class Unit extends Entity {
 			getInventory().addItem(boulder);
 			boulder.setWorld(null);
 			getWorld().removeEntity(boulder);
-			setWeight(getWeight() + boulder.getWeight());
+			//setWeight(getWeight() + boulder.getWeight());
 			break;
 		case PICK_UP_LOG:
 			ItemEntity log = (Log) logs.get(0);
 			getInventory().addItem(log);
 			log.setWorld(null);
 			getWorld().removeEntity(log);
-			setWeight(getWeight() + log.getWeight());
+			//setWeight(getWeight() + log.getWeight());
 			break;
 		case REMOVE_BLOCK:
 			getWorld().remove(position);
@@ -3365,6 +3378,11 @@ public class Unit extends Entity {
 		return this.task;
 	}
 	
+	// TODO
+	public boolean hasTask() {
+		return getTask() != null;
+	}
+	
 	/**
 	 * Check whether the given task is a valid task for any unit.
 	 * 
@@ -3425,7 +3443,29 @@ public class Unit extends Entity {
 	 */
 	private void setProgram(Program program) {
 		this.program = program;
-		program.setUnit(this);
+		if (program != null) program.setUnit(this);
 	}
+	
+	// TODO
+	public Scheduler getScheduler() {
+		return getFaction().getScheduler();
+	}
+	
+	public void finishTask() {
+		getTask().terminate();
+		setTask(null);
+		setProgram(null);
+	}
+	
+	public void interruptTask() {
+		getScheduler().transferUnfinishedTask(getTask());
+		setTask(null);
+		setProgram(null);
+	}
+	
+	public boolean cannotStartAction() {
+		return (hasJob() || isMoving());
+	}
+	
 }
 

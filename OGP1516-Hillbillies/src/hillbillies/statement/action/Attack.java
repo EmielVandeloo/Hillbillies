@@ -37,4 +37,9 @@ public class Attack extends Action {
 		return "Attack " + getExpression().toString();
 	}
 
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+	}
+
 }

@@ -3,8 +3,7 @@ package hillbillies.part3.facade;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-
-import hillbillies.TaskFactory;
+import hillbillies.program.*;
 import hillbillies.model.Boulder;
 import hillbillies.model.Faction;
 import hillbillies.model.Log;

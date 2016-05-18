@@ -39,4 +39,9 @@ public class Follow extends Action {
 		return "Follow " + getExpression().toString();
 	}
 
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+	}
+
 }

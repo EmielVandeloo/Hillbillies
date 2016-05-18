@@ -15,7 +15,9 @@ public class NextTo extends PositionChecker {
 
 	@Override
 	public Position evaluate(Program program) {
-		return program.getWorld().getRandomNeighbouringPosition(getPositionExpression().evaluate(program));
+		Position position = program.getWorld().getRandomAccessibleNeighbouringPosition(getPositionExpression().evaluate(program));
+		System.out.println(position);
+		return position;
 	}
 
 	@Override

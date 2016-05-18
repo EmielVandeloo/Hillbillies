@@ -24,7 +24,6 @@ public abstract class Expression<E> {
 	 */
 	private SourceLocation sourceLocation;
 
-	
 	// CONSTRUCTOR
 
 	/**

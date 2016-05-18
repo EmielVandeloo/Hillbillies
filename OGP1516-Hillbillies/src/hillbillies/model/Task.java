@@ -30,6 +30,8 @@ public class Task implements Comparable<Task> {
 
 	// FIELDS
 
+	private boolean isTerminated;
+	
 	/**
 	 * Variable registering the name of this task.
 	 */
@@ -112,6 +114,25 @@ public class Task implements Comparable<Task> {
 	public Task(String name, int priority, Statement statement) throws IllegalArgumentException {
 		this(name, priority, statement, null);
 	}
+	
+	public boolean isTerminated() {
+		return this.isTerminated;
+	}
+	
+	public void terminate() {
+		if (!isTerminated()) {
+			this.isTerminated = true;
+			
+			for (Scheduler scheduler : getSchedulers()) {
+				try {
+					scheduler.removeFromAssignedTasks(this);
+				} catch (IllegalArgumentException e) {}
+				try {
+					scheduler.removeFromNotAssignedTasks(this);
+				} catch (IllegalArgumentException e) {}
+			}
+		}
+	}
 
 	// GETTERS AND SETTERS
 
@@ -174,7 +195,7 @@ public class Task implements Comparable<Task> {
 	 *       | result == (priority >= 0)
 	 */
 	public static boolean isValidPriority(int priority) {
-		return (priority >= 0);
+		return true;
 	}
 
 	/**
@@ -256,7 +277,7 @@ public class Task implements Comparable<Task> {
 	 *       | result == (selectedPosition != null)
 	 */
 	public static boolean isValidSelectedPosition(Position selectedPosition) {
-		return (selectedPosition != null);
+		return true;
 	}
 
 	/**
@@ -399,7 +420,7 @@ public class Task implements Comparable<Task> {
 	public int compareTo(Task o) {
 		if (this.getPriority() == o.getPriority()) {
 			return 0;
-		} else if (this.getPriority() > o.getPriority()) {
+		} else if (getPriority() > o.getPriority()) {
 			return 1;
 		} else {
 			return -1;

@@ -84,4 +84,11 @@ public class Loop extends Statement {
 		}
 	}
 
+
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+		getBody().resetAll();
+	}
+
 }

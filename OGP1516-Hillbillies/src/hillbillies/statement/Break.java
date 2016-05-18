@@ -25,5 +25,10 @@ public class Break extends Statement {
 	public String toString() {
 		return "Break loop " + getLoopStatement().toString();
 	}
+
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+	}
 	
 }

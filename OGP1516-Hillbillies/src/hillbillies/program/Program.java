@@ -11,12 +11,13 @@ public class Program {
 	private Statement mainStatement;	
 	private Map<String, Object> globalVariables = new HashMap<>();
 	private boolean hasStopped = false;
+	private boolean isInterrupted = false;
 	private double timer = Double.MAX_VALUE;
 	private boolean timeDepleted = false;
 	public double TIME_UNIT = 0.001;
 	private Unit unit;
 	
-	public Program(Statement mainStatement, Map<String, Object> globalVariables){
+	public Program(Statement mainStatement, Map<String, Object> globalVariables) {
 		setGlobalVariables(globalVariables);
 		setMainStatement(mainStatement);
 	}
@@ -73,24 +74,42 @@ public class Program {
 		this.globalVariables.put(string, obj);
 	}
 	
+	public void update(double deltaTime) {
+		setTimer(deltaTime);
+	}
+	
 	public void execute(double deltaTime) {
 		if (!hasStopped()) {
 			setTimer(deltaTime);
 			getMainStatement().perform(this);
-			if (!isTimeDepleted()) {
-				getMainStatement().setToBeExecuted(true);
-			} else {
-				setTimeDepleted(false);
+			if (! getMainStatement().isToBeExecuted()) {
+				System.out.println("Stop execution program.");
+				finish();
 			}
 		}
 	}
 	
-	public void stop() {
+	public void finish() {
+		// Tasks with multiple selected positions work with same main statement and its components.
+		// Main statement has to be reset (index=0 for queue and isToBeExecuted()=true for all components).
+		getMainStatement().resetAll();
 		this.hasStopped = true;
+		getUnit().finishTask();
 	}
 	
 	public boolean hasStopped() {
 		return this.hasStopped;
+	}
+	
+	public void interrupt() {
+		// cfr. finish
+		getMainStatement().resetAll();
+		this.hasStopped = true;
+		getUnit().interruptTask();
+	}
+	
+	public boolean isInterrupted() {
+		return this.isInterrupted;
 	}
 	
 	public boolean isTimeDepleted() {

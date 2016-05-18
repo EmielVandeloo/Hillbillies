@@ -31,7 +31,7 @@ public class Assignment extends Statement {
 				try {
 					valueToSet = getExpression().evaluate(program);
 				} catch (NullPointerException exc){
-					program.stop();
+					program.interrupt();
 					return;
 				}
 				program.decreaseTimerOneUnit();
@@ -41,6 +41,11 @@ public class Assignment extends Statement {
 				program.setTimeDepleted(true);
 			}
 		}
+	}
+
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
 	}
 
 }

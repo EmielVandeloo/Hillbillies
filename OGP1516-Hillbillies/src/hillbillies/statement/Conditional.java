@@ -9,13 +9,22 @@ public class Conditional extends Statement {
 	private BooleanExpression expression;
 	private Statement ifStatement;
 	private Statement elseStatement;
+	private boolean toBeExecuted = true;
 	
 	public Conditional(BooleanExpression expression, Statement ifStatement, Statement elseStatement, SourceLocation sl) 
 			throws IllegalArgumentException {
 		super(sl);
 		setExpression(expression);
-		setIfStatement(ifStatement);
-		setElseStatement(elseStatement);
+		if (ifStatement != null) {
+			setIfStatement(ifStatement);
+		} else {
+			setIfStatement(new Void(sl));
+		}
+		if (elseStatement != null) {
+			setElseStatement(elseStatement);
+		} else {
+			setElseStatement(new Void(sl));
+		}
 	}
 	
 	public Conditional(BooleanExpression expression, Statement ifStatement, SourceLocation sl) 
@@ -50,16 +59,27 @@ public class Conditional extends Statement {
 	}
 
 	@Override
-	public void perform(Program program){
+	public void perform(Program program) {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				if (getExpression().evaluate(program) == true) {
+					getExpression().setHasEvaluatedToTrue(true);
+					getIfStatement().setNestingStatement(this);
 					getIfStatement().perform(program);
-				} else if (getElseStatement() != null) {
+					getElseStatement().setToBeExecuted(false);
+				} else if (getExpression().HasEvaluatedToTrue()) {
+					getIfStatement().setNestingStatement(this);
+					getIfStatement().perform(program);
+					getElseStatement().setToBeExecuted(false);
+					if (!program.getUnit().cannotStartAction()) {
+						getExpression().setHasEvaluatedToTrue(false);
+					}
+				} else {
+					getElseStatement().setNestingStatement(this);
 					getElseStatement().perform(program);
+					getIfStatement().setToBeExecuted(false);
 				}
-				setToBeExecuted(false);
 			} else {
 				program.setTimeDepleted(true);
 			}
@@ -68,13 +88,25 @@ public class Conditional extends Statement {
 
 	@Override
 	public void setToBeExecuted(boolean toBeExecuted) {
-		super.setToBeExecuted(toBeExecuted);
-		if (getIfStatement() != null) {
-			getIfStatement().setToBeExecuted(toBeExecuted);
+		this.toBeExecuted = toBeExecuted;
+		getExpression().setHasEvaluatedToTrue(false);
+		if (isPartOfQueue() && toBeExecuted == false) {
+			((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 		}
-		if(getElseStatement() != null) {
-			getElseStatement().setToBeExecuted(toBeExecuted);
-		}
+		getIfStatement().setToBeExecuted(toBeExecuted);
+		getElseStatement().setToBeExecuted(toBeExecuted);
+	}
+	
+	@Override
+	public boolean isToBeExecuted() {
+		return this.toBeExecuted;
+	}
+	
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+		getIfStatement().resetAll();
+		getElseStatement().resetAll();
 	}
 
 }

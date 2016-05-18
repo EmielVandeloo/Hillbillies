@@ -7,7 +7,7 @@ public abstract class Statement {
 	
 	private SourceLocation sourceLocation;
 	private Statement nestingStatement = null;
-	protected boolean toBeExecuted = true;
+	private boolean toBeExecuted = true;
 	
 	public Statement(SourceLocation sourceLocation){
 		setSourceLocation(sourceLocation);
@@ -55,6 +55,30 @@ public abstract class Statement {
 		return nestingStatement;
 	}
 	
+	public Statement getQueueStatement() {
+		if (this instanceof Queue) {
+			return this;
+		}
+		Statement nestingStatement = getNestingStatement();
+		if (nestingStatement == null) {
+			return null;
+		}
+		while (!(nestingStatement instanceof Queue)) {
+			nestingStatement = nestingStatement.getNestingStatement();
+			if (nestingStatement == null) {
+				return null;
+			}
+		}
+		return nestingStatement;
+	}
+	
+	public boolean isPartOfQueue() {
+		if (getNestingStatement() instanceof Queue) {
+			return true;
+		}
+		return false;
+	}
+	
 	// TODO Well-formedness of Expressions
 	public boolean isWellFormed() {
 		if (this instanceof Queue) {
@@ -81,5 +105,7 @@ public abstract class Statement {
 	}
 		
 	public abstract void perform(Program program);
+	
+	public abstract void resetAll();
 
 }

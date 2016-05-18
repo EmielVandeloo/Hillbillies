@@ -1100,13 +1100,11 @@ public class World {
 	 *         The position to search around.
 	 * @return A list containing all neighbouring (also diagonally) positions of the given position.
 	 */
-	@Model
-	private List<Position> getAllNeighbours(Position position) {
+	public List<Position> getAllNeighbours(Position position) {
 		List<Position> neighbours = new ArrayList<>();
 		for (int i = -1; i < 2; i++) {
 			for (int j = -1; j < 2; j++) {
 				for (int k = -1; k < 2; k++) {
-					
 					if (i != 0 || j != 0 || k != 0) {
 						Position temp = position.add(Position.X, i).add(Position.Y, j).add(Position.Z, k);
 						if (isValidPosition(temp)) {
@@ -1259,14 +1257,17 @@ public class World {
 	 *         The position to search next to.
 	 * @return A random neighbouring position that is passable and has a solid neighbour.
 	 */
-	@Model
-	private Position getRandomAccessibleNeighbouringPosition(Position position) {
-		while (true) {
-			Position pos = getRandomNeighbouringPosition(position);
-			if (getAt(pos).isPassable() && hasSolidNeighbour(pos)) {
-				return pos;
+	public Position getRandomAccessibleNeighbouringPosition(Position position) {
+		List<Position> accessibleNeighbours = new ArrayList<>();
+		for (Position pos : getAllNeighbours(position)) {
+			if (isPassable(pos) && hasSolidNeighbour(pos)) {
+				accessibleNeighbours.add(pos);
 			}
 		}
+		if (accessibleNeighbours.isEmpty()) {
+			return null;
+		}
+		return accessibleNeighbours.get(new Random().nextInt(accessibleNeighbours.size()));
 	}
 	
 	/**

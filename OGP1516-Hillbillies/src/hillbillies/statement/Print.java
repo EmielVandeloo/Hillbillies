@@ -33,5 +33,10 @@ public class Print extends Statement {
 			}
 		}
 	}
+
+	@Override
+	public void resetAll() {
+		setToBeExecuted(true);
+	}
 	
 }

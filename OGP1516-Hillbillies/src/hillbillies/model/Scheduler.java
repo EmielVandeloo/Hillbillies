@@ -303,6 +303,7 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		getNotAssignedTasks().add(task);
+		task.addScheduler(this);
 		sort();
 	}
 	
@@ -322,6 +323,7 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		getNotAssignedTasks().remove(task);
+		task.removeScheduler(this);
 	}
 	
 	/**
@@ -341,6 +343,7 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		getAssignedTasks().add(task);
+		task.addScheduler(this);
 	}
 	
 	/**
@@ -359,6 +362,7 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		getAssignedTasks().remove(task);
+		task.removeScheduler(this);
 	}
 	
 	/**
@@ -449,7 +453,7 @@ public class Scheduler {
 	 *       |   then assign(getTopPriorityTask(), unit) 
 	 */
 	public void assignTopPriorityTask(Unit unit) {
-		if (getNbNotAssignedTasks() > 0) {
+		if (getTopPriorityTask() != null) {
 			assign(getTopPriorityTask(), unit);
 		}
 	}
@@ -473,7 +477,7 @@ public class Scheduler {
 	 *       | !hasAsNotAssignedTask(task)
 	 */
 	public void transferUnfinishedTask(Task task) throws IllegalArgumentException {
-		if (!hasAsNotAssignedTask(task)) {
+		if (!hasAsAssignedTask(task)) {
 			throw new IllegalArgumentException();
 		}
 		task.setExecutingUnit(null);

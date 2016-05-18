@@ -1,8 +1,7 @@
-package hillbillies;
+package hillbillies.program;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import hillbillies.expression.Expression;
 import hillbillies.expression.bool.And;
 import hillbillies.expression.bool.BooleanExpression;
@@ -53,8 +52,13 @@ public class TaskFactory implements ITaskFactory<Expression<?>, hillbillies.stat
 			List<int[]> selectedCubes) {
 		
 		List<Task> list = new ArrayList<>();
+		int i = 0;
 		for (int[] is : selectedCubes) {
-			list.add(new Task(name, priority, activity, new Position(is[0], is[1], is[2])));
+			list.add(new Task(name, priority+i, activity, new Position(is[0], is[1], is[2])));
+			i++;
+		}
+		if (list.isEmpty()) {
+			list.add(new Task(name, priority, activity));
 		}
 		return list;
 	}
@@ -75,7 +79,7 @@ public class TaskFactory implements ITaskFactory<Expression<?>, hillbillies.stat
 	public hillbillies.statement.Statement createIf(Expression<?> condition,
 			hillbillies.statement.Statement ifBody, hillbillies.statement.Statement elseBody,
 			SourceLocation sourceLocation) {
-		return new Conditional((BooleanExpression) condition, ifBody, sourceLocation);
+		return new Conditional((BooleanExpression) condition, ifBody, elseBody, sourceLocation);
 	}
 
 	@Override

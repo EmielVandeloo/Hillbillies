@@ -29,7 +29,7 @@ public abstract class ItemEntity extends Entity {
 	 * A value between 0 and 1 representing the
 	 * chance to drop an item entity.
 	 */
-	public static final double dropChance = 0.25;
+	public static final double dropChance = 1;
 
 	/**
 	 * Variable registering the maximal weight of this item entity.
