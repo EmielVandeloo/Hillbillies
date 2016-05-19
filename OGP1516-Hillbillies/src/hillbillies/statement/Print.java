@@ -7,6 +7,7 @@ import hillbillies.program.Program;
 public class Print extends Statement {
 	
 	private Expression<?> expression;
+	private boolean toBeExecuted = true;
 	
 	public Print(Expression<?> value, SourceLocation sl) throws IllegalArgumentException {
 		super(sl);
@@ -27,11 +28,26 @@ public class Print extends Statement {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				System.out.println(getExpression().evaluate(program).toString());
-				this.setToBeExecuted(false);
-			} else {
-				program.setTimeDepleted(true);
+				setToBeExecuted(false);
+				if (isPartOfQueue()) {
+					((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
+				} else {
+					try {
+						getNestingStatement().setToBeExecuted(false);
+					} catch (NullPointerException e) {}
+				}
 			}
 		}
+	}
+	
+	@Override
+	public boolean isToBeExecuted() {
+		return this.toBeExecuted;
+	}
+	
+	@Override
+	public void setToBeExecuted(boolean toBeExecuted) {
+		this.toBeExecuted = toBeExecuted;
 	}
 
 	@Override

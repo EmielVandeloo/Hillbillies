@@ -2,7 +2,7 @@ package hillbillies.expression.bool.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.expression.bool.BooleanExpression;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 
 /**
@@ -18,19 +18,19 @@ import hillbillies.part3.programs.SourceLocation;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  */
-public abstract class DoubleBoolChecker extends BooleanExpression {
+public abstract class DoubleBoolChecker extends Expression<Boolean> {
 
 	// FIELD
 
 	/**
 	 * Variable registering the first expression of this double expression.
 	 */
-	private BooleanExpression first;
+	private Expression<Boolean> first;
 
 	/**
 	 * Variable registering the second expression of this double expression.
 	 */
-	private BooleanExpression second;
+	private Expression<Boolean> second;
 
 
 	// CONSTRUCTOR
@@ -49,8 +49,8 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 *         the given second expression.
 	 *       | this.setSecond(second)
 	 */
-	public DoubleBoolChecker(SourceLocation sourceLocation, BooleanExpression first, BooleanExpression second) 
-			throws IllegalArgumentException {
+	public DoubleBoolChecker(SourceLocation sourceLocation, 
+			Expression<Boolean> first, Expression<Boolean> second) throws IllegalArgumentException {
 		
 		super(sourceLocation);
 		this.setFirst(first);
@@ -64,7 +64,7 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 * Return the first expression of this double expression.
 	 */
 	@Basic @Raw
-	public BooleanExpression getFirst() {
+	public Expression<Boolean> getFirst() {
 		return this.first;
 	}
 
@@ -77,7 +77,7 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 * @return 
 	 *       | result == (first != null)
 	 */
-	public static boolean isValidFirst(BooleanExpression first) {
+	public static boolean isValidFirst(Expression<Boolean> first) {
 		return (first != null);
 	}
 
@@ -95,7 +95,7 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 *       | ! isValidFirst(getFirst())
 	 */
 	@Raw
-	public void setFirst(BooleanExpression first) throws IllegalArgumentException {
+	public void setFirst(Expression<Boolean> first) throws IllegalArgumentException {
 		if (! isValidFirst(first))
 			throw new IllegalArgumentException();
 		this.first = first;
@@ -105,7 +105,7 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 * Return the second expression of this double expression.
 	 */
 	@Basic @Raw
-	public BooleanExpression getSecond() {
+	public Expression<Boolean> getSecond() {
 		return this.second;
 	}
 
@@ -118,7 +118,7 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 * @return 
 	 *       | result == (second != null)
 	 */
-	public static boolean isValidSecond(BooleanExpression second) {
+	public static boolean isValidSecond(Expression<Boolean> second) {
 		return (second != null);
 	}
 
@@ -136,7 +136,7 @@ public abstract class DoubleBoolChecker extends BooleanExpression {
 	 *       | ! isValidSecond(getSecond())
 	 */
 	@Raw
-	public void setSecond(BooleanExpression second) throws IllegalArgumentException {
+	public void setSecond(Expression<Boolean> second) throws IllegalArgumentException {
 		if (! isValidSecond(second))
 			throw new IllegalArgumentException();
 		this.second = second;

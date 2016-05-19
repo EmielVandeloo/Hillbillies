@@ -1,5 +1,6 @@
 package hillbillies.expression.bool;
 
+import hillbillies.expression.Expression;
 import hillbillies.expression.bool.checker.BoolChecker;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
@@ -30,7 +31,7 @@ public class Bracket extends BoolChecker {
 	 *         the given expression.
 	 *       | this.setExpression(expression)
 	 */
-	public Bracket(SourceLocation sourceLocation, BooleanExpression expression) 
+	public Bracket(SourceLocation sourceLocation, Expression<Boolean> expression) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation, expression);

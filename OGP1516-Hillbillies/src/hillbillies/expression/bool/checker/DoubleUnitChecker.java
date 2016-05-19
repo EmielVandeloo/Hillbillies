@@ -2,8 +2,8 @@ package hillbillies.expression.bool.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.expression.bool.BooleanExpression;
-import hillbillies.expression.unit.UnitExpression;
+import hillbillies.expression.Expression;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 
 /**
@@ -19,19 +19,19 @@ import hillbillies.part3.programs.SourceLocation;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  */
-public abstract class DoubleUnitChecker extends BooleanExpression {
+public abstract class DoubleUnitChecker extends Expression<Boolean> {
 
 	// FIELDS
 
 	/**
 	 * Variable registering the first expression of this checker.
 	 */
-	private UnitExpression first;
+	private Expression<Unit> first;
 
 	/**
 	 * Variable registering the second expression of this checker.
 	 */
-	private UnitExpression second;
+	private Expression<Unit> second;
 
 
 	// CONSTRUCTOR
@@ -50,7 +50,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 *         the given second expression.
 	 *       | this.setSecond(second)
 	 */
-	public DoubleUnitChecker(SourceLocation sourceLocation, UnitExpression first, UnitExpression second) 
+	public DoubleUnitChecker(SourceLocation sourceLocation, Expression<Unit> first, Expression<Unit> second) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation);
@@ -65,7 +65,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 * Return the first expression of this checker.
 	 */
 	@Basic @Raw
-	public UnitExpression getFirst() {
+	public Expression<Unit> getFirst() {
 		return this.first;
 	}
 
@@ -78,7 +78,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 * @return 
 	 *       | result == (first != null)
 	 */
-	public static boolean isValidFirst(UnitExpression first) {
+	public static boolean isValidFirst(Expression<Unit> first) {
 		return (first != null);
 	}
 
@@ -96,8 +96,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 *       | ! isValidFirst(getFirst())
 	 */
 	@Raw
-	public void setFirst(UnitExpression first) 
-			throws IllegalArgumentException {
+	public void setFirst(Expression<Unit> first) throws IllegalArgumentException {
 		if (! isValidFirst(first))
 			throw new IllegalArgumentException();
 		this.first = first;
@@ -107,7 +106,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 * Return the second expression of this checker.
 	 */
 	@Basic @Raw
-	public UnitExpression getSecond() {
+	public Expression<Unit> getSecond() {
 		return this.second;
 	}
 
@@ -120,7 +119,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 * @return 
 	 *       | result == (second != null)
 	 */
-	public static boolean isValidSecond(UnitExpression second) {
+	public static boolean isValidSecond(Expression<Unit> second) {
 		return (second != null);
 	}
 
@@ -138,7 +137,7 @@ public abstract class DoubleUnitChecker extends BooleanExpression {
 	 *       | ! isValidSecond(getSecond())
 	 */
 	@Raw
-	public void setSecond(UnitExpression second) throws IllegalArgumentException {
+	public void setSecond(Expression<Unit> second) throws IllegalArgumentException {
 		if (! isValidSecond(second))
 			throw new IllegalArgumentException();
 		this.second = second;

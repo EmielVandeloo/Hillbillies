@@ -2,15 +2,17 @@ package hillbillies.expression.object;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
 /**
+ * @param <E>
  * @invar  The variable name of each read variable must be a valid variable name for any
  *         read variable.
  *       | isValidVariableName(getVariableName())
  */
-public class ReadVariable extends ObjectExpression {
+public class ReadVariable<E> extends Expression<E> {
 	
 	// FIELDS
 
@@ -34,7 +36,6 @@ public class ReadVariable extends ObjectExpression {
 	 */
 	public ReadVariable(SourceLocation sourceLocation, String variableName) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation);
 		this.setVariableName(variableName);
 	}
@@ -86,9 +87,10 @@ public class ReadVariable extends ObjectExpression {
 	
 	// OVERRIDE
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public Object evaluate(Program program) {
-		return program.getGlobalVariables().get(variableName);
+	public E evaluate(Program program) {
+		return (E) program.getGlobalVariables().get(variableName);
 	}
 
 	@Override

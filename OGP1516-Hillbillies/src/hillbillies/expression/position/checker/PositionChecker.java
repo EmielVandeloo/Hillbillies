@@ -2,8 +2,9 @@ package hillbillies.expression.position.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.expression.position.PositionExpression;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
+import hillbillies.world.Position;
 
 /**
  * A class to check a position.
@@ -15,14 +16,14 @@ import hillbillies.part3.programs.SourceLocation;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  */
-public abstract class PositionChecker extends PositionExpression {
+public abstract class PositionChecker extends Expression<Position> {
 	
 	// FIELDS
 
 	/**
 	 * Variable registering the position expression of this checker.
 	 */
-	private PositionExpression positionExpression;
+	private Expression<Position> positionExpression;
 	
 
 	// CONSTRUCTOR
@@ -36,7 +37,7 @@ public abstract class PositionChecker extends PositionExpression {
 	 *         the given position expression.
 	 *       | this.setPosition(position)
 	 */
-	public PositionChecker(SourceLocation sourceLocation, PositionExpression positionExpression) 
+	public PositionChecker(SourceLocation sourceLocation, Expression<Position> positionExpression) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation);
@@ -50,7 +51,7 @@ public abstract class PositionChecker extends PositionExpression {
 	 * Return the position expression of this checker.
 	 */
 	@Basic @Raw
-	public PositionExpression getPositionExpression() {
+	public Expression<Position> getPositionExpression() {
 		return this.positionExpression;
 	}
 
@@ -63,7 +64,7 @@ public abstract class PositionChecker extends PositionExpression {
 	 * @return 
 	 *       | result == (position != null)
 	 */
-	public static boolean isValidPositionExpression(PositionExpression positionExpression) {
+	public static boolean isValidPositionExpression(Expression<Position> positionExpression) {
 		return (positionExpression != null);
 	}
 
@@ -81,7 +82,9 @@ public abstract class PositionChecker extends PositionExpression {
 	 *       | ! isValidPosition(getPosition())
 	 */
 	@Raw
-	public void setPositionExpression(PositionExpression positionExpression) throws IllegalArgumentException {
+	public void setPositionExpression(Expression<Position> positionExpression) 
+			throws IllegalArgumentException {
+		
 		if (! isValidPositionExpression(positionExpression))
 			throw new IllegalArgumentException();
 		this.positionExpression = positionExpression;

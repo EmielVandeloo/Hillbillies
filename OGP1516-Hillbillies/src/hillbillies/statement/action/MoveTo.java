@@ -1,6 +1,6 @@
 package hillbillies.statement.action;
 
-import hillbillies.expression.position.PositionExpression;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 import hillbillies.statement.Queue;
@@ -8,20 +8,20 @@ import hillbillies.world.Position;
 
 public class MoveTo extends Action {
 
-	private PositionExpression expression;
+	private Expression<Position> expression;
 	private Position targetCube;
 	private boolean toBeExecuted = true;
 	
-	public MoveTo(PositionExpression expression, SourceLocation sl) {
+	public MoveTo(Expression<Position> expression, SourceLocation sl) {
 		super(sl);
 		setExpression(expression);
 	}
 
-	public PositionExpression getExpression() {
+	public Expression<Position> getExpression() {
 	    return this.expression;
 	}
 	
-	public void setExpression(PositionExpression expression) {
+	public void setExpression(Expression<Position> expression) {
 		this.expression = expression;
 	}
 	

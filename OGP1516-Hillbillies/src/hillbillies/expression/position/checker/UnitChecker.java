@@ -2,9 +2,10 @@ package hillbillies.expression.position.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.expression.position.PositionExpression;
-import hillbillies.expression.unit.UnitExpression;
+import hillbillies.expression.Expression;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
+import hillbillies.world.Position;
 
 /**
  * A class with unitExpressions
@@ -16,14 +17,14 @@ import hillbillies.part3.programs.SourceLocation;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  */
-public abstract class UnitChecker extends PositionExpression {
+public abstract class UnitChecker extends Expression<Position> {
 	
 	// METHODS
 	
 	/**
 	 * Variable registering the unit expression of this unit checker.
 	 */
-	private UnitExpression unitExpression;
+	private Expression<Unit> unitExpression;
 	
 	
 	// CONSTRUCTOR
@@ -37,7 +38,7 @@ public abstract class UnitChecker extends PositionExpression {
 	 *         the given unit expression.
 	 *       | this.setUnitExpression(unitExpression)
 	 */
-	public UnitChecker(SourceLocation sourceLocation, UnitExpression unitExpression) 
+	public UnitChecker(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation);
@@ -51,7 +52,7 @@ public abstract class UnitChecker extends PositionExpression {
 	 * Return the unit expression of this unit checker.
 	 */
 	@Basic @Raw
-	public UnitExpression getUnitExpression() {
+	public Expression<Unit> getUnitExpression() {
 		return this.unitExpression;
 	}
 
@@ -64,7 +65,7 @@ public abstract class UnitChecker extends PositionExpression {
 	 * @return 
 	 *       | result == (unitExpression != null)
 	 */
-	public static boolean isValidUnitExpression(UnitExpression unitExpression) {
+	public static boolean isValidUnitExpression(Expression<Unit> unitExpression) {
 		return (unitExpression != null);
 	}
 
@@ -82,7 +83,7 @@ public abstract class UnitChecker extends PositionExpression {
 	 *       | ! isValidUnitExpression(getUnitExpression())
 	 */
 	@Raw
-	public void setUnitExpression(UnitExpression unitExpression) throws IllegalArgumentException {
+	public void setUnitExpression(Expression<Unit> unitExpression) throws IllegalArgumentException {
 		if (! isValidUnitExpression(unitExpression))
 			throw new IllegalArgumentException();
 		this.unitExpression = unitExpression;

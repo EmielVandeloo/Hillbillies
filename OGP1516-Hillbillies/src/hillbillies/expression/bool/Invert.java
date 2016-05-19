@@ -1,5 +1,6 @@
 package hillbillies.expression.bool;
 
+import hillbillies.expression.Expression;
 import hillbillies.expression.bool.checker.BoolChecker;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
@@ -27,7 +28,7 @@ public class Invert extends BoolChecker {
 	 *         the given expression.
 	 *       | this.setExpression(expression)
 	 */
-	public Invert(SourceLocation sourceLocation, BooleanExpression expression) 
+	public Invert(SourceLocation sourceLocation, Expression<Boolean> expression) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation, expression);

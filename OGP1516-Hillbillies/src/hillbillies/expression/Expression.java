@@ -23,7 +23,7 @@ public abstract class Expression<E> {
 	 * Variable registering the source location of this expression.
 	 */
 	private SourceLocation sourceLocation;
-
+	
 	// CONSTRUCTOR
 
 	/**

@@ -2,6 +2,7 @@ package hillbillies.expression.position;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 import hillbillies.world.Position;
@@ -16,7 +17,7 @@ import hillbillies.world.Position;
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
  */
-public class LiteralPosition extends PositionExpression {
+public class LiteralPosition extends Expression<Position> {
 
 	// FIELDS
 

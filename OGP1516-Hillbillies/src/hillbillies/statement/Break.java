@@ -15,6 +15,7 @@ public class Break extends Statement {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				getLoopStatement().setToBeExecuted(false);
+				
 			} else {
 				program.setTimeDepleted(true);
 			}

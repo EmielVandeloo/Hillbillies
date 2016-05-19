@@ -8,6 +8,7 @@ public class Assignment extends Statement {
 
 	private final String name;
 	private final Expression<?> expression;
+	private boolean toBeExecuted = true;
 	
 	public Assignment(String name, Expression<?> expression, SourceLocation sl) {
 		super(sl);
@@ -37,11 +38,24 @@ public class Assignment extends Statement {
 				program.decreaseTimerOneUnit();
 				program.putGlobalVariable(getName(), valueToSet);
 				setToBeExecuted(false);
+				if (isPartOfQueue()) {
+					((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
+				}
 			} else {
 				program.setTimeDepleted(true);
 			}
 		}
 	}
+	
+	@Override
+	public boolean isToBeExecuted() {
+		return this.toBeExecuted;
+	}
+	
+	@Override
+	public void setToBeExecuted(boolean toBeExecuted) {
+		this.toBeExecuted = toBeExecuted;
+	};
 
 	@Override
 	public void resetAll() {

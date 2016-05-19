@@ -1,7 +1,8 @@
 package hillbillies.expression.bool;
 
+import hillbillies.expression.Expression;
 import hillbillies.expression.bool.checker.UnitChecker;
-import hillbillies.expression.unit.UnitExpression;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
@@ -9,7 +10,7 @@ public class IsFriend extends UnitChecker {
 
 	// CONSTRUCTOR
 
-	public IsFriend(SourceLocation sourceLocation, UnitExpression unitExpression) 
+	public IsFriend(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation, unitExpression);

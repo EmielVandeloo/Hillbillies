@@ -32,9 +32,8 @@ public class Queue extends Statement {
 	@Override
 	public void perform(Program program) {
 		if (isToBeExecuted() && !program.hasStopped()) {
-			try {
-				getStatements().get(getIndex()).perform(program);
-			} catch (IndexOutOfBoundsException e) {
+			getStatements().get(getIndex()).perform(program);
+			if (getIndex() == getStatements().size()) {
 				setToBeExecuted(false);
 				try {
 					getNestingStatement().setToBeExecuted(false);
@@ -69,15 +68,6 @@ public class Queue extends Statement {
 	
 	public void setIndex(int index) {
 		this.index = index;
-	}
-	
-	public int getIndexOfToBeExecuted() {
-		for (Statement statement : getStatements()) {
-			if (statement.isToBeExecuted()) {
-				return getStatements().indexOf(statement);
-			}
-		}
-		return -1;
 	}
 	
 	@Override

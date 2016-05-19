@@ -1,10 +1,11 @@
 package hillbillies.expression.unit;
 
+import hillbillies.expression.Expression;
 import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
-public class Any extends UnitExpression {
+public class Any extends Expression<Unit> {
 
 	public Any(SourceLocation sourceLocation) throws IllegalArgumentException {
 		super(sourceLocation);

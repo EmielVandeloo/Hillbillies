@@ -1235,7 +1235,7 @@ public class Unit extends Entity {
 			} else if (getFaction().getScheduler().isTaskAvailable()) {
 				System.out.println("\nInitialise new task from scheduler.");
 				getFaction().getScheduler().assignTopPriorityTask(this);
-				setProgram(new Program(getTask().getStatement(), null));
+				setProgram(new Program(getTask().getStatement()));
 				getProgram().execute(deltaTime);
 			} else if (doesDefaultBehavior()) {
 				chooseDefaultBehavior();
@@ -2093,7 +2093,7 @@ public class Unit extends Entity {
 		// Not needed to control a possible performance of jobs nor to invoke resetAllJobs:
 		// This unit can't be performing a default
 		// job because successive default actions can't interrupt each other.
-		setWorkPosition(selectRandomWorkPosition());
+		setWorkPosition(selectRandomWorkPosition().getCubePosition());
 		startWorking();
 		setJobTime(getWorkTime());
 	}
@@ -2237,8 +2237,8 @@ public class Unit extends Entity {
 	 * 		 | setToughness(getToughness() + 1);
 	 */
 	private void upgrade() {
-		setToughness(getToughness() + 1);
-		setWeight(getWeight() + 1);
+		setToughness(getToughness() + 10);
+		setWeight(getWeight() + 10);
 	}
 
 	/**

@@ -1,17 +1,18 @@
 package hillbillies.statement;
 
-import hillbillies.expression.bool.BooleanExpression;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
 public class Conditional extends Statement {
 
-	private BooleanExpression expression;
+	private Expression<Boolean> expression;
 	private Statement ifStatement;
 	private Statement elseStatement;
 	private boolean toBeExecuted = true;
+	private boolean performAgain = false;
 	
-	public Conditional(BooleanExpression expression, Statement ifStatement, Statement elseStatement, SourceLocation sl) 
+	public Conditional(Expression<Boolean> expression, Statement ifStatement, Statement elseStatement, SourceLocation sl) 
 			throws IllegalArgumentException {
 		super(sl);
 		setExpression(expression);
@@ -27,16 +28,16 @@ public class Conditional extends Statement {
 		}
 	}
 	
-	public Conditional(BooleanExpression expression, Statement ifStatement, SourceLocation sl) 
+	public Conditional(Expression<Boolean> expression, Statement ifStatement, SourceLocation sl) 
 			throws IllegalArgumentException {
 		this(expression, ifStatement, new Void(sl), sl);
 	}
 
-	public BooleanExpression getExpression() {
+	public Expression<Boolean> getExpression() {
 		return this.expression;
 	}
 	
-	public void setExpression(BooleanExpression expression) {
+	public void setExpression(Expression<Boolean> expression) {
 		this.expression = expression;
 	}
 
@@ -64,16 +65,16 @@ public class Conditional extends Statement {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				if (getExpression().evaluate(program) == true) {
-					getExpression().setHasEvaluatedToTrue(true);
+					setPerformAgain(true);
 					getIfStatement().setNestingStatement(this);
 					getIfStatement().perform(program);
 					getElseStatement().setToBeExecuted(false);
-				} else if (getExpression().HasEvaluatedToTrue()) {
+				} else if (performAgain()) {
 					getIfStatement().setNestingStatement(this);
 					getIfStatement().perform(program);
-					getElseStatement().setToBeExecuted(false);
+					getElseStatement().setToBeExecuted(false);		
 					if (!program.getUnit().cannotStartAction()) {
-						getExpression().setHasEvaluatedToTrue(false);
+						setPerformAgain(false);
 					}
 				} else {
 					getElseStatement().setNestingStatement(this);
@@ -85,11 +86,19 @@ public class Conditional extends Statement {
 			}
 		}
 	}
+	
+	public boolean performAgain() {
+		return this.performAgain;
+	}
+	
+	public void setPerformAgain(boolean performAgain) {
+		this.performAgain = performAgain;
+	}
 
 	@Override
 	public void setToBeExecuted(boolean toBeExecuted) {
 		this.toBeExecuted = toBeExecuted;
-		getExpression().setHasEvaluatedToTrue(false);
+		setPerformAgain(false);
 		if (isPartOfQueue() && toBeExecuted == false) {
 			((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 		}
@@ -105,6 +114,7 @@ public class Conditional extends Statement {
 	@Override
 	public void resetAll() {
 		setToBeExecuted(true);
+		setPerformAgain(false);
 		getIfStatement().resetAll();
 		getElseStatement().resetAll();
 	}

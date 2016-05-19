@@ -1,23 +1,24 @@
 package hillbillies.statement.action;
 
-import hillbillies.expression.unit.UnitExpression;
+import hillbillies.expression.Expression;
+import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
 public class Attack extends Action {
 
-	private UnitExpression expression;
+	private Expression<Unit> expression;
 	
-	public Attack(UnitExpression expression, SourceLocation sl) {
+	public Attack(Expression<Unit> expression, SourceLocation sl) {
 		super(sl);
 		setExpression(expression);
 	}
 	
-	public UnitExpression getExpression() {
+	public Expression<Unit> getExpression() {
 		return this.expression;
 	}
 	
-	public void setExpression(UnitExpression expression) {
+	public void setExpression(Expression<Unit> expression) {
 		this.expression = expression;
 	}
 

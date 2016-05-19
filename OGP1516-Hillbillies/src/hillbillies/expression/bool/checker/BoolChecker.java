@@ -2,7 +2,7 @@ package hillbillies.expression.bool.checker;
 
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
-import hillbillies.expression.bool.BooleanExpression;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 
 /**
@@ -15,14 +15,14 @@ import hillbillies.part3.programs.SourceLocation;
  * @author Pieter-Jan
  *
  */
-public abstract class BoolChecker extends BooleanExpression {
+public abstract class BoolChecker extends Expression<Boolean> {
 	
 	// FIELDS
 	
 	/**
 	 * Variable registering the expression of this single expression.
 	 */
-	private BooleanExpression expression;
+	private Expression<Boolean> expression;
 	
 	
 	// CONSTRUCTOR
@@ -36,7 +36,7 @@ public abstract class BoolChecker extends BooleanExpression {
 	 *         the given expression.
 	 *       | this.setExpression(expression)
 	 */
-	public BoolChecker(SourceLocation sourceLocation, BooleanExpression expression) 
+	public BoolChecker(SourceLocation sourceLocation, Expression<Boolean> expression) 
 			throws IllegalArgumentException {
 		
 		super(sourceLocation);
@@ -50,7 +50,7 @@ public abstract class BoolChecker extends BooleanExpression {
 	 * Return the expression of this single expression.
 	 */
 	@Basic @Raw
-	public BooleanExpression getExpression() {
+	public Expression<Boolean> getExpression() {
 		return this.expression;
 	}
 
@@ -63,7 +63,7 @@ public abstract class BoolChecker extends BooleanExpression {
 	 * @return 
 	 *       | result == (expression != null)
 	 */
-	public static boolean isValidExpression(BooleanExpression expression) {
+	public static boolean isValidExpression(Expression<Boolean> expression) {
 		return (expression != null);
 	}
 
@@ -81,7 +81,7 @@ public abstract class BoolChecker extends BooleanExpression {
 	 *       | ! isValidExpression(getExpression())
 	 */
 	@Raw
-	public void setExpression(BooleanExpression expression) throws IllegalArgumentException {
+	public void setExpression(Expression<Boolean> expression) throws IllegalArgumentException {
 		if (! isValidExpression(expression))
 			throw new IllegalArgumentException();
 		this.expression = expression;

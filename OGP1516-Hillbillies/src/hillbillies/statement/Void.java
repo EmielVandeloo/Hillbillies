@@ -13,13 +13,15 @@ public class Void extends Statement {
 
 	@Override
 	public void perform(Program program) {
-		setToBeExecuted(false);
-		if (isPartOfQueue()) {
-			((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
-		} else {
-			try {
-				getNestingStatement().setToBeExecuted(false);
-			} catch (NullPointerException e) {}
+		if (isToBeExecuted() && !program.hasStopped()) {
+			setToBeExecuted(false);
+			if (isPartOfQueue()) {
+				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
+			} else {
+				try {
+					getNestingStatement().setToBeExecuted(false);
+				} catch (NullPointerException e) {}
+			}	
 		}
 	}
 	

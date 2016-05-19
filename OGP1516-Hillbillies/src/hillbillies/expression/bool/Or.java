@@ -1,5 +1,6 @@
 package hillbillies.expression.bool;
 
+import hillbillies.expression.Expression;
 import hillbillies.expression.bool.checker.DoubleBoolChecker;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
@@ -29,8 +30,9 @@ public class Or extends DoubleBoolChecker {
 	 *         the given second expression.
 	 *       | this.setSecond(second)
 	 */
-	public Or(SourceLocation sourceLocation, BooleanExpression first, BooleanExpression second) 
+	public Or(SourceLocation sourceLocation, Expression<Boolean> first, Expression<Boolean> second) 
 			throws IllegalArgumentException {
+		
 		super(sourceLocation, first, second);
 	}
 	

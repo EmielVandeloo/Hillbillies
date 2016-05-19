@@ -1,6 +1,6 @@
 package hillbillies.statement.action;
 
-import hillbillies.expression.position.PositionExpression;
+import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 import hillbillies.statement.Queue;
@@ -8,19 +8,19 @@ import hillbillies.world.Position;
 
 public class Work extends Action {
 
-	private PositionExpression expression;
+	private Expression<Position> expression;
 	private boolean toBeExecuted = true;
 	
-	public Work(PositionExpression expression, SourceLocation sl) {
+	public Work(Expression<Position> expression, SourceLocation sl) {
 		super(sl);
 		setExpression(expression);
 	}
 	
-	public PositionExpression getExpression() {
+	public Expression<Position> getExpression() {
 		return this.expression;
 	}
 	
-	public void setExpression(PositionExpression expression) {
+	public void setExpression(Expression<Position> expression) {
 		this.expression = expression;
 	}
 
@@ -36,7 +36,7 @@ public class Work extends Action {
 				setToBeExecuted(false);
 			}
 		}
-		if (!program.getUnit().isWorking()) {		
+		if (!program.getUnit().isWorking()) {
 			System.out.println("Finished working!");
 			if (isPartOfQueue()) {
 				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);

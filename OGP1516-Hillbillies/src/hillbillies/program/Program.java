@@ -11,19 +11,13 @@ public class Program {
 	private Statement mainStatement;	
 	private Map<String, Object> globalVariables = new HashMap<>();
 	private boolean hasStopped = false;
-	private boolean isInterrupted = false;
 	private double timer = Double.MAX_VALUE;
 	private boolean timeDepleted = false;
 	public double TIME_UNIT = 0.001;
 	private Unit unit;
 	
-	public Program(Statement mainStatement, Map<String, Object> globalVariables) {
-		setGlobalVariables(globalVariables);
+	public Program(Statement mainStatement) {
 		setMainStatement(mainStatement);
-	}
-	
-	public Program() {
-		this(null, new HashMap<String, Object>());
 	}
 	
 	public Statement getMainStatement() {
@@ -90,8 +84,6 @@ public class Program {
 	}
 	
 	public void finish() {
-		// Tasks with multiple selected positions work with same main statement and its components.
-		// Main statement has to be reset (index=0 for queue and isToBeExecuted()=true for all components).
 		getMainStatement().resetAll();
 		this.hasStopped = true;
 		getUnit().finishTask();
@@ -102,14 +94,10 @@ public class Program {
 	}
 	
 	public void interrupt() {
-		// cfr. finish
+		// Return full task, with all statements still to be executed.
 		getMainStatement().resetAll();
 		this.hasStopped = true;
 		getUnit().interruptTask();
-	}
-	
-	public boolean isInterrupted() {
-		return this.isInterrupted;
 	}
 	
 	public boolean isTimeDepleted() {
@@ -123,5 +111,7 @@ public class Program {
 	public World getWorld() {
 		return getUnit().getWorld();
 	}
+	
+	// TODO Time depleted...
 	
 }
