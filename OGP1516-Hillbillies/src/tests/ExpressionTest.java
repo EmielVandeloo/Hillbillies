@@ -69,26 +69,21 @@ public class ExpressionTest {
 		
 		mainUnit = world.createRandomUnit(false);
 		mainUnit.setPosition(new Coordinate(0, 0, 0).toCenter());
-		facade.addUnit(mainUnit, world);
 		
 		enemy1 = world.createRandomUnit(false);
 		enemy1.setPosition(new Coordinate(5, 0, 0).toCenter());
-		facade.addUnit(enemy1, world);
 		
 		for (int i = 0; i < 3; i++) {
 			Unit unit = world.createRandomUnit(false);
 			unit.setPosition(new Coordinate(9, 9, 0).toCenter());
-			facade.addUnit(unit, world);
 		}
 		
 		friend1 = world.createRandomUnit(false);
 		friend1.setPosition(new Coordinate(0, 5, 0).toCenter());
-		facade.addUnit(friend1, world);
-		
+		System.out.println(friend1.getName());
 		for (int i = 0; i < 6; i++) {
 			Unit unit = world.createRandomUnit(false);
 			unit.setPosition(new Coordinate(9, 9, 0).toCenter());
-			facade.addUnit(unit, world);
 		}
 		
 		boulder1 = new Boulder(world, new Coordinate(5, 5, 0).toCenter());
@@ -321,6 +316,8 @@ public class ExpressionTest {
 		// TODO
 		Expression<Unit> expression = new Friend(src);
 		assertTrue(mainUnit.getFaction().hasAsUnit(expression.evaluate(program)));
+		System.out.println(friend1.getName());
+		System.out.println(expression.evaluate(program).getName());
 		assertEquals(friend1, expression.evaluate(program));
 	}
 	

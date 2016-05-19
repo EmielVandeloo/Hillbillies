@@ -13,8 +13,7 @@ public class Friend extends Expression<Unit> {
 
 	@Override
 	public Unit evaluate(Program program) {
-		Unit unit = program.getUnit();
-		return unit.getFaction().getClosestMember(program.getUnit());
+		return program.getUnit().getFaction().getClosestMember(program.getUnit());
 	}
 	
 	@Override

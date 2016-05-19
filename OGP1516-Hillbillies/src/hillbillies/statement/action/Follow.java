@@ -68,13 +68,14 @@ public class Follow extends Action {
 					// Do nothing
 				} else {
 					if (getNestingStatement() instanceof Repetitive) {
-						setToBeExecuted(true);
 						getNestingStatement().resetAll();
 					} else if (getNestingStatement() instanceof Conditional) {
 						getNestingStatement().setToBeExecuted(true);
 					}
 				}
 			}
+		} else {
+			setToBeExecuted(true);
 		}
 	}
 	

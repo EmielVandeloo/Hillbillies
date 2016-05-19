@@ -1,7 +1,7 @@
 package tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -322,25 +322,21 @@ public class StatementTest {
 		opponent.setPosition(new Coordinate(0, 4, 0).toCenter());
 		
 		Task task = getDefaultTask(
-				factory.createMoveTo(
-						factory.createPositionOf(
-								factory.createEnemy(src), 
-								src), 
+				factory.createFollow(
+						factory.createEnemy(src), 
 						src));
 		scheduler.addToNotAssignedTasks(task);
 		scheduler.assignTopPriorityTask(mainUnit);
 		
 		try {
-			advanceTimeFor(facade, world, 10, 0.1);
+			advanceTimeFor(facade, world, 0.5, 0.1);
 		} catch (ModelException e) {}
-		assertTrue(new Coordinate(0, 0, 0).toCenter() != mainUnit.getPosition());
-		
+		assertFalse(new Coordinate(0, 0, 0).toCenter().equals(mainUnit.getPosition()));
 		opponent.moveTo(new Coordinate(2, 4, 0).toCenter());
-		
 		try {
 			advanceTimeFor(facade, world, 30, 0.1);
 		} catch (ModelException e) {}
-		assertTrue(mainUnit.getPosition().equals(opponent.getPosition()));
+		assertEquals(opponent.getPosition(), mainUnit.getPosition());
 	}
 	
 	@Test
