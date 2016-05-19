@@ -1437,7 +1437,7 @@ public class World {
 				}
 			}
 		}
-		return closest;
+		return closest.getCenterPosition();
 	}
 		
 }

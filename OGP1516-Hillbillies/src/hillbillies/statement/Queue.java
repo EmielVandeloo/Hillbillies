@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
+import hillbillies.statement.repetitive.Repetitive;
 
 public class Queue extends Statement {
 
@@ -35,9 +36,14 @@ public class Queue extends Statement {
 			getStatements().get(getIndex()).perform(program);
 			if (getIndex() == getStatements().size()) {
 				setToBeExecuted(false);
-				try {
+//				try {
+//					getNestingStatement().setToBeExecuted(false);
+//				} catch (NullPointerException exc) {}
+				if (getNestingStatement() instanceof Conditional) {
 					getNestingStatement().setToBeExecuted(false);
-				} catch (NullPointerException exc) {}
+				} else if (getNestingStatement() instanceof Repetitive) {
+					getNestingStatement().resetAll();
+				}
 			}
 		}
 	}

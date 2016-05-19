@@ -2,6 +2,8 @@ package hillbillies.statement;
 
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
+import hillbillies.statement.repetitive.Loop;
+import hillbillies.statement.repetitive.Repetitive;
 
 public abstract class Statement {
 	
@@ -46,7 +48,7 @@ public abstract class Statement {
 		if (nestingStatement == null) {
 			return null;
 		}
-		while (!(nestingStatement instanceof Loop)) {
+		while (!(nestingStatement instanceof Repetitive)) {
 			nestingStatement = nestingStatement.getNestingStatement();
 			if (nestingStatement == null) {
 				return null;

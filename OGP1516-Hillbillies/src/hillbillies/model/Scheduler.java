@@ -481,7 +481,7 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		task.setExecutingUnit(null);
-		task.setPriority(task.getPriority() * 3/4);
+		task.setPriority(task.getPriority() - 1/4*Math.abs(task.getPriority()));
 		removeFromAssignedTasks(task);
 		addToNotAssignedTasks(task);
 	}

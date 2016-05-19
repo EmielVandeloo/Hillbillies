@@ -14,8 +14,15 @@ public class Break extends Statement {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
+				setToBeExecuted(false);
+				if (isPartOfQueue()) {
+					getQueueStatement().setToBeExecuted(false);
+				}
 				getLoopStatement().setToBeExecuted(false);
-				
+				if (getLoopStatement().isPartOfQueue()) {
+					((Queue) getLoopStatement().getQueueStatement()).
+						setIndex(((Queue) getLoopStatement().getQueueStatement()).getIndex()+1);
+				}
 			} else {
 				program.setTimeDepleted(true);
 			}

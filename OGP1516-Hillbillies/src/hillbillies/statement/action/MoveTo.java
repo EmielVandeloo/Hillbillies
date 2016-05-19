@@ -3,7 +3,9 @@ package hillbillies.statement.action;
 import hillbillies.expression.Expression;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
+import hillbillies.statement.Conditional;
 import hillbillies.statement.Queue;
+import hillbillies.statement.repetitive.Repetitive;
 import hillbillies.world.Position;
 
 public class MoveTo extends Action {
@@ -44,9 +46,11 @@ public class MoveTo extends Action {
 			if (isPartOfQueue()) {
 				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 			} else {
-				try {
+				if (getNestingStatement() instanceof Repetitive) {
+					getNestingStatement().resetAll();
+				} else if (getNestingStatement() instanceof Conditional) {
 					getNestingStatement().setToBeExecuted(false);
-				} catch (NullPointerException e) {}
+				}
 			}
 		}
 	}

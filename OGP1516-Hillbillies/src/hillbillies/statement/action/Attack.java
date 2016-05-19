@@ -4,6 +4,9 @@ import hillbillies.expression.Expression;
 import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
+import hillbillies.statement.Conditional;
+import hillbillies.statement.Queue;
+import hillbillies.statement.repetitive.Repetitive;
 
 public class Attack extends Action {
 
@@ -27,9 +30,23 @@ public class Attack extends Action {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
-				program.getUnit().attack(getExpression().evaluate(program));
+				Unit unit = getExpression().evaluate(program);
+				System.out.println("Starting to attack!");
+				program.getUnit().attack(unit);
+				setToBeExecuted(false);
 			}
-			setToBeExecuted(false);
+		}
+		if (!program.getUnit().isAttacking()) {
+			System.out.println("Finished attacking!");
+			if (isPartOfQueue()) {
+				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
+			} else {
+				if (getNestingStatement() instanceof Repetitive) {
+					getNestingStatement().resetAll();
+				} else if (getNestingStatement() instanceof Conditional) {
+					getNestingStatement().setToBeExecuted(false);
+				}
+			}
 		}
 	}
 

@@ -1232,10 +1232,10 @@ public class Unit extends Entity {
 			} else if (hasTask()) {
 				System.out.println("Perform task (same program)");
 				getProgram().execute(deltaTime);
-			} else if (getFaction().getScheduler().isTaskAvailable()) {
+			} else if (getScheduler().isTaskAvailable()) {
 				System.out.println("\nInitialise new task from scheduler.");
-				getFaction().getScheduler().assignTopPriorityTask(this);
-				setProgram(new Program(getTask().getStatement()));
+				stopDefaultBehaviour();
+				getScheduler().assignTopPriorityTask(this);
 				getProgram().execute(deltaTime);
 			} else if (doesDefaultBehavior()) {
 				chooseDefaultBehavior();
@@ -3255,7 +3255,7 @@ public class Unit extends Entity {
 		String[] adjectives = {"Drunken ", "Lovely ", "Monstrous ", "Fat ", "Gross ", "Great ",
 				"Agressive ", "Stoic ", "Black ", "Little ", "Greedy ", "Amazing "};
 		name += adjectives[random.nextInt(adjectives.length)];
-		String[] nouns = {"Bob", "Mark", "Tom", "Leo", "Bart", "Suzanne",
+		String[] nouns = {"Bob", "Mark", "Thomas", "Leo", "Bart", "Suzanne",
 				"Diana", "Lily", "Anna", "Kate", "PieterJan", "Emiel"};
 		name += nouns[random.nextInt(nouns.length)];
 		return name;
@@ -3405,6 +3405,8 @@ public class Unit extends Entity {
 	 */
 	public void setTask(Task task) {
 		this.task = task;
+		// TODO schrappen in advancetime
+		setProgram(task == null ? null : new Program(task.getStatement()));
 	}
 	
 	// PROGRAM
@@ -3455,12 +3457,14 @@ public class Unit extends Entity {
 		getTask().terminate();
 		setTask(null);
 		setProgram(null);
+		startDefaultBehaviour();
 	}
 	
 	public void interruptTask() {
 		getScheduler().transferUnfinishedTask(getTask());
 		setTask(null);
 		setProgram(null);
+		startDefaultBehaviour();
 	}
 	
 	public boolean cannotStartAction() {

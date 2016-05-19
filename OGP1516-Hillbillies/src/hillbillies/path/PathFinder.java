@@ -67,7 +67,7 @@ public class PathFinder {
 				if (! openSet.contains(neighbour)) {
 					openSet.add(neighbour);
 				}
-				else if (tentativeGCost >= neighbour.getGCost()) {
+				else if (tentativeGCost <= neighbour.getGCost()) {
 					continue;
 				}
 				
@@ -140,7 +140,7 @@ public class PathFinder {
 					if (j == 1) dir[1] += directions[1];
 					if (k == 1) dir[2] += directions[2];
 					
-					System.out.println(new Coordinate(dir).toCenter());
+//					System.out.println(new Coordinate(dir).toCenter());
 
 					if (! world.isPassable(new Coordinate(dir).toCenter())) {
 						return false;

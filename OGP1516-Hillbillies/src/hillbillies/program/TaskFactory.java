@@ -35,13 +35,13 @@ import hillbillies.part3.programs.SourceLocation;
 import hillbillies.statement.Assignment;
 import hillbillies.statement.Break;
 import hillbillies.statement.Conditional;
-import hillbillies.statement.Loop;
 import hillbillies.statement.Print;
 import hillbillies.statement.Queue;
 import hillbillies.statement.action.Attack;
 import hillbillies.statement.action.Follow;
 import hillbillies.statement.action.MoveTo;
 import hillbillies.statement.action.Work;
+import hillbillies.statement.repetitive.Loop;
 import hillbillies.world.Position;
 
 @SuppressWarnings("unchecked")
