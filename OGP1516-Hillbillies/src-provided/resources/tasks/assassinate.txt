@@ -1,7 +1,8 @@
 name: "assassinate unit"
 priority: 25000
 activities: 
-	while (is_alive(enemy)) do
-		follow (enemy);
-		attack (enemy);
+	unit := enemy;
+	while (is_alive(unit)) do
+		follow (unit);
+		attack (unit);
 	done

@@ -33,6 +33,9 @@ public class Work extends Action {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				Position pos = getExpression().evaluate(program);
+				if (!Position.isAdjacentToOrSame(pos, program.getUnit().getPosition())) {
+					program.interrupt();
+				}
 				System.out.println("Starting to work!");
 				program.getUnit().workAt((int) pos.x(), (int) pos.y(), (int) pos.z());
 				setToBeExecuted(false);

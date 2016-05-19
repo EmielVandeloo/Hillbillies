@@ -1,0 +1,5 @@
+name: "follow"
+priority : 500
+activities : x:= enemy;
+				follow x;
+				attack x;

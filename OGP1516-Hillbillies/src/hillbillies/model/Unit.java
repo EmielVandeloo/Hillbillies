@@ -2460,9 +2460,15 @@ public class Unit extends Entity {
 	 *         cube, the attack is controlled.
 	 *       | if (isAdjacentToOrSame(getPosition(), defender.getPosition())
 	 *       |   then controlAttack(defender)
+	 * @throws IllegalArgumentException
+	 *         The given defender is not effective.
+	 *       | defender == null
 	 */
 	@Raw
-	public void attack(@Raw Unit defender) {
+	public void attack(@Raw Unit defender) throws IllegalArgumentException {
+		if (defender == null) {
+			throw new IllegalArgumentException();
+		}
 		if ((getObjectivePosition() == null) && !doesDefaultBehavior() && !isAttacking() &&
 				canFight(defender) && !isFalling() && !defender.isFalling()) {
 			if (Position.isAdjacentToOrSame(getPosition(), defender.getPosition())) {
@@ -3454,17 +3460,21 @@ public class Unit extends Entity {
 	}
 	
 	public void finishTask() {
-		getTask().terminate();
+		if (getTask() != null) {
+			getTask().terminate();
+		}
 		setTask(null);
 		setProgram(null);
-		startDefaultBehaviour();
+	//	startDefaultBehaviour();
 	}
 	
 	public void interruptTask() {
-		getScheduler().transferUnfinishedTask(getTask());
+		if (getTask() != null) {
+			getScheduler().transferUnfinishedTask(getTask());
+		}
 		setTask(null);
 		setProgram(null);
-		startDefaultBehaviour();
+	//	startDefaultBehaviour();
 	}
 	
 	public boolean cannotStartAction() {

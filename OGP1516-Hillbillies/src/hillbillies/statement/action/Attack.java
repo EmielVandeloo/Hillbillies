@@ -32,7 +32,14 @@ public class Attack extends Action {
 				program.decreaseTimerOneUnit();
 				Unit unit = getExpression().evaluate(program);
 				System.out.println("Starting to attack!");
-				program.getUnit().attack(unit);
+				try {
+					program.getUnit().attack(unit);
+					if (!program.getUnit().isAttacking()) {
+						program.interrupt();
+					}
+				} catch (IllegalArgumentException e) {
+					program.interrupt();
+				}
 				setToBeExecuted(false);
 			}
 		}

@@ -870,7 +870,7 @@ public class World {
 	 *         this world has the priority factions as one of its factions.
 	 */
 	public void addUnit(@Raw Unit unit) {
-		if (!(getNbUnits() >= World.MAX_UNITS)) {
+		if (!(getNbUnits() >= World.MAX_UNITS) && !hasAsEntity(unit)) {
 			Faction faction = getPriorityFaction();
 			unit.setFaction(faction);
 			faction.addUnit(unit);

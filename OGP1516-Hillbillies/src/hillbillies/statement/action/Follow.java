@@ -34,11 +34,17 @@ public class Follow extends Action {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				if (unitToFollow == null) {
+					if (getExpression().evaluate(program) == null) {
+						program.interrupt();
+					}
 					unitToFollow = getExpression().evaluate(program);
 				}
 				positionToMoveTo = unitToFollow.getPosition().getCenterPosition();
 				System.out.println("Starting to follow!");
 				program.getUnit().moveTo(positionToMoveTo);
+				if (!program.getUnit().isMoving()) {
+					program.interrupt();
+				}
 				setToBeExecuted(false);
 			}
 		}

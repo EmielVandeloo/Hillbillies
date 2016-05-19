@@ -456,6 +456,7 @@ public class Faction {
 		double distance = Double.POSITIVE_INFINITY;
 
 		for (Faction faction : factions) {
+			if (faction.getAllUnits().isEmpty()) {continue;}
 			if (! faction.equals(this)) {
 				Unit newUnit =  faction.getClosestMember(unit);
 				double newDistance = Position.getDistance(unit.getPosition(), newUnit.getPosition());

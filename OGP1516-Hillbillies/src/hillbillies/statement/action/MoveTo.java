@@ -11,7 +11,7 @@ import hillbillies.world.Position;
 public class MoveTo extends Action {
 
 	private Expression<Position> expression;
-	private Position targetCube;
+	private Position targetCube = null;
 	private boolean toBeExecuted = true;
 	
 	public MoveTo(Expression<Position> expression, SourceLocation sl) {
@@ -31,13 +31,17 @@ public class MoveTo extends Action {
 	public void perform(Program program) {
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
+				program.decreaseTimerOneUnit();
 				this.targetCube = getExpression().evaluate(program);
-				if (targetCube == null) {
+				System.out.println("Starting to move!");
+				try {
+					program.getUnit().moveTo(targetCube);
+					if (!program.getUnit().isMoving()) {
+						program.interrupt();
+					}
+				} catch (IllegalArgumentException e) {
 					program.interrupt();
 				}
-				program.decreaseTimerOneUnit();
-				System.out.println("Starting to move!");
-				program.getUnit().moveTo(targetCube);
 				setToBeExecuted(false);	
 			}
 		}

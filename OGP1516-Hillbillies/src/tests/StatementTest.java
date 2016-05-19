@@ -1,14 +1,12 @@
 package tests;
 
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import hillbillies.program.TaskFactory;
-import hillbillies.model.Boulder;
-import hillbillies.model.Log;
 import hillbillies.model.Scheduler;
 import hillbillies.model.Task;
 import hillbillies.model.Unit;
@@ -20,16 +18,12 @@ import hillbillies.part3.programs.SourceLocation;
 import hillbillies.statement.Statement;
 import hillbillies.world.Coordinate;
 import hillbillies.world.Cube;
+import hillbillies.world.Position;
 import ogp.framework.util.ModelException;
 
 public class StatementTest {
 	
 	public Unit mainUnit;
-	public Unit friend1;
-	public Unit enemy1;
-	
-	public Boulder boulder1;
-	public Log log1;
 	
 	public World world;
 	public Facade facade;
@@ -46,7 +40,8 @@ public class StatementTest {
 		
 		int[][][] types = new int[10][10][5];
 		types[1][1][4] = Cube.ROCK.getId();
-		types[1][2][0] = Cube.ROCK.getId();
+		types[1][2][2] = Cube.ROCK.getId();
+		types[1][1][1] = Cube.ROCK.getId();
 		types[5][5][1] = Cube.WORKBENCH.getId();
 		types[7][7][1] = Cube.WORKBENCH.getId();
 		world = facade.createWorld(types, new DefaultTerrainChangeListener());
@@ -56,37 +51,8 @@ public class StatementTest {
 		mainUnit.setStrength(200);
 		mainUnit.setAgility(200);
 		mainUnit.setWeight(5);
-		facade.addUnit(mainUnit, world);
 		
 		scheduler = mainUnit.getScheduler();
-		
-		enemy1 = world.createRandomUnit(false);
-		enemy1.setPosition(new Coordinate(5, 0, 0).toCenter());
-		facade.addUnit(enemy1, world);
-		
-		for (int i = 0; i < 3; i++) {
-			Unit unit = world.createRandomUnit(false);
-			unit.setPosition(new Coordinate(9, 9, 0).toCenter());
-			facade.addUnit(unit, world);
-		}
-		
-		friend1 = world.createRandomUnit(false);
-		friend1.setPosition(new Coordinate(0, 5, 0).toCenter());
-		facade.addUnit(friend1, world);
-		
-		for (int i = 0; i < 6; i++) {
-			Unit unit = world.createRandomUnit(false);
-			unit.setPosition(new Coordinate(9, 9, 0).toCenter());
-			facade.addUnit(unit, world);
-		}
-		
-		boulder1 = new Boulder(world, new Coordinate(5, 5, 0).toCenter());
-		world.addEntity(boulder1);
-		world.addEntity(new Boulder(world, new Coordinate(7, 7, 0).toCenter()));
-		
-		log1 = new Log(world, new Coordinate(5, 5, 0).toCenter());
-		world.addEntity(log1);
-		world.addEntity(new Log(world, new Coordinate(7, 7, 0).toCenter()));
 	}
 	
 	public Task getDefaultTask(Statement statement) {
@@ -152,20 +118,42 @@ public class StatementTest {
 	
 	@Test
 	public void loop() {
-		// TODO
+		Task task = getDefaultTask(
+				factory.createWhile(
+						factory.createTrue(src), 
+						factory.createMoveTo(
+								factory.createNextToPosition(
+										factory.createHerePosition(src), 
+										src), 
+								src), 
+						src));
+		scheduler.addToNotAssignedTasks(task);
+		scheduler.assignTopPriorityTask(mainUnit);
+		
+		Position lastPosition = mainUnit.getPosition();
+		for (int i = 0; i < 50; i++) {
+			try {
+				advanceTimeFor(facade, world, 3, 0.1);
+			} catch (ModelException e) {}
+			
+			assertTrue(mainUnit.getPosition() != lastPosition);
+			lastPosition = mainUnit.getPosition();
+		}
 	}
 	
 	@Test
 	public void queue() {
 		List<Statement> body = new ArrayList<>();
+		body.add(factory.createMoveTo(
+				factory.createLiteralPosition(0, 2, 0, src), 
+				src));
+		body.add(factory.createMoveTo(
+				factory.createLiteralPosition(1, 2, 1, src), 
+				src));
+		
 		Task task = getDefaultTask(
 				factory.createSequence(body, src));
-					body.add(factory.createMoveTo(
-							factory.createLiteralPosition(0, 2, 0, src), 
-							src));
-					body.add(factory.createMoveTo(
-							factory.createLiteralPosition(1, 2, 1, src), 
-							src));
+	
 		scheduler.addToNotAssignedTasks(task);
 		scheduler.assignTopPriorityTask(mainUnit);
 		
@@ -177,14 +165,10 @@ public class StatementTest {
 	}
 	
 	@Test
-	public void print() {
-		// TODO
-	}
+	public void print() {}
 	
 	@Test
-	public void void_() {
-		// TODO
-	}
+	public void void_() {}
 	
 	@Test
 	public void break_() {
@@ -202,29 +186,161 @@ public class StatementTest {
 		scheduler.assignTopPriorityTask(mainUnit);
 		
 		try {
-			advanceTimeFor(facade, world, 10, 0.1);
+			advanceTimeFor(facade, world, 5, 0.1);
 		} catch (ModelException e) {}
 		
 		assertEquals(new Coordinate(0, 0, 0).toCenter(), mainUnit.getPosition());
-		// TODO Uitbreiden?
 	}
 	
 	@Test
-	public void assignment() {
-		// TODO
+	public void assignment_boolean() {
+		// TODO failure
+		
+		List<Statement> body = new ArrayList<>();
+		body.add(factory.createAssignment(
+				"boolean_variable", 
+				factory.createIsPassable(
+						factory.createLiteralPosition(1, 0, 0, src), 
+						src), 
+				src));
+		body.add(factory.createIf(
+				factory.createReadVariable(
+						"boolean_variable", 
+						src), 
+				factory.createMoveTo(
+						factory.createLiteralPosition(1, 0, 0, src), 
+						src), 
+				factory.createMoveTo(
+						factory.createLiteralPosition(0, 1, 0, src), 
+						src), 
+				src));
+		
+		Task task = getDefaultTask(
+				factory.createSequence(body, src));
+		scheduler.addToNotAssignedTasks(task);
+		scheduler.assignTopPriorityTask(mainUnit);
+		
+		try {
+			advanceTimeFor(facade, world, 10, 0.1);
+		} catch (ModelException e) {}
+		
+		assertEquals(new Coordinate(1, 0, 0).toCenter(), mainUnit.getPosition());
+	}
+	
+	@Test
+	public void assignment_position() {
+		// TODO failure
+		
+		List<Statement> body = new ArrayList<>();
+		body.add(factory.createAssignment(
+				"position_variable", 
+				factory.createLiteralPosition(1, 0, 0, src), 
+				src));
+		body.add(factory.createMoveTo(
+				factory.createReadVariable(
+						"position_variable", 
+						src), 
+				src));
+		
+		Task task = getDefaultTask(
+				factory.createSequence(body, src));
+		scheduler.addToNotAssignedTasks(task);
+		scheduler.assignTopPriorityTask(mainUnit);
+		
+		try {
+			advanceTimeFor(facade, world, 10, 0.1);
+		} catch (ModelException e) {}
+		
+		assertEquals(new Coordinate(1, 0, 0).toCenter(), mainUnit.getPosition());
+	}
+	
+	@Test
+	public void assignment_unit() {
+		// TODO failure
+		
+		Unit opponent = world.createRandomUnit(false);
+		opponent.setPosition(new Coordinate(1, 1, 0).toCenter());
+		
+		List<Statement> body = new ArrayList<>();
+		body.add(factory.createAssignment(
+				"unit_variable", 
+				factory.createEnemy(src), 
+				src));
+		body.add(factory.createMoveTo(
+				factory.createPositionOf(
+				factory.createReadVariable(
+						"unit_variable", 
+						src), 
+				src), src));
+		
+		Task task = getDefaultTask(
+				factory.createSequence(body, src));
+		scheduler.addToNotAssignedTasks(task);
+		scheduler.assignTopPriorityTask(mainUnit);
+		
+		try {
+			advanceTimeFor(facade, world, 10, 0.1);
+		} catch (ModelException e) {}
+		
+		assertEquals(new Coordinate(1, 1, 0).toCenter(), mainUnit.getPosition());
 	}
 	
 	
 	// ACTIONS
 	
 	@Test
-	public void attack() {
-		// TODO
+	public void attack() throws Exception {
+		// TODO error
+		
+		Unit opponent = world.createRandomUnit(false);
+		
+		opponent.setPosition(new Coordinate(1, 1, 0).toCenter());
+		opponent.setStrength(5);
+		opponent.setAgility(5);
+		
+		for (int i = 0; i < 6; i++) {
+			Task task = getDefaultTask(
+					factory.createAttack(
+							factory.createEnemy(src), 
+							src));
+			scheduler.addToNotAssignedTasks(task);
+			scheduler.assignTopPriorityTask(mainUnit);
+			
+			try {
+				advanceTimeFor(facade, world, 10, 0.1);
+			} catch (ModelException e) {}
+		}
+		
+		assertTrue(opponent.getNbHitPoints() < opponent.getMaxNbHitPoints());
 	}
 	
 	@Test
-	public void follow() {
-		// TODO
+	public void follow() throws Exception {
+		// TODO error
+		
+		Unit opponent = world.createRandomUnit(false);
+		opponent.setPosition(new Coordinate(0, 4, 0).toCenter());
+		
+		Task task = getDefaultTask(
+				factory.createMoveTo(
+						factory.createPositionOf(
+								factory.createEnemy(src), 
+								src), 
+						src));
+		scheduler.addToNotAssignedTasks(task);
+		scheduler.assignTopPriorityTask(mainUnit);
+		
+		try {
+			advanceTimeFor(facade, world, 10, 0.1);
+		} catch (ModelException e) {}
+		assertTrue(new Coordinate(0, 0, 0).toCenter() != mainUnit.getPosition());
+		
+		opponent.moveTo(new Coordinate(2, 4, 0).toCenter());
+		
+		try {
+			advanceTimeFor(facade, world, 30, 0.1);
+		} catch (ModelException e) {}
+		assertTrue(mainUnit.getPosition().equals(opponent.getPosition()));
 	}
 	
 	@Test
@@ -245,7 +361,17 @@ public class StatementTest {
 	
 	@Test
 	public void work() {
-		// TODO
+		Task task = getDefaultTask(
+				factory.createWork(
+						factory.createLiteralPosition(1, 1, 1, src), 
+						src));
+		scheduler.addToNotAssignedTasks(task);
+		scheduler.assignTopPriorityTask(mainUnit);
+		
+		try {
+			advanceTimeFor(facade, world, 10, 0.1);
+		} catch (ModelException e) {}
+		assertTrue(world.getAt(new Coordinate(1, 1, 1).toCenter()) == Cube.AIR);
 	}
 
 }

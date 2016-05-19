@@ -76,7 +76,7 @@ public class TaskFactory implements ITaskFactory<Expression<?>, hillbillies.stat
 	public hillbillies.statement.Statement createIf(Expression<?> condition,
 			hillbillies.statement.Statement ifBody, hillbillies.statement.Statement elseBody,
 			SourceLocation sourceLocation) {
-		return new Conditional((Expression<Boolean>) condition, ifBody, sourceLocation);
+		return new Conditional((Expression<Boolean>) condition, ifBody, elseBody, sourceLocation);
 	}
 
 	@Override

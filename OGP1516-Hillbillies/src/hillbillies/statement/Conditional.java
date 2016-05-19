@@ -16,15 +16,15 @@ public class Conditional extends Statement {
 			throws IllegalArgumentException {
 		super(sl);
 		setExpression(expression);
-		if (ifStatement != null) {
-			setIfStatement(ifStatement);
-		} else {
+		if (ifStatement == null) {
 			setIfStatement(new Void(sl));
-		}
-		if (elseStatement != null) {
-			setElseStatement(elseStatement);
 		} else {
+			setIfStatement(ifStatement);
+		}
+		if (elseStatement == null) {
 			setElseStatement(new Void(sl));
+		} else {
+			setElseStatement(elseStatement);
 		}
 	}
 	
@@ -66,18 +66,15 @@ public class Conditional extends Statement {
 				program.decreaseTimerOneUnit();
 				if (getExpression().evaluate(program) == true) {
 					setPerformAgain(true);
-					getIfStatement().setNestingStatement(this);
 					getIfStatement().perform(program);
 					getElseStatement().setToBeExecuted(false);
 				} else if (performAgain()) {
-					getIfStatement().setNestingStatement(this);
 					getIfStatement().perform(program);
 					getElseStatement().setToBeExecuted(false);		
 					if (!program.getUnit().cannotStartAction()) {
 						setPerformAgain(false);
 					}
 				} else {
-					getElseStatement().setNestingStatement(this);
 					getElseStatement().perform(program);
 					getIfStatement().setToBeExecuted(false);
 				}
