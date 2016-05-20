@@ -11,10 +11,13 @@ import hillbillies.world.Position;
  * 
  * @invar  The position expression of each checker must be a valid position expression for any
  *         checker.
- *       | isValidPosition(getPosition())
+ *       | isValidPositionExpression(getPositionExpression())
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class PositionChecker extends Expression<Position> {
 	
@@ -25,7 +28,6 @@ public abstract class PositionChecker extends Expression<Position> {
 	 */
 	private Expression<Position> positionExpression;
 	
-
 	// CONSTRUCTOR
 
 	/**
@@ -43,7 +45,6 @@ public abstract class PositionChecker extends Expression<Position> {
 		super(sourceLocation);
 		this.setPositionExpression(positionExpression);
 	}
-
 	
 	// GETTERS AND SETTERS
 

@@ -14,7 +14,7 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
@@ -29,7 +29,7 @@ public abstract class ItemEntity extends Entity {
 	 * A value between 0 and 1 representing the
 	 * chance to drop an item entity.
 	 */
-	public static final double dropChance = 1;
+	public static final double dropChance = 0.25;
 
 	/**
 	 * Variable registering the maximal weight of this item entity.
@@ -176,7 +176,7 @@ public abstract class ItemEntity extends Entity {
 		if (getWorld() == null) {
 			throw new IllegalArgumentException();
 		} 
-		if (getPosition() == null || !  isValidPosition(getPosition())) {
+		if (getPosition() == null || ! isValidPosition(getPosition())) {
 			throw new IllegalArgumentException();
 		}
 		getWorld().addEntity(this);

@@ -56,6 +56,8 @@ public class Loop extends Repetitive {
 						((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 					}
 				}
+			} else {
+				program.setTimeDepleted(true);
 			}
 		}	
 	}
@@ -68,9 +70,6 @@ public class Loop extends Repetitive {
 	@Override
 	public void setToBeExecuted(boolean toBeExecuted) {
 		this.toBeExecuted = toBeExecuted;
-//		if (isPartOfQueue() && toBeExecuted == false) {
-//			((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
-//		}
 		if (getBody() != null) {
 			getBody().setToBeExecuted(toBeExecuted);
 		}
@@ -89,6 +88,17 @@ public class Loop extends Repetitive {
 		setPerformAgain(false);
 		setToBeExecuted(true);
 		getBody().resetAll();
+	}
+	
+	@Override
+	public boolean isWellFormed() {
+		if (!getExpression().isWellFormed()) {
+			return false;
+		}
+		if (!getBody().isWellFormed()) {
+			return false;
+		}
+		return true;
 	}
 
 }

@@ -15,6 +15,9 @@ import hillbillies.part3.programs.SourceLocation;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class UnitChecker extends Expression<Unit> {
 	
@@ -24,7 +27,6 @@ public abstract class UnitChecker extends Expression<Unit> {
 	 * Variable registering the unit expression of this checker.
 	 */
 	private Expression<Unit> expression;
-	
 	
 	// CONSTRUCTOR
 
@@ -44,7 +46,6 @@ public abstract class UnitChecker extends Expression<Unit> {
 		this.setExpression(expression);
 	}
 
-	
 	// GETTERS AND SETTERS
 
 	/**

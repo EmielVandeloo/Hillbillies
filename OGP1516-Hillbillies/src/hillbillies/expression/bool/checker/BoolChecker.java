@@ -12,8 +12,11 @@ import hillbillies.part3.programs.SourceLocation;
  *         single expression.
  *       | isValidExpression(getExpression())
  * 
- * @author Pieter-Jan
- *
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class BoolChecker extends Expression<Boolean> {
 	

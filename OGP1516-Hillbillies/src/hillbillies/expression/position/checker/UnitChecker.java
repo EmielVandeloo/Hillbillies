@@ -24,8 +24,7 @@ public abstract class UnitChecker extends Expression<Position> {
 	/**
 	 * Variable registering the unit expression of this unit checker.
 	 */
-	private Expression<Unit> unitExpression;
-	
+	private Expression<Unit> unitExpression;	
 	
 	// CONSTRUCTOR
 
@@ -44,7 +43,6 @@ public abstract class UnitChecker extends Expression<Position> {
 		super(sourceLocation);
 		this.setUnitExpression(unitExpression);
 	}
-
 	
 	// GETTERS AND SETTERS
 

@@ -39,4 +39,9 @@ public class Break extends Statement {
 		setToBeExecuted(true);
 	}
 	
+	@Override
+	public boolean isWellFormed() {
+		return (getLoopStatement() != null);
+	}
+	
 }

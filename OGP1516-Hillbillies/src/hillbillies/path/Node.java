@@ -14,7 +14,11 @@ import hillbillies.world.Coordinate;
  * @invar  Each node can have its fCost as fCost.
  *       | canHaveAsFCost(this.getFCost())
  *       
- * @author Pieter-Jan
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Node implements Comparable<Node> {
 

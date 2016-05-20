@@ -31,7 +31,6 @@ public class Attack extends Action {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				Unit unit = getExpression().evaluate(program);
-				System.out.println("Starting to attack!");
 				try {
 					program.getUnit().attack(unit);
 					if (!program.getUnit().isAttacking()) {
@@ -41,10 +40,11 @@ public class Attack extends Action {
 					program.interrupt();
 				}
 				setToBeExecuted(false);
+			} else {
+				program.setTimeDepleted(true);
 			}
 		}
 		if (!program.getUnit().isAttacking()) {
-			System.out.println("Finished attacking!");
 			if (isPartOfQueue()) {
 				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 			} else {

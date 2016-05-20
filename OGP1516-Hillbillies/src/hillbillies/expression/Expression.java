@@ -14,6 +14,9 @@ import hillbillies.program.Program;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class Expression<E> {
 	
@@ -39,7 +42,6 @@ public abstract class Expression<E> {
 		this.setSourceLocation(sourceLocation);
 	}
 
-	
 	// GETTERS AND SETTERS
 
 	/**
@@ -83,9 +85,13 @@ public abstract class Expression<E> {
 		this.sourceLocation = sourceLocation;
 	}
 	
-	
 	// ABSTRACT METHODS
 
 	public abstract E evaluate(Program program);
-
+	
+	public boolean isWellFormed() {
+		// Always true (generic class: info at compile time)
+		return true;
+	}
+	
 }

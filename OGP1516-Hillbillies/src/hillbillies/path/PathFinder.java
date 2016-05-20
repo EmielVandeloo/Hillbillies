@@ -29,10 +29,7 @@ public class PathFinder {
 		while (! openSet.isEmpty()) {
 			Node current = getMostPromising(openSet);
 			
-//			System.out.println(current);
-			
 			if (current.equals(end)) {
-//				System.out.println("Reached END");
 				return reconstructPath(cameFrom, current, world.getWorldVersion());
 			}
 			
@@ -40,16 +37,12 @@ public class PathFinder {
 			closedSet.put(current.getCoordinate(), current);
 			
 			for (Coordinate coordinate : current.getCoordinate().getAllNeighbours()) {
-//				System.out.println(coordinate);
 				
 				if (! world.isValidPosition(coordinate.toCenter())) {
-//					System.out.println("Not valid position");
 					continue;
 				} else if (! world.isPassable(coordinate.toCenter())) {
-//					System.out.println("Not passable");
 					continue;
 				} else if (! world.hasSolidNeighbour(coordinate.toCenter())) {
-//					System.out.println("Not supported");
 					continue;
 				}
 				
@@ -89,11 +82,6 @@ public class PathFinder {
 			totalPath.add(current.getCoordinate().toCenter());
 		}
 		
-//		System.out.println("\n\nFinal Path");
-//		for (Position position : totalPath) {
-//			System.out.println(position.convertToCoordinate());
-//		}
-		
 		totalPath.remove(totalPath.size() - 1);
 		return new Path(totalPath, worldVersion);
 	}
@@ -114,8 +102,6 @@ public class PathFinder {
 					if (i == 1) dir[0] += directions[0];
 					if (j == 1) dir[1] += directions[1];
 					if (k == 1) dir[2] += directions[2];
-					
-//					System.out.println(new Coordinate(dir).toCenter());
 
 					if (! world.isPassable(new Coordinate(dir).toCenter())) {
 						return false;
@@ -139,8 +125,6 @@ public class PathFinder {
 					if (i == 1) dir[0] += directions[0];
 					if (j == 1) dir[1] += directions[1];
 					if (k == 1) dir[2] += directions[2];
-					
-//					System.out.println(new Coordinate(dir).toCenter());
 
 					if (! world.isPassable(new Coordinate(dir).toCenter())) {
 						return false;
@@ -158,7 +142,6 @@ public class PathFinder {
 
 		for (int i = 0; i < 3; i++) {
 			directions[i] = end.getAt(i) - start.getAt(i);
-//			System.out.println(directions[i]);
 		}
 
 		return directions;

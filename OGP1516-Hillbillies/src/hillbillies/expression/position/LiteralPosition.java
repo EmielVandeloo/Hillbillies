@@ -16,6 +16,9 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class LiteralPosition extends Expression<Position> {
 
@@ -25,7 +28,6 @@ public class LiteralPosition extends Expression<Position> {
 	 * Variable registering the position of this coordinate.
 	 */
 	private Position position;
-
 
 	// CONSTRUCTORS
 	
@@ -102,7 +104,6 @@ public class LiteralPosition extends Expression<Position> {
 			throw new IllegalArgumentException();
 		this.position = position;
 	}
-
 
 	// OVERRIDE
 

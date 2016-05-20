@@ -21,7 +21,6 @@ public class ReadVariable<E> extends Expression<E> {
 	 */
 	private String variableName;
 	
-	
 	// CONSTRUCTOR
 
 	/**
@@ -39,8 +38,7 @@ public class ReadVariable<E> extends Expression<E> {
 		super(sourceLocation);
 		this.setVariableName(variableName);
 	}
-	
-	
+		
 	// GETTERS AND SETTERS
 
 	/**
@@ -83,7 +81,6 @@ public class ReadVariable<E> extends Expression<E> {
 			throw new IllegalArgumentException();
 		this.variableName = variableName;
 	}
-	
 	
 	// OVERRIDE
 

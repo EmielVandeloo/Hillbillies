@@ -6,16 +6,6 @@ import hillbillies.model.Unit;
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
 
-/**
- * A class to check whether a unit is an enemy or not.
- * 
- * @invar  The other unit of each enemy comparator must be a valid other unit for any
- *         enemy comparator.
- *       | isValidOther(getOther())
- * 
- * @author  Pieter-Jan Van den Broecke: EltCw
- * 		    Emiel Vandeloo: WtkCw
- */
 public class IsEnemy extends UnitChecker {
 
 	// CONSTRUCTOR

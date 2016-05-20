@@ -14,7 +14,7 @@ import hillbillies.model.World;
  *         
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */

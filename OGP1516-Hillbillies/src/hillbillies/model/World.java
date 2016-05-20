@@ -27,8 +27,8 @@ import hillbillies.world.Position;
  * @invar Each world must have proper entities.
  * @invar Each world must have proper factions.
  * 
- * @author Pieter-Jan Van den Broecke: EltCw
- * 		   Emiel Vandeloo: WtkCw
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
  * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
@@ -423,18 +423,7 @@ public class World {
 		
 		for (Entity entity : getAllEntities()) {
 			if (!entity.isTerminated()) {
-//				if (!(entity instanceof Unit)) {
-//					if (entity.isFalling() || !hasUnderlyingSolid(entity.getPosition())) {
-//						entity.fallBehavior(deltaTime);
-//					}
-//				} else {
-//					if (checkThreeMinuteRest(deltaTime) == true) {
-//						((Unit) entity).rest();
-//					}
-//					entity.advanceTime(deltaTime);
-//				}
 				entity.advanceTime(deltaTime);
-				
 				if (entity instanceof Unit) {
 					if (checkThreeMinuteRest(deltaTime)) {
 						((Unit) entity).rest();

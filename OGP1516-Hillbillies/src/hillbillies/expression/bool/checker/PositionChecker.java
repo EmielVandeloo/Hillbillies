@@ -15,6 +15,9 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class PositionChecker extends Expression<Boolean> {
 	

@@ -8,5 +8,9 @@ public abstract class Action extends Statement {
 	public Action(SourceLocation sl) {
 		super(sl);
 	}
+	
+	public boolean isWellFormed() {
+		return true;
+	}
 
 }
