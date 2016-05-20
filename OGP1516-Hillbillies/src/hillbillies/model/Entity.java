@@ -54,6 +54,7 @@ public abstract class Entity {
 	 */
 	private boolean isTerminated;
 
+	
 	// CONSTRUCTORS
 
 	/**
@@ -72,6 +73,7 @@ public abstract class Entity {
 		setWorld(world);
 		setPosition(position.getCenterPosition());
 	}	
+	
 	
 	// DESTRUCTOR
 	
@@ -97,10 +99,11 @@ public abstract class Entity {
 		if (!isTerminated()) {
 			World formerWorld = getWorld();
 			this.isTerminated = true;
-			setWorld(null);
 			formerWorld.removeEntity(this);
+			setWorld(null);
 		}
 	}
+	
 	
 	// GETTERS AND SETTERS
 
@@ -222,6 +225,7 @@ public abstract class Entity {
 		this.falling = false;
 	}
 
+	
 	// METHODS
 
 	/**
@@ -232,6 +236,22 @@ public abstract class Entity {
 	 *        state.
 	 */
 	public abstract void advanceTime(double deltaTime);
+	
+	/**
+	 * Whether the entity can be on a position or not.
+	 * 
+	 * @param  position
+	 * 		   The position to check.
+	 * @return True if the position is supported.
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any entity.
+	 */
+	public boolean hasSupport(Position position) throws IllegalArgumentException {
+		if (!isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
+		return getWorld().isPassable(position);
+	}
 	
 	/**
 	 * Return the entity ID of an entity.
@@ -253,11 +273,20 @@ public abstract class Entity {
 	 *         currently occupies.
 	 */
 	public void fallBehavior(double deltaTime) {
-		startFalling();
-		updatePosition(deltaTime, World.FALL_VECTOR);
-		if (hasReachedGround()) {
-			stopFalling();
-			setPosition(getPosition().getCenterPosition());
+		if (getPosition() == null || getWorld() == null) {
+			return;
+		}
+		
+		if (! hasSupport(getPosition()) && ! isFalling()) {
+			startFalling();
+		}
+		if (isFalling()) {
+			updatePosition(deltaTime, World.FALL_VECTOR);
+			
+			if (hasReachedGround()) {
+				stopFalling();
+				setPosition(getPosition().getCenterPosition());
+			}
 		}
 	}
 
@@ -312,4 +341,5 @@ public abstract class Entity {
 	private static boolean isValidVector(double[] vector) {
 		return (vector != null && vector.length == 3);
 	}
+	
 }

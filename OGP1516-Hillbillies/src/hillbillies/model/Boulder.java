@@ -25,6 +25,7 @@ public class Boulder extends ItemEntity {
 		return ENTITY_ID;
 	}
 	
+	
 	// CONSTRUCTOR
 
 	/**
@@ -41,6 +42,7 @@ public class Boulder extends ItemEntity {
 		super(world, position);
 	}
 
+	
 	// METHODS
 	
 	/**
@@ -55,7 +57,7 @@ public class Boulder extends ItemEntity {
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			world.addEntity(new Boulder(world, position));
+			new Boulder(world, position).spawn();;
 		}
 	}
 }

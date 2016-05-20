@@ -46,6 +46,7 @@ public abstract class ItemEntity extends Entity {
 	 */
 	public static final String ENTITY_ID = "item_entity";
 
+	
 	// CONSTRUCTORS
 	
 	/**
@@ -83,6 +84,7 @@ public abstract class ItemEntity extends Entity {
 		this(world, position, getRandomWeight());
 	}
 	
+	
 	// GETTERS AND SETTERS
 	
 	/**
@@ -107,6 +109,7 @@ public abstract class ItemEntity extends Entity {
 		return (weight >= MIN_WEIGHT) && (weight <= MAX_WEIGHT);
 	}
 
+	
 	// METHODS
 
 	/**
@@ -140,13 +143,15 @@ public abstract class ItemEntity extends Entity {
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid position for any entity.
 	 */
-	public boolean canStandOn(Position position) throws IllegalArgumentException {
+	@Override
+	public boolean hasSupport(Position position) throws IllegalArgumentException {
 		if (!isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		return getWorld().hasUnderlyingSolid(position) && getWorld().getAt(position).isPassable();
+		return getWorld().hasUnderlyingSolid(position) && super.hasSupport(position);
 	}
 
+	
 	// METHODS
 
 	/**
@@ -154,15 +159,35 @@ public abstract class ItemEntity extends Entity {
 	 * 
 	 * @param  deltaTime
 	 *         The time step, in seconds, by which to advance this item entity's state.
-	 * @effect If this item entity is currently falling, its fall behaviour is performed.
+	 * @effect If this item entity is currently falling, its fall behavior is performed.
 	 * @effect Otherwise, if this item entity cannot stand on its current position, its
-	 *         fall behaviour is performed.
+	 *         fall behavior is performed.
+	 * @throws IllegalArgumentException
+	 * 		   The item entity does not have proper world or position.
 	 */
 	public void advanceTime(double deltaTime) {
-		if (isFalling()) {
-			fallBehavior(deltaTime);
-		} else if (!canStandOn(getPosition())) {
-			fallBehavior(deltaTime);
-		}
+		fallBehavior(deltaTime);
 	}
+	
+	/**
+	 * Add this item entity to the world.
+	 */
+	public void spawn() throws IllegalArgumentException {
+		if (getWorld() == null) {
+			throw new IllegalArgumentException();
+		} 
+		if (getPosition() == null || !  isValidPosition(getPosition())) {
+			throw new IllegalArgumentException();
+		}
+		getWorld().addEntity(this);
+	}
+	
+	/**
+	 * Remove the item entity from the world.
+	 */
+	public void despawn() {
+		getWorld().removeEntity(this);
+		setWorld(null);
+	}
+	
 }

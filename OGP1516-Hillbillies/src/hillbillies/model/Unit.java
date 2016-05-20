@@ -19,7 +19,7 @@ import hillbillies.world.Position;
 /**
  * A class of units involving a name, a weight, a strength, an agility, a toughness,
  * a number of hit points, a number of stamina points and a certain position in the game world.
- * 
+ * TESTTEST
  * @invar The name of each unit must be a valid name for any unit. 
  *      | isValidName(getName())
  * @invar The weight of each unit must be a valid weight for any unit.
@@ -56,11 +56,6 @@ import hillbillies.world.Position;
 public class Unit extends Entity {
 
 	/**
-	 * Variable registering the name of this unit.
-	 */
-	private String name;
-
-	/**
 	 * Variable registering the minimum value of an attribute (strength, agility, weight, toughness)
 	 * of each unit.
 	 */
@@ -83,6 +78,16 @@ public class Unit extends Entity {
 	 * of each unit.
 	 */
 	private final static int MAX_INITIAL_ATTRIBUTE_VALUE = 100;
+	
+	/**
+	 * Field representing the identification of this entity.
+	 */
+	public static final String ENTITY_ID = "entity:unit";
+	
+	/**
+	 * Variable registering the name of this unit.
+	 */
+	private String name;
 
 	/**
 	 * Variable registering the weight of this unit.
@@ -218,11 +223,6 @@ public class Unit extends Entity {
 	 * Variable referencing a list containing all current attackers of this unit.
 	 */
 	private List<Unit> attackers = new ArrayList<Unit>();
-
-	/**
-	 * Field representing the identification of this entity.
-	 */
-	public static final String ENTITY_ID = "entity:unit";
 	
 	/**
 	 * Variable registering the inventory of this unit.
@@ -1047,18 +1047,19 @@ public class Unit extends Entity {
 	 * 
 	 * @param  position
 	 *         The position to check.
-	 * @return True if and only if the world of this unit has a solid neighbouring
+	 * @return True if and only if the world of this unit has a solid neighboring
 	 *         cube to the given position.
 	 *       | result == getWorld().hasSolidNeighbour(position)
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid position for this unit.
 	 *       | !isValidPosition(position)
 	 */
-	public boolean canStandOn(Position position) throws IllegalArgumentException {
+	@Override
+	public boolean hasSupport(Position position) throws IllegalArgumentException {
 		if (! getWorld().isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		return getWorld().isPassable(position) && getWorld().hasSolidNeighbour(position);
+		return getWorld().hasSolidNeighbour(position) && super.hasSupport(position);
 	}
 
 	/**
@@ -1085,7 +1086,7 @@ public class Unit extends Entity {
 	 */
 	@Raw @Model
 	private void setTargetPosition(Position position) throws IllegalArgumentException {
-		if (position != null && ! canStandOn(position)) {
+		if (position != null && ! hasSupport(position)) {
 			throw new IllegalArgumentException();
 		}
 		this.targetPosition = position;
@@ -1114,7 +1115,7 @@ public class Unit extends Entity {
 	 */
 	@Raw @Model
 	private void setObjectivePosition(Position position) throws IllegalArgumentException {
-		if (position != null && ! canStandOn(position)) {
+		if (position != null && ! hasSupport(position)) {
 			throw new IllegalArgumentException();
 		}
 		this.objectivePosition = position;
@@ -2193,32 +2194,26 @@ public class Unit extends Entity {
 	private void workLogic(Position position) {
 		ArrayList<Entity> logs = getWorld().getEntitiesAt(position, Log.ENTITY_ID);
 		ArrayList<Entity> boulders = getWorld().getEntitiesAt(position, Boulder.ENTITY_ID);
+		
 		switch (JobSelector.getJob(getWorld(), getPosition(), getWorkPosition(), getInventory())) {
 		case DROP:
 			ItemEntity itemEntity = getInventory().getItem();
 			getInventory().dropItem(itemEntity, getPosition(), getWorld());
-			//setWeight(getWeight() - itemEntity.getWeight());
 			break;
 		case UPGRADE:
-			logs.get(0).setWorld(null);
-			boulders.get(0).setWorld(null);
-			getWorld().removeEntity(logs.get(0));
-			getWorld().removeEntity(boulders.get(0));
+			((ItemEntity) logs.get(0)).despawn();
+			((ItemEntity) boulders.get(0)).despawn();
 			upgrade();
 			break;
 		case PICK_UP_BOULDER:
 			ItemEntity boulder = (Boulder) boulders.get(0);
 			getInventory().addItem(boulder);
-			boulder.setWorld(null);
-			getWorld().removeEntity(boulder);
-			//setWeight(getWeight() + boulder.getWeight());
+			boulder.despawn();
 			break;
 		case PICK_UP_LOG:
 			ItemEntity log = (Log) logs.get(0);
 			getInventory().addItem(log);
-			log.setWorld(null);
-			getWorld().removeEntity(log);
-			//setWeight(getWeight() + log.getWeight());
+			log.despawn();
 			break;
 		case REMOVE_BLOCK:
 			getWorld().remove(position);

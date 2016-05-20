@@ -22,7 +22,7 @@ public class NextTo extends PositionChecker {
 	public Position evaluate(Program program) {
 		List<Position> allNeighbours = new ArrayList<>();
 		for (Position position : program.getWorld().getAllNeighbours(getPositionExpression().evaluate(program))) {
-			if (program.getUnit().canStandOn(position)) {
+			if (program.getUnit().hasSupport(position)) {
 				allNeighbours.add(position);
 			}
 		}

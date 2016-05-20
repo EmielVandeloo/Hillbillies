@@ -29,7 +29,7 @@ import hillbillies.world.Position;
  * 
  * @author Pieter-Jan Van den Broecke: EltCw
  * 		   Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
@@ -122,9 +122,15 @@ public class World {
 	private final Set<Faction> factions = new HashSet<Faction>();
 	
 	/**
+	 * Variable registering a randomizer.
+	 */
+	private final static Random random = new Random();
+	
+	/**
 	 * Variable registering whether or not this world is terminated.
 	 */
 	private boolean isTerminated;
+	
 	
 	// CONSTRUCTORS AND DESTRUCTOR 
 
@@ -417,15 +423,22 @@ public class World {
 		
 		for (Entity entity : getAllEntities()) {
 			if (!entity.isTerminated()) {
-				if (!(entity instanceof Unit)) {
-					if (entity.isFalling() || !hasUnderlyingSolid(entity.getPosition())) {
-						entity.fallBehavior(deltaTime);
-					}
-				} else {
-					if (checkThreeMinuteRest(deltaTime) == true) {
+//				if (!(entity instanceof Unit)) {
+//					if (entity.isFalling() || !hasUnderlyingSolid(entity.getPosition())) {
+//						entity.fallBehavior(deltaTime);
+//					}
+//				} else {
+//					if (checkThreeMinuteRest(deltaTime) == true) {
+//						((Unit) entity).rest();
+//					}
+//					entity.advanceTime(deltaTime);
+//				}
+				entity.advanceTime(deltaTime);
+				
+				if (entity instanceof Unit) {
+					if (checkThreeMinuteRest(deltaTime)) {
 						((Unit) entity).rest();
 					}
-					entity.advanceTime(deltaTime);
 				}
 			}
 		}
@@ -632,7 +645,7 @@ public class World {
 	 *         or the given entity doesn't reference this world as its world.
 	 */
 	public void removeEntity(Entity entity) throws IllegalArgumentException {
-		if (!hasAsEntity(entity) || entity.getWorld() == this) {
+		if (!hasAsEntity(entity) || entity.getWorld() != this) {
 			throw new IllegalArgumentException();
 		}
 		getList(entity).remove(entity);
@@ -1038,9 +1051,9 @@ public class World {
 	@Model
 	private Position getSpawnPosition() {
 		List<Position> allPossibleSpawnPositions = getPossibleSpawnPositions();
-		int random = new Random().nextInt(allPossibleSpawnPositions.size());
+		int randomNb = random.nextInt(allPossibleSpawnPositions.size());
 		
-		return allPossibleSpawnPositions.get(random);
+		return allPossibleSpawnPositions.get(randomNb);
 	}
 	
 	/**
@@ -1148,9 +1161,9 @@ public class World {
 	 */
 	@Model
 	private Position getRandomPosition() {
-		int x = new Random().nextInt(getSizeX());
-		int y = new Random().nextInt(getSizeY());
-		int z = new Random().nextInt(getSizeZ());
+		int x = random.nextInt(getSizeX());
+		int y = random.nextInt(getSizeY());
+		int z = random.nextInt(getSizeZ());
 		
 		return new Position(x,y,z);
 	}
@@ -1190,7 +1203,7 @@ public class World {
 			}
 		}
 		
-		return detected.get(new Random().nextInt(detected.size())).getCenterPosition();
+		return detected.get(random.nextInt(detected.size())).getCenterPosition();
 	}
 	
 	/**
@@ -1224,17 +1237,16 @@ public class World {
 		if (radius < 1) {
 			throw new IllegalArgumentException();
 		}		
-		Random random = new Random();
 		Position spot = new Position();
-		while (true) {
+		
+		do {
 			int multiplier = random.nextInt(radius) + 1;
 			for (int i = 0; i < 3; i++) {
 				spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
 				}
-			if (isValidPosition(spot)) {
-				return spot;
-			}
-		}
+		} while (! isValidPosition(spot));
+		
+		return spot;
 	}
 	
 	/**
@@ -1267,7 +1279,7 @@ public class World {
 		if (accessibleNeighbours.isEmpty()) {
 			return null;
 		}
-		return accessibleNeighbours.get(new Random().nextInt(accessibleNeighbours.size()));
+		return accessibleNeighbours.get(random.nextInt(accessibleNeighbours.size()));
 	}
 	
 	/**
@@ -1277,16 +1289,26 @@ public class World {
 	 * @param  position
 	 *         The position to search next to.
 	 * @return A random accessible neighbouring position that is on the same z-level
-	 *         as the given position.
+	 *         as the given position. Null if none was found.
 	 */
 	@Model
 	Position getRandomAccessibleNeighbouringPositionOnSameZ(Position position) {
-		while (true) {
-			Position pos = getRandomAccessibleNeighbouringPosition(position);
-			if (pos.getCenterPosition().z() == position.getCenterPosition().z()) {
-				return pos;
+		List<Position> neighbours = getAllNeighbours(position);
+		
+		while (! neighbours.isEmpty()) {
+			Position neighbour = neighbours.remove(random.nextInt(neighbours.size()));
+			
+			if (! isValidPosition(neighbour)) {
+				continue;
+			} else if (! PathFinder.isCornerAllowed(this, position, neighbour)) {
+				continue;
+			} else if (neighbour.getCenterPosition().z() != position.getCenterPosition().z()) {
+				continue;
+			} else {
+				return neighbour;
 			}
 		}
+		return null;
 	}
 	
 	/**
@@ -1335,7 +1357,6 @@ public class World {
 	 */
 	@Model
 	private static int getRandomDirection() {
-		Random random = new Random();
 		int nb = random.nextInt(3);
 		if (nb == 0) {
 			return -1;
@@ -1368,7 +1389,7 @@ public class World {
 	 * Return a random element from the given set.
 	 */
 	public static Object getRandomElement(HashSet<? extends Object> set) {
-		int nb = new Random().nextInt(set.size());
+		int nb = random.nextInt(set.size());
 		int i = 0;
 		
 		for (Object object : set) {

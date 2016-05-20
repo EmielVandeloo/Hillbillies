@@ -26,6 +26,7 @@ public class Log extends ItemEntity {
 		return ENTITY_ID;
 	}
 	
+	
 	// CONSTRUCTOR
 
 	/**
@@ -42,6 +43,7 @@ public class Log extends ItemEntity {
 		super(world, position);
 	}
 	
+	
 	// METHODS
 	
 	/**
@@ -56,7 +58,7 @@ public class Log extends ItemEntity {
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			world.addEntity(new Log(world, position));
+			new Log(world, position).spawn();;
 		}
 	}
 }
