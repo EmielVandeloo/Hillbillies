@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Model;
 
@@ -279,12 +282,13 @@ public class Scheduler {
 	 *       |     result == true
 	 */
 	public boolean areTasksPartOf(Collection<Task> tasks) {
-		for (Task task : tasks) {
-			if (!hasAsTask(task)) {
-				return false;
-			}
-		}
-		return true;
+//		for (Task task : tasks) {
+//			if (!hasAsTask(task)) {
+//				return false;
+//			}
+//		}
+//		return true;
+		return tasks.stream().allMatch(task->getAllTasks().contains(task));
 	}
 
 	/**
@@ -496,7 +500,7 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		task.setExecutingUnit(null);
-		if (task.getPriority() == 0) {
+		if (task.getPriority() < 10 && task.getPriority() > -10) {
 			task.setPriority(-10);
 		} else {
 			task.setPriority(task.getPriority() - Math.abs(task.getPriority()/4));
@@ -504,5 +508,9 @@ public class Scheduler {
 		removeFromAssignedTasks(task);
 		addToNotAssignedTasks(task);
 	}
-
+	
+	public List<Task> getAllTasksSatisfying(Predicate<Task> condition) {
+		return getAllTasks().stream().filter(condition).collect(Collectors.toList());
+	}
+	
 }

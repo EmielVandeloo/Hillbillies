@@ -148,7 +148,6 @@ public class Task implements Comparable<Task> {
 	public void terminate() {
 		if (!isTerminated()) {
 			this.isTerminated = true;
-			
 			for (Scheduler scheduler : getSchedulers()) {
 				try {
 					scheduler.removeFromAssignedTasks(this);

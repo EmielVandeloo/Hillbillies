@@ -59,7 +59,7 @@ public class Boulder extends ItemEntity {
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			new Boulder(world, position).spawn();;
+			new Boulder(world, position).spawn();
 		}
 	}
 }

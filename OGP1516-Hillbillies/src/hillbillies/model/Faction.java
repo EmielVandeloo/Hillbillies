@@ -12,7 +12,7 @@ import hillbillies.world.Position;
 /**
  * A class of factions.
  * 
- * @invar Each faction can have its world as world.
+ * @invar Each faction has a proper world attached to it.
  * @invar The name of each faction must be a valid name for any
  *        faction.
  * @invar Each faction must have proper units.
@@ -123,6 +123,7 @@ public class Faction {
 			for (Unit unit : units) {
 				unit.terminate();
 			}
+			this.scheduler = null;
 		}
 	}
 
@@ -181,7 +182,7 @@ public class Faction {
 	 *       is attached, the world to which it is attached is set to the given world.
 	 */
 	@Raw
-	public void setWorld(World world) {
+	void setWorld(World world) {
 		if (canHaveAsWorld(world)) {
 			this.world = world;
 		}

@@ -99,8 +99,8 @@ public abstract class Entity {
 		if (!isTerminated()) {
 			World formerWorld = getWorld();
 			this.isTerminated = true;
-			formerWorld.removeEntity(this);
 			setWorld(null);
+			formerWorld.removeEntity(this);
 		}
 	}
 	

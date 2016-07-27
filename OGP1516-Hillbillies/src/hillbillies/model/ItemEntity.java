@@ -186,8 +186,9 @@ public abstract class ItemEntity extends Entity {
 	 * Remove the item entity from the world.
 	 */
 	public void despawn() {
-		getWorld().removeEntity(this);
+		World formerWorld = getWorld();
 		setWorld(null);
+		formerWorld.removeEntity(this);
 	}
 	
 }

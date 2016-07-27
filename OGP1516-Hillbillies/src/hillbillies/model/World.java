@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
@@ -326,7 +329,7 @@ public class World {
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid position.
 	 */
-	public void setAt(Position position, Cube cube) {
+	public void setAt(Position position, Cube cube) throws IllegalArgumentException {
 		if (position == null || cube == null) {
 			throw new IllegalArgumentException();
 		} else if (! isValidPosition(position)) {
@@ -634,7 +637,7 @@ public class World {
 	 *         or the given entity doesn't reference this world as its world.
 	 */
 	public void removeEntity(Entity entity) throws IllegalArgumentException {
-		if (!hasAsEntity(entity) || entity.getWorld() != this) {
+		if (!hasAsEntity(entity) || entity.getWorld() == this) {
 			throw new IllegalArgumentException();
 		}
 		getList(entity).remove(entity);
@@ -989,13 +992,23 @@ public class World {
 	 */
 	@Model
 	private List<Position> getAllPassablePositionsWithSolidNeighbour() {
-		List<Position> allPassablePositionsWithSolidNeighbour = new ArrayList<Position>();
-		for (Position pos : getAllPassablePositions()) {
-			if (hasSolidNeighbour(pos)) {
-				allPassablePositionsWithSolidNeighbour.add(pos);
+//		List<Position> allPassablePositionsWithSolidNeighbour = new ArrayList<Position>();
+//		for (Position pos : getAllPassablePositions()) {
+//			if (hasSolidNeighbour(pos)) {
+//				allPassablePositionsWithSolidNeighbour.add(pos);
+//			}
+//		}
+//		return allPassablePositionsWithSolidNeighbour;
+//		return getAllPositions().stream().filter(pos->hasSolidNeighbour(pos) && 
+//				getAt(pos).isPassable()).collect(Collectors.toList());
+		return getAllPositions().stream().filter(new Predicate<Position>() {
+
+			@Override
+			public boolean test(Position t) {
+				return hasSolidNeighbour(t) && getAt(t).isPassable();
 			}
-		}
-		return allPassablePositionsWithSolidNeighbour;
+			
+		}).collect(Collectors.toList());
 	}
 	
 	/**
