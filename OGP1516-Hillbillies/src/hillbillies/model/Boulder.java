@@ -15,8 +15,6 @@ import hillbillies.world.Position;
  */
 public class Boulder extends ItemEntity {
 	
-	//FIELDS
-	
 	/**
 	 * Field representing the identification of this entity.
 	 */
@@ -26,9 +24,6 @@ public class Boulder extends ItemEntity {
 	public String getEntityId() {
 		return ENTITY_ID;
 	}
-	
-	
-	// CONSTRUCTOR
 
 	/**
 	 * Initialize this new boulder in the given world at the given position.
@@ -43,9 +38,6 @@ public class Boulder extends ItemEntity {
 	public Boulder(World world, Position position) {
 		super(world, position);
 	}
-
-	
-	// METHODS
 	
 	/**
 	 * Drop a boulder in the given world at the given position.

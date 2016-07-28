@@ -10,7 +10,6 @@ public class IsSolid extends PositionChecker {
 
 	public IsSolid(SourceLocation sourceLocation, Expression<Position> positionExpression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, positionExpression);
 	}
 
@@ -23,5 +22,4 @@ public class IsSolid extends PositionChecker {
 	public String toString() {
 		return "is solid: " + getPositionExpression().toString();
 	}
-	
 }

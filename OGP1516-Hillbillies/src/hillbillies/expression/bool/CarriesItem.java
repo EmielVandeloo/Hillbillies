@@ -9,8 +9,7 @@ import hillbillies.program.Program;
 public class CarriesItem extends UnitChecker {
 	
 	public CarriesItem(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
-			throws IllegalArgumentException {
-		
+			throws IllegalArgumentException {	
 		super(sourceLocation, unitExpression);
 	}
 
@@ -23,5 +22,4 @@ public class CarriesItem extends UnitChecker {
 	public String toString() {
 		return "carries item";
 	}
-
 }

@@ -11,7 +11,6 @@ public class PositionOf extends UnitChecker {
 
 	public PositionOf(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, unitExpression);
 	}
 	
@@ -24,5 +23,4 @@ public class PositionOf extends UnitChecker {
 	public String toString() {
 		return "PositionOf []";
 	}
-
 }

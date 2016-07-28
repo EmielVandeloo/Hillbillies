@@ -27,8 +27,6 @@ import hillbillies.world.Position;
  */
 public class Faction {
 
-	// FIELDS
-
 	/**
 	 * Variable registering the maximal amount of units allowed in a faction.
 	 */
@@ -63,8 +61,6 @@ public class Faction {
 	 * Variable registering the scheduler of this faction.
 	 */
 	private Scheduler scheduler;
-
-	// CONSTRUCTOR AND DESTRUCTOR
 
 	/**
 	 * Initialize this new faction as a non-terminated faction with 
@@ -126,8 +122,6 @@ public class Faction {
 			this.scheduler = null;
 		}
 	}
-
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the name of this faction.
@@ -219,8 +213,6 @@ public class Faction {
 				getWorld().getAllFactions().contains(this));
 	}
 
-	// Methods
-
 	/**
 	 * Generate a pseudo-random name.
 	 * 
@@ -237,8 +229,6 @@ public class Faction {
 		name += nouns[random.nextInt(nouns.length)];
 		return name;
 	}
-
-	// UNIT METHODS
 
 	/**
 	 * Check whether this faction has the given unit as one of its
@@ -349,8 +339,6 @@ public class Faction {
 		units.remove(unit);
 	}
 
-	// RETRIEVE
-
 	/**
 	 * Return a random member of this faction.
 	 * 
@@ -428,7 +416,6 @@ public class Faction {
 	public Unit getClosestMember(Unit unit) {
 		Unit closest = null;
 		double distance = Double.POSITIVE_INFINITY;
-
 		for (Unit member : getAllUnits()) {
 			double newDistance = Position.getDistance(unit.getPosition(), member.getPosition());
 			if (newDistance < distance && ! member.equals(unit)) {
@@ -452,16 +439,13 @@ public class Faction {
 		if (factions.size() < 2) {
 			return null;
 		}
-
 		Unit closest = null;
 		double distance = Double.POSITIVE_INFINITY;
-
 		for (Faction faction : factions) {
 			if (faction.getAllUnits().isEmpty()) {continue;}
 			if (! faction.equals(this)) {
 				Unit newUnit =  faction.getClosestMember(unit);
 				double newDistance = Position.getDistance(unit.getPosition(), newUnit.getPosition());
-
 				if (newDistance < distance) {
 					closest = newUnit;
 					distance = newDistance;
@@ -470,8 +454,6 @@ public class Faction {
 		}
 		return closest;
 	}
-
-	// SCHEDULER
 
 	/**
 	 * Return the scheduler of this faction.
@@ -510,5 +492,4 @@ public class Faction {
 			throw new IllegalArgumentException();
 		this.scheduler = scheduler;
 	}
-
 }

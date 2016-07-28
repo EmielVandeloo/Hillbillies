@@ -14,7 +14,6 @@ public class NextTo extends PositionChecker {
 
 	public NextTo(SourceLocation sourceLocation, Expression<Position> positionExpression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, positionExpression);
 	}
 
@@ -36,5 +35,4 @@ public class NextTo extends PositionChecker {
 	public String toString() {
 		return "next to";
 	}
-
 }

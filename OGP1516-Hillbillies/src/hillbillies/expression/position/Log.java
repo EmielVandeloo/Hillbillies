@@ -18,7 +18,6 @@ public class Log extends Expression<Position> {
 		Entity entity = World.getClosestElement(
 				program.getWorld().getAllLogs(), 
 				program.getUnit().getPosition());
-		
 		return (entity == null ? null : entity.getPosition());
 	}
 	
@@ -26,5 +25,4 @@ public class Log extends Expression<Position> {
 	public String toString() {
 		return "log";
 	}
-
 }

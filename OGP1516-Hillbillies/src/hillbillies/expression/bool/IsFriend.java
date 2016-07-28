@@ -9,8 +9,7 @@ import hillbillies.program.Program;
 public class IsFriend extends UnitChecker {
 
 	public IsFriend(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
-			throws IllegalArgumentException {
-		
+			throws IllegalArgumentException {	
 		super(sourceLocation, unitExpression);
 	}
 
@@ -24,5 +23,4 @@ public class IsFriend extends UnitChecker {
 	public String toString() {
 		return getUnitExpression().toString() + " is friend";
 	}
-
 }

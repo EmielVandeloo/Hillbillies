@@ -2123,14 +2123,14 @@ public class Unit extends Entity {
 	 *         job time is set to zero, this unit stops working, this unit's work logic is performed,
 	 *         this unit's work position is set to null and the number of experience points is updated.
 	 *       | let
-	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       |   timeLeft = getJobtime() - (float) deltaTime
 	 *       | in
-	 *       |    if (timeLeft <= 0)
-	 *       |      then setJobTime(0)
-	 *       |      then stopWorking()
-	 *       |      then workLogic(position)
-	 *       |      then setWorkPosition(null)
-	 *       |      then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForWork())
+	 *       |   if (timeLeft <= 0)
+	 *       |     then setJobTime(0)
+	 *       |     then stopWorking()
+	 *       |     then workLogic(position)
+	 *       |     then setWorkPosition(null)
+	 *       |     then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForWork())
 	 */
 	@Model @Raw
 	private void performWorkAt(double deltaTime, Position position) {
@@ -3513,6 +3513,4 @@ public class Unit extends Entity {
 	public boolean cannotStartAction() {
 		return (hasJob() || isMoving());
 	}
-	
 }
-

@@ -32,8 +32,6 @@ import hillbillies.world.Position;
  */
 public class Task implements Comparable<Task> {
 
-	// FIELDS
-
 	/**
 	 * Variable registering whether this task is terminated.
 	 */
@@ -68,8 +66,6 @@ public class Task implements Comparable<Task> {
 	 * Variable referencing the set of schedulers to which this task is attached.
 	 */
 	private Set<Scheduler> schedulers = new HashSet<>();
-
-	// CONSTRUCTORS
 	
 	/**
 	 * Initialize this new task with given name, priority, activity 
@@ -158,8 +154,6 @@ public class Task implements Comparable<Task> {
 			}
 		}
 	}
-
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the name of this task.
@@ -428,8 +422,6 @@ public class Task implements Comparable<Task> {
 		getSchedulers().remove(scheduler);
 	}
 
-	// OVERRIDE
-
 	/**
 	 * Compare this task to the given task.
 	 * 
@@ -469,5 +461,4 @@ public class Task implements Comparable<Task> {
 	public String toString() {
 		return "Task [name=" + getName() + ", priority=" + getPriority() + "]";
 	}
-
 }

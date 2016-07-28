@@ -9,18 +9,16 @@ public class Invert extends BoolChecker {
 
 	public Invert(SourceLocation sourceLocation, Expression<Boolean> expression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, expression);
 	}
 
 	@Override
 	public Boolean evaluate(Program program) {
-		return ! getExpression().evaluate(program);
+		return !getExpression().evaluate(program);
 	}
 	
 	@Override
 	public String toString() {
 		return "(not " + getExpression().toString() + ")";
 	}
-
 }

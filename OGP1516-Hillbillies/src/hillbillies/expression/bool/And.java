@@ -8,8 +8,7 @@ import hillbillies.program.Program;
 public class And extends DoubleBoolChecker {
 
 	public And(SourceLocation sourceLocation, Expression<Boolean> first, Expression<Boolean> second) 
-			throws IllegalArgumentException {
-		
+			throws IllegalArgumentException {	
 		super(sourceLocation, first, second);
 	}
 
@@ -22,5 +21,4 @@ public class And extends DoubleBoolChecker {
 	public String toString() {
 		return "(" + getFirst().toString() + " and " + getSecond().toString() + ")";
 	}
-
 }

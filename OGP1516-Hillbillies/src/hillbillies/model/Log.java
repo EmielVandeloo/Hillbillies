@@ -16,8 +16,6 @@ import hillbillies.world.Position;
  */
 public class Log extends ItemEntity {
 	
-	//FIELDS
-	
 	/**
 	 * Field representing the identification of this entity.
 	 */
@@ -27,9 +25,6 @@ public class Log extends ItemEntity {
 	public String getEntityId() {
 		return ENTITY_ID;
 	}
-	
-	
-	// CONSTRUCTOR
 
 	/**
 	 * Initialize this new log in the given world at the given position.
@@ -44,9 +39,6 @@ public class Log extends ItemEntity {
 	public Log(World world, Position position) throws IllegalArgumentException {
 		super(world, position);
 	}
-	
-	
-	// METHODS
 	
 	/**
 	 * Drop a log in the given world at the given position.

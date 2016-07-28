@@ -8,16 +8,10 @@ import hillbillies.program.Program;
 
 public class IsEnemy extends UnitChecker {
 
-	// CONSTRUCTOR
-	
 	public IsEnemy(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
-			throws IllegalArgumentException {
-		
+			throws IllegalArgumentException {	
 		super(sourceLocation, unitExpression);
 	}
-	
-	
-	// OVERRIDE
 
 	@Override
 	public Boolean evaluate(Program program) {
@@ -29,5 +23,4 @@ public class IsEnemy extends UnitChecker {
 	public String toString() {
 		return getUnitExpression().toString() + " is enemy";
 	}
-
 }

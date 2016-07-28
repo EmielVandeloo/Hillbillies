@@ -20,5 +20,4 @@ public class Workshop extends Expression<Position> {
 	public String toString() {
 		return "workshop";
 	}
-
 }

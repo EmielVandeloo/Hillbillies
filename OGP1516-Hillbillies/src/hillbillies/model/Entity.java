@@ -19,8 +19,6 @@ import hillbillies.model.World;
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class Entity {
-
-	// FIELDS
 	
 	/**
 	 * Field representing the identification of this entity.
@@ -54,9 +52,6 @@ public abstract class Entity {
 	 */
 	private boolean isTerminated;
 
-	
-	// CONSTRUCTORS
-
 	/**
 	 * Initialize this new entity with given world and given position.
 	 * 
@@ -72,10 +67,7 @@ public abstract class Entity {
 	public Entity(World world, Position position) throws IllegalArgumentException {
 		setWorld(world);
 		setPosition(position.getCenterPosition());
-	}	
-	
-	
-	// DESTRUCTOR
+	}
 	
 	/**
 	 * Return whether this entity is terminated.
@@ -103,9 +95,6 @@ public abstract class Entity {
 			formerWorld.removeEntity(this);
 		}
 	}
-	
-	
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the world of this entity.
@@ -225,9 +214,6 @@ public abstract class Entity {
 		this.falling = false;
 	}
 
-	
-	// METHODS
-
 	/**
 	 * Advance the state of this entity by the given time step.
 	 * 
@@ -276,13 +262,11 @@ public abstract class Entity {
 		if (getPosition() == null || getWorld() == null) {
 			return;
 		}
-		
 		if (! hasSupport(getPosition()) && ! isFalling()) {
 			startFalling();
 		}
 		if (isFalling()) {
-			updatePosition(deltaTime, World.FALL_VECTOR);
-			
+			updatePosition(deltaTime, World.FALL_VECTOR);	
 			if (hasReachedGround()) {
 				stopFalling();
 				setPosition(getPosition().getCenterPosition());
@@ -341,5 +325,4 @@ public abstract class Entity {
 	private static boolean isValidVector(double[] vector) {
 		return (vector != null && vector.length == 3);
 	}
-	
 }

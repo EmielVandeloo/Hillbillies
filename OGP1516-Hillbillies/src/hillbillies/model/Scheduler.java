@@ -25,8 +25,6 @@ import be.kuleuven.cs.som.annotate.Model;
  */
 public class Scheduler {
 	
-	// FIELDS
-	
 	/**
 	 * Variable referencing a list collecting all the unassigned tasks
 	 * of this scheduler.
@@ -512,5 +510,4 @@ public class Scheduler {
 	public List<Task> getAllTasksSatisfying(Predicate<Task> condition) {
 		return getAllTasks().stream().filter(condition).collect(Collectors.toList());
 	}
-	
 }

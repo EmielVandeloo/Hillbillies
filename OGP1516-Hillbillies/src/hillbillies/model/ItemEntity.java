@@ -45,9 +45,6 @@ public abstract class ItemEntity extends Entity {
 	 * Field representing the identification of this entity.
 	 */
 	public static final String ENTITY_ID = "item_entity";
-
-	
-	// CONSTRUCTORS
 	
 	/**
 	 * Initialize this new item entity with given world, position and weight.
@@ -84,9 +81,6 @@ public abstract class ItemEntity extends Entity {
 		this(world, position, getRandomWeight());
 	}
 	
-	
-	// GETTERS AND SETTERS
-	
 	/**
 	 * Return the weight of this item .
 	 */
@@ -108,9 +102,6 @@ public abstract class ItemEntity extends Entity {
 	public static boolean canHaveAsWeight(int weight) {
 		return (weight >= MIN_WEIGHT) && (weight <= MAX_WEIGHT);
 	}
-
-	
-	// METHODS
 
 	/**
 	 * Return a random weight between the minimal and the maximal value of the weight
@@ -151,9 +142,6 @@ public abstract class ItemEntity extends Entity {
 		return getWorld().hasUnderlyingSolid(position) && super.hasSupport(position);
 	}
 
-	
-	// METHODS
-
 	/**
 	 * Advance the state of this item entity by the given time step.
 	 * 
@@ -190,5 +178,4 @@ public abstract class ItemEntity extends Entity {
 		setWorld(null);
 		formerWorld.removeEntity(this);
 	}
-	
 }

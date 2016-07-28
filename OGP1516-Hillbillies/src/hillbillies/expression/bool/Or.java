@@ -8,8 +8,7 @@ import hillbillies.program.Program;
 public class Or extends DoubleBoolChecker {
 
 	public Or(SourceLocation sourceLocation, Expression<Boolean> first, Expression<Boolean> second) 
-			throws IllegalArgumentException {
-		
+			throws IllegalArgumentException {	
 		super(sourceLocation, first, second);
 	}
 
@@ -17,5 +16,4 @@ public class Or extends DoubleBoolChecker {
 	public Boolean evaluate(Program program) {
 		return getFirst().evaluate(program) || getSecond().evaluate(program);
 	}
-
 }

@@ -37,8 +37,6 @@ import hillbillies.world.Position;
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class World {
-
-	// FIELDS
 	
 	/**
 	 * Variable containing the maximum amount of factions
@@ -133,9 +131,6 @@ public class World {
 	 * Variable registering whether or not this world is terminated.
 	 */
 	private boolean isTerminated;
-	
-	
-	// CONSTRUCTORS AND DESTRUCTOR 
 
 	/**
 	 * Initialize this new world as a non-terminated world with 
@@ -166,14 +161,12 @@ public class World {
 	@Raw
 	public World(int[][][] terrainTypes, TerrainChangeListener modelListener) 
 			throws IllegalArgumentException, IndexOutOfBoundsException {
-		
 		if (terrainTypes == null) {
 			throw new IllegalArgumentException();
 		}
 		if (modelListener == null) {
 			throw new IllegalArgumentException();
 		}
-		
 		this.modelListener = modelListener;
 		this.sizeX = terrainTypes.length;
 		this.sizeY = terrainTypes[0].length;
@@ -181,7 +174,6 @@ public class World {
 		this.setWorldVersion(0);
 		this.world = new Cube[sizeX][sizeY][sizeZ];
 		this.border = new ConnectedToBorder(sizeX, sizeY, sizeZ);
-		
 		for (int i = 0; i < sizeX; i++) {
 			for (int j = 0; j < sizeY; j++) {
 				for (int k = 0; k < sizeZ; k++) {
@@ -225,8 +217,6 @@ public class World {
 			}
 		}
 	}
-	
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the number of cubes in the x-direction.
@@ -308,7 +298,6 @@ public class World {
 		} else if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		
 		int[] coord = position.convertToIntegerArray();
 		return world[coord[0]][coord[1]][coord[2]];
 	}
@@ -335,14 +324,11 @@ public class World {
 		} else if (! isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		
 		Coordinate coord = position.convertToCoordinate();
 		world[coord.x()][coord.y()][coord.z()] = cube;
 		updateWorldVersion();
 		modelListener.notifyTerrainChanged(coord.x(), coord.y(), coord.z());
 	}
-
-	// WORLD-METHODS
 
 	/**
 	 * Set the cube type of this world at the given position to the given cube type.
@@ -486,8 +472,6 @@ public class World {
 		JobStat.BigDec2 = gameTime.add(new BigDecimal(deltaTime)).remainder(JobStat.THREEMINUTEREST);
 		return (JobStat.BigDec1.compareTo(JobStat.BigDec2) > 0);
 	}
-
-	// ENTITY METHODS
 
 	/**
 	 * Check whether this world has the given entity as one of its
@@ -932,9 +916,6 @@ public class World {
 		}
 	}
 	
-	
-	// POSITIONS
-	
 	/**
 	 * Return all positions of this world.
 	 */
@@ -999,8 +980,10 @@ public class World {
 //			}
 //		}
 //		return allPassablePositionsWithSolidNeighbour;
+		
 //		return getAllPositions().stream().filter(pos->hasSolidNeighbour(pos) && 
 //				getAt(pos).isPassable()).collect(Collectors.toList());
+		
 		return getAllPositions().stream().filter(new Predicate<Position>() {
 
 			@Override
@@ -1166,7 +1149,6 @@ public class World {
 		int x = random.nextInt(getSizeX());
 		int y = random.nextInt(getSizeY());
 		int z = random.nextInt(getSizeZ());
-		
 		return new Position(x,y,z);
 	}
 	
@@ -1185,18 +1167,14 @@ public class World {
 		if (position == null || !hasSolidNeighbour(position) || !isPassable(position)) {
 			throw new IllegalArgumentException();
 		}
-		
 		ArrayList<Position> detected = new ArrayList<>();
 		ArrayList<Position> toEvaluate = new ArrayList<>();
 		toEvaluate.add(position.getCenterPosition());
-		
 		while (! toEvaluate.isEmpty()) {
 			Position candidate = toEvaluate.remove(0);
-			detected.add(candidate);
-			
+			detected.add(candidate);	
 			for (Position neighbour : getAllNeighbours(candidate)) {
-				Position center = neighbour.getCenterPosition();
-				
+				Position center = neighbour.getCenterPosition();		
 				if (isPassable(center) && hasSolidNeighbour(center)) {
 					if (! detected.contains(center) && ! toEvaluate.contains(center)) {
 						toEvaluate.add(center);
@@ -1204,7 +1182,6 @@ public class World {
 				}
 			}
 		}
-		
 		return detected.get(random.nextInt(detected.size())).getCenterPosition();
 	}
 	
@@ -1240,14 +1217,12 @@ public class World {
 			throw new IllegalArgumentException();
 		}		
 		Position spot = new Position();
-		
 		do {
 			int multiplier = random.nextInt(radius) + 1;
 			for (int i = 0; i < 3; i++) {
 				spot.setAt(i, position.getAt(i) + World.getRandomDirection() * multiplier);
 				}
 		} while (! isValidPosition(spot));
-		
 		return spot;
 	}
 	
@@ -1296,10 +1271,8 @@ public class World {
 	@Model
 	Position getRandomAccessibleNeighbouringPositionOnSameZ(Position position) {
 		List<Position> neighbours = getAllNeighbours(position);
-		
 		while (! neighbours.isEmpty()) {
 			Position neighbour = neighbours.remove(random.nextInt(neighbours.size()));
-			
 			if (! isValidPosition(neighbour)) {
 				continue;
 			} else if (! PathFinder.isCornerAllowed(this, position, neighbour)) {
@@ -1393,7 +1366,6 @@ public class World {
 	public static Object getRandomElement(HashSet<? extends Object> set) {
 		int nb = random.nextInt(set.size());
 		int i = 0;
-		
 		for (Object object : set) {
 			if (nb == i) {
 				return object;
@@ -1418,7 +1390,6 @@ public class World {
 		if (position == null) {
 			return null;
 		}
-		
 		Entity closest = null;
 		double distance = Double.POSITIVE_INFINITY;
 		for (Entity entity : set) {
@@ -1443,15 +1414,12 @@ public class World {
 	public Position getClosestWorkshop(Position position) {
 		Position closest = null;
 		double distance = Double.POSITIVE_INFINITY;
-		
 		for (int i = 0; i < getSizeX(); i++) {
 			for (int j = 0; j < getSizeY(); j++) {
-				for (int k = 0; k < getSizeZ(); k++) {
-					
+				for (int k = 0; k < getSizeZ(); k++) {		
 					Position newPosition = new Position(i, j, k);
 					if (getAt(newPosition).getId() == Cube.WORKBENCH.getId()) {
-						double newDistance = Position.getDistance(newPosition, position);
-						
+						double newDistance = Position.getDistance(newPosition, position);			
 						if (newDistance < distance) {
 							closest = newPosition;
 							distance = newDistance;
@@ -1462,5 +1430,4 @@ public class World {
 		}
 		return closest.getCenterPosition();
 	}
-		
 }

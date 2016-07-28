@@ -9,7 +9,6 @@ public class Bracket extends BoolChecker {
 
 	public Bracket(SourceLocation sourceLocation, Expression<Boolean> expression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, expression);
 	}
 
@@ -22,5 +21,4 @@ public class Bracket extends BoolChecker {
 	public String toString() {
 		return "(" + getExpression().toString() + ")";
 	}
-
 }
