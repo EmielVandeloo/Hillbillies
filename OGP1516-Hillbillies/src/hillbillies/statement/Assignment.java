@@ -55,11 +55,16 @@ public class Assignment extends Statement {
 	@Override
 	public void setToBeExecuted(boolean toBeExecuted) {
 		this.toBeExecuted = toBeExecuted;
-	};
+	}
 
 	@Override
 	public void resetAll() {
 		setToBeExecuted(true);
+	}
+	
+	@Override
+	public boolean isWellFormed() {
+		return true;
 	}
 
 }

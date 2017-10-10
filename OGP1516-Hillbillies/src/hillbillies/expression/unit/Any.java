@@ -20,5 +20,4 @@ public class Any extends Expression<Unit> {
 	public String toString() {
 		return "any";
 	}
-
 }

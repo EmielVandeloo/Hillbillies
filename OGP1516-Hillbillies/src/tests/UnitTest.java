@@ -1,8 +1,13 @@
 package tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
+
 import hillbillies.model.Boulder;
 import hillbillies.model.Faction;
 import hillbillies.model.Log;
@@ -11,6 +16,7 @@ import hillbillies.model.World;
 import hillbillies.part2.facade.Facade;
 import hillbillies.part2.facade.IFacade;
 import hillbillies.part2.listener.DefaultTerrainChangeListener;
+import hillbillies.world.Coordinate;
 import hillbillies.world.Cube;
 import hillbillies.world.Position;
 import ogp.framework.util.ModelException;
@@ -278,12 +284,12 @@ public class UnitTest {
 	
 	@Test
 	public void canStandOn_TrueCase() {
-		assertTrue(validUnitInWorld.canStandOn(new Position(1,1,2)));
+		assertTrue(validUnitInWorld.hasSupport(new Position(1,1,2)));
 	}
 	
 	@Test
 	public void canStandOn_FalseCase() {
-		assertFalse(validUnitInWorld.canStandOn(new Position(2,2,3)));
+		assertFalse(validUnitInWorld.hasSupport(new Position(2,2,3)));
 	}
 	
 	@Test
@@ -404,12 +410,16 @@ public class UnitTest {
 	@Test
 	public void workAt_ItemInInventory() throws ModelException {
 		int weight = veryStrongUnitInWorld.getWeight();
-		Boulder boulder = new Boulder(world, new Position(0,0,0));
-		world.addEntity(boulder);
+		Boulder boulder = new Boulder(world, new Coordinate(0, 0, 0).toCenter());
+		boulder.spawn();
+		
 		veryStrongUnitInWorld.workAt(0, 0, 0);
 		advanceTimeFor(facade, world, 5, 0.2);
 		assertFalse(world.hasAsEntity(boulder));
-		assertTrue(veryStrongUnitInWorld.getWeight() == weight + boulder.getWeight());
+		assertTrue(veryStrongUnitInWorld.getEffectiveWeight() == weight + boulder.getWeight());
+		assertTrue(veryStrongUnitInWorld.isCarryingBoulder());
+		assertEquals(boulder, veryStrongUnitInWorld.getInventory().getItem());
+		
 		veryStrongUnitInWorld.workAt(0, 0, 0);
 		advanceTimeFor(facade, world, 5, 0.2);
 		assertTrue(world.hasAsEntity(boulder));
@@ -520,9 +530,9 @@ public class UnitTest {
 	 * Helper method to advance time for the given world by some time.
 	 * 
 	 * @param time
-	 *            The time, in seconds, to advance.
+	 *        The time, in seconds, to advance.
 	 * @param step
-	 *            The step size, in seconds, by which to advance.
+	 *        The step size, in seconds, by which to advance.
 	 */
 	private static void advanceTimeFor(IFacade facade, World world, double time, double step) throws ModelException {
 		int n = (int) (time / step);

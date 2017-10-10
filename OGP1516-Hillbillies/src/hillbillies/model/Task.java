@@ -3,6 +3,7 @@ package hillbillies.model;
 import java.util.HashSet;
 import java.util.Set;
 import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Model;
 import be.kuleuven.cs.som.annotate.Raw;
 import hillbillies.statement.Statement;
 import hillbillies.world.Position;
@@ -25,11 +26,15 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Task implements Comparable<Task> {
 
-	// FIELDS
-
+	/**
+	 * Variable registering whether this task is terminated.
+	 */
 	private boolean isTerminated;
 	
 	/**
@@ -61,8 +66,6 @@ public class Task implements Comparable<Task> {
 	 * Variable referencing the set of schedulers to which this task is attached.
 	 */
 	private Set<Scheduler> schedulers = new HashSet<>();
-
-	// CONSTRUCTORS
 	
 	/**
 	 * Initialize this new task with given name, priority, activity 
@@ -89,6 +92,7 @@ public class Task implements Comparable<Task> {
 	 *         the given selected position.
 	 *       | setSelectedPosition(selectedPosition)
 	 */
+	@Raw
 	public Task(String name, int priority, Statement statement, Position selectedPosition) 
 			throws IllegalArgumentException {		
 		setName(name);
@@ -111,30 +115,45 @@ public class Task implements Comparable<Task> {
 	 * @effect This new task was created.
 	 *       | this(name, priority, statement, null)
 	 */
+	@Raw
 	public Task(String name, int priority, Statement statement) throws IllegalArgumentException {
 		this(name, priority, statement, null);
 	}
 	
+	/**
+	 * Return the terminated state of this task.
+	 */
+	@Basic @Raw
 	public boolean isTerminated() {
 		return this.isTerminated;
 	}
 	
+	/**
+	 * Terminate this task.
+	 * 
+	 * @post   If this task is not already terminated, this task is terminated.
+	 *       | if (!isTerminated())
+	 *       |   then new.IsTerminated() == true
+	 * @effect If this task is not already terminated and if there is a scheduler that has this task
+	 *         as one of its tasks, this task is removed from that scheduler.
+	 *       | if (!isTerminated())
+	 *       |   then foreach scheduler in getSchedulers()
+	 *       |          scheduler.removeFromAssignedTasks(this)
+	 *       |          scheduler.removeFromNotAssignedTasks(this)
+	 */
 	public void terminate() {
 		if (!isTerminated()) {
 			this.isTerminated = true;
-			
 			for (Scheduler scheduler : getSchedulers()) {
 				try {
 					scheduler.removeFromAssignedTasks(this);
-				} catch (IllegalArgumentException e) {}
+				} catch (IllegalStateException e) {}
 				try {
 					scheduler.removeFromNotAssignedTasks(this);
-				} catch (IllegalArgumentException e) {}
+				} catch (IllegalStateException e) {}
 			}
 		}
 	}
-
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the name of this task.
@@ -153,7 +172,8 @@ public class Task implements Comparable<Task> {
 	 * @return True if and only if the given name is effective.
 	 *       | result == (name != null)
 	 */
-	public static boolean isValidName(String name) {
+	@Model
+	private static boolean isValidName(String name) {
 		return (name != null);
 	}
 
@@ -191,10 +211,11 @@ public class Task implements Comparable<Task> {
 	 *  
 	 * @param  priority
 	 *         The priority to check.
-	 * @return True if and only if the given priority is not negative.
-	 *       | result == (priority >= 0)
+	 * @return Always true.
+	 *       | result == true
 	 */
-	public static boolean isValidPriority(int priority) {
+	@Model
+	private static boolean isValidPriority(int priority) {
 		return true;
 	}
 
@@ -233,7 +254,7 @@ public class Task implements Comparable<Task> {
 	 * @param  statement
 	 *         The activity to check.
 	 * @return True if and only if the given statement is effective.
-	 *       | result == (activity != null)
+	 *       | result == (statement != null)
 	 */
 	public static boolean isValidStatement(Statement statement) {
 		return (statement != null);
@@ -273,8 +294,8 @@ public class Task implements Comparable<Task> {
 	 *  
 	 * @param  selectedPosition
 	 *         The selected position to check.
-	 * @return True if and only if the given position is effective.
-	 *       | result == (selectedPosition != null)
+	 * @return Always true.
+	 *       | result == true
 	 */
 	public static boolean isValidSelectedPosition(Position selectedPosition) {
 		return true;
@@ -303,7 +324,7 @@ public class Task implements Comparable<Task> {
 	/**
 	 * Return the executing unit of this task.
 	 */
-	@Basic
+	@Basic @Raw
 	public Unit getExecutingUnit() {
 		return this.unit;
 	}
@@ -317,6 +338,7 @@ public class Task implements Comparable<Task> {
 	 *         references this task as its task.
 	 *       | result == (unit == null || unit.getTask() == this)
 	 */
+	@Raw
 	public boolean isValidExecutingUnit(Unit unit) {
 		return unit == null || unit.getTask() == this;
 	}
@@ -332,6 +354,7 @@ public class Task implements Comparable<Task> {
 	 *         The given unit is not a valid executing unit for this task.
 	 *       | !isValidExecutingUnit()
 	 */
+	@Raw
 	public void setExecutingUnit(Unit unit) throws IllegalArgumentException {
 		if (!isValidExecutingUnit(unit)) {
 			throw new IllegalArgumentException();
@@ -342,8 +365,8 @@ public class Task implements Comparable<Task> {
 	/**
 	 * Return the set of all schedulers to which this task is attached.
 	 */
-	@Basic
-	public Set<Scheduler> getSchedulers(){
+	@Basic @Raw
+	public Set<Scheduler> getSchedulers() {
 		return this.schedulers;
 	}
 	
@@ -356,6 +379,7 @@ public class Task implements Comparable<Task> {
 	 *         given scheduler as one of its schedulers.
 	 *       | result == ...
 	 */
+	@Raw
 	public boolean hasAsScheduler(Scheduler scheduler) {
 		return getSchedulers().contains(scheduler);
 	}
@@ -368,11 +392,12 @@ public class Task implements Comparable<Task> {
 	 * @effect The given scheduler is added to the set of schedulers to which this task
 	 *         is attached.
 	 *       | ...
-	 * @throws IllegalArgumentException
+	 * @throws IllegalStateException
 	 *         This task already references the given scheduler as one of its schedulers.
 	 *       | hasAsScheduler(scheduler)
 	 */
-	public void addScheduler(Scheduler scheduler) throws IllegalArgumentException{
+	@Raw
+	public void addScheduler(Scheduler scheduler) throws IllegalStateException {
 		if (hasAsScheduler(scheduler))
 			throw new IllegalStateException();
 		getSchedulers().add(scheduler);
@@ -386,17 +411,16 @@ public class Task implements Comparable<Task> {
 	 * @effect The given scheduler is removed from the set of schedulers to which this task
 	 *         is attached.
 	 *       | ...
-	 * @throws IllegalArgumentException
+	 * @throws IllegalStateException
 	 *         This task does not reference the given scheduler as one of its schedulers.
 	 *       | !hasAsScheduler(scheduler)
 	 */
-	public void removeScheduler(Scheduler scheduler) throws IllegalStateException{
+	@Raw
+	public void removeScheduler(Scheduler scheduler) throws IllegalStateException {
 		if (!hasAsScheduler(scheduler))
 			throw new IllegalStateException();
 		getSchedulers().remove(scheduler);
 	}
-
-	// OVERRIDE
 
 	/**
 	 * Compare this task to the given task.
@@ -407,23 +431,23 @@ public class Task implements Comparable<Task> {
 	 *         given task.
 	 *       | if (getPriority() == o.getPriority())
 	 *       |   then result == 0
-	 * @return 1 if the priority of this task is greater than the priority of the
+	 * @return -1 if the priority of this task is greater than the priority of the
 	 *         given task.
 	 *       | if (getPriority() > o.getPriority())
 	 *       |   then result == 1
-	 * @return -1 if the priority of this task is less than the priority of the
+	 * @return 1 if the priority of this task is less than the priority of the
 	 *         given task.
 	 *       | if (getPriority() < o.getPriority())
 	 *       |   then result == -1
 	 */
-	@Override
+	@Override @Raw
 	public int compareTo(Task o) {
 		if (this.getPriority() == o.getPriority()) {
 			return 0;
 		} else if (getPriority() > o.getPriority()) {
-			return 1;
-		} else {
 			return -1;
+		} else {
+			return 1;
 		}
 	}
 
@@ -431,11 +455,10 @@ public class Task implements Comparable<Task> {
 	 * Return a textual representation of this task.
 	 * 
 	 * @return A textual representation of this task.
-	 *         result == "Task [name=" + getName() + ", priority=" + getPriority() + "]"
+	 *       | result == "Task [name=" + getName() + ", priority=" + getPriority() + "]"
 	 */
-	@Override
+	@Override @Raw
 	public String toString() {
 		return "Task [name=" + getName() + ", priority=" + getPriority() + "]";
 	}
-
 }

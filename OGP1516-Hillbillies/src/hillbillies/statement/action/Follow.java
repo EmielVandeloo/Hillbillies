@@ -40,18 +40,17 @@ public class Follow extends Action {
 					unitToFollow = getExpression().evaluate(program);
 				}
 				positionToMoveTo = unitToFollow.getPosition().getCenterPosition();
-				System.out.println("Starting to follow!");
 				program.getUnit().moveTo(positionToMoveTo);
 				if (!program.getUnit().isMoving()) {
 					program.interrupt();
 				}
 				setToBeExecuted(false);
+			} else {
+				program.setTimeDepleted(true);
 			}
 		}
 		if (program.getUnit().getPosition().equals(positionToMoveTo)) {
-			System.out.println("Checking if enemy is here...");
-			if (program.getUnit().getPosition().equals(unitToFollow.getPosition())) {
-				System.out.println("Yes! Finished following!");
+			if (Position.isAdjacentToOrSame(program.getUnit().getPosition(), unitToFollow.getPosition())) {
 				if (isPartOfQueue()) {
 					((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 				} else {
@@ -62,7 +61,6 @@ public class Follow extends Action {
 					}
 				}
 			} else {
-				System.out.println("Unit not here, follow him!");
 				setToBeExecuted(true);
 				if (isPartOfQueue()) {
 					// Do nothing

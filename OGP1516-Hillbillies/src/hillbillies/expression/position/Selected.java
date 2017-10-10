@@ -20,5 +20,4 @@ public class Selected extends Expression<Position> {
 	public String toString() {
 		return "selected";
 	}
-
 }

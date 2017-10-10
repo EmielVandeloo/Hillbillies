@@ -35,5 +35,4 @@ public class Path {
 	public ArrayList<Position> getPath() {
 		return path;
 	}
-
 }

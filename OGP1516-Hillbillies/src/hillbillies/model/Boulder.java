@@ -9,11 +9,11 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Boulder extends ItemEntity {
-	
-	//FIELDS
 	
 	/**
 	 * Field representing the identification of this entity.
@@ -24,8 +24,6 @@ public class Boulder extends ItemEntity {
 	public String getEntityId() {
 		return ENTITY_ID;
 	}
-	
-	// CONSTRUCTOR
 
 	/**
 	 * Initialize this new boulder in the given world at the given position.
@@ -40,8 +38,6 @@ public class Boulder extends ItemEntity {
 	public Boulder(World world, Position position) {
 		super(world, position);
 	}
-
-	// METHODS
 	
 	/**
 	 * Drop a boulder in the given world at the given position.
@@ -55,7 +51,7 @@ public class Boulder extends ItemEntity {
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			world.addEntity(new Boulder(world, position));
+			new Boulder(world, position).spawn();
 		}
 	}
 }

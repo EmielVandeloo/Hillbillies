@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Model;
 
@@ -13,13 +16,14 @@ import be.kuleuven.cs.som.annotate.Model;
  * 
  * @invar Each scheduler has proper tasks attached to it.
  *      | hasProperTasks()
+ *      
+ * @author  Pieter-Jan Van den Broecke: EltCw
+ * 		    Emiel Vandeloo: WtkCw
+ * @version Final version Part 3: 20/05/2016
  * 
- * @author Pieter-Jan Van den Broecke: EltCw
- * 		   Emiel Vandeloo: WtkCw
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Scheduler {
-	
-	// FIELDS
 	
 	/**
 	 * Variable referencing a list collecting all the unassigned tasks
@@ -276,12 +280,13 @@ public class Scheduler {
 	 *       |     result == true
 	 */
 	public boolean areTasksPartOf(Collection<Task> tasks) {
-		for (Task task : tasks) {
-			if (!hasAsTask(task)) {
-				return false;
-			}
-		}
-		return true;
+//		for (Task task : tasks) {
+//			if (!hasAsTask(task)) {
+//				return false;
+//			}
+//		}
+//		return true;
+		return tasks.stream().allMatch(task->getAllTasks().contains(task));
 	}
 
 	/**
@@ -294,13 +299,18 @@ public class Scheduler {
 	 * @effect The list of unassigned tasks is sorted.
 	 *       | sort()
 	 * @throws IllegalArgumentException
-	 *         The given task is an invalid task for each scheduler, or this scheduler
-	 *         already references the given task as one of its tasks.
-	 *       | !canHaveAsTask(task) || hasAsTask(task)
+	 *         The given task is not a valid task for any scheduler.
+	 *       | !canHaveAsTask(task)
+	 * @throws IllegalStateException
+	 *         This scheduler already references the given task as one of its tasks.
+	 *       | hasAsTask(task)
 	 */
-	public void addToNotAssignedTasks(Task task) throws IllegalArgumentException {
-		if (!canHaveAsTask(task) || hasAsTask(task)) {
-			throw new IllegalArgumentException();
+	public void addToNotAssignedTasks(Task task) throws IllegalArgumentException, IllegalStateException {
+		if (!canHaveAsTask(task)) {
+			throw new IllegalStateException();
+		}
+		if (hasAsTask(task)) {
+			throw new IllegalStateException();
 		}
 		getNotAssignedTasks().add(task);
 		task.addScheduler(this);
@@ -314,13 +324,13 @@ public class Scheduler {
 	 *         The task to remove.
 	 * @effect The given task is removed from the list of unassigned tasks.
 	 *       | getNotAssignedTasks().remove(task)
-	 * @throws IllegalArgumentException
+	 * @throws IllegalStateException
 	 *         The scheduler does not have the given task as one of its unassigned tasks.
 	 *       | !hasAsNotAssignedTask(task)
 	 */
-	public void removeFromNotAssignedTasks(Task task) throws IllegalArgumentException {
+	public void removeFromNotAssignedTasks(Task task) throws IllegalStateException {
 		if (!hasAsNotAssignedTask(task)) {
-			throw new IllegalArgumentException();
+			throw new IllegalStateException();
 		}
 		getNotAssignedTasks().remove(task);
 		task.removeScheduler(this);
@@ -334,13 +344,18 @@ public class Scheduler {
 	 * @effect The given task is added to the list of assigned tasks.
 	 *       | getAssignedTasks().add(task)
 	 * @throws IllegalArgumentException
-	 *         The given task is an invalid task for each scheduler, or this scheduler
-	 *         already references the given task as one of its tasks.
-	 *       | !canHaveAsTask(task) || hasAsTask(task)
+	 *         The given task is not a valid task for any scheduler.
+	 *       | !canHaveAsTask(task)
+	 * @throws IllegalStateException
+	 *         This scheduler already references the given task as one of its tasks.
+	 *       | hasAsTask(task)
 	 */
-	public void addToAssignedTasks(Task task) throws IllegalArgumentException {
-		if (!canHaveAsTask(task) || hasAsTask(task)) {
+	public void addToAssignedTasks(Task task) throws IllegalArgumentException, IllegalStateException {
+		if (!canHaveAsTask(task)) {
 			throw new IllegalArgumentException();
+		}
+		if (hasAsTask(task)) {
+			throw new IllegalStateException();
 		}
 		getAssignedTasks().add(task);
 		task.addScheduler(this);
@@ -353,13 +368,13 @@ public class Scheduler {
 	 *         The task to remove.
 	 * @effect The given task is removed from the list of assigned tasks.
 	 *       | getAssignedTasks().remove(task)
-	 * @throws IllegalArgumentException
+	 * @throws IllegalStateException
 	 *         The scheduler does not have the given task as one of its assigned tasks.
 	 *       | !hasAsAssignedTask(task)
 	 */
-	public void removeFromAssignedTasks(Task task) throws IllegalArgumentException {
+	public void removeFromAssignedTasks(Task task) throws IllegalStateException {
 		if (!hasAsAssignedTask(task)) {
-			throw new IllegalArgumentException();
+			throw new IllegalStateException();
 		}
 		getAssignedTasks().remove(task);
 		task.removeScheduler(this);
@@ -381,7 +396,7 @@ public class Scheduler {
 		removeFromNotAssignedTasks(oldTask);
 		try {
 			addToNotAssignedTasks(newTask);
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalStateException e) {
 			addToNotAssignedTasks(oldTask);
 			throw e;
 		}
@@ -390,7 +405,8 @@ public class Scheduler {
 	/**
 	 * Sort the list of unassigned tasks.
 	 */
-	public void sort() {
+	@Model
+	private void sort() {
 		Collections.sort(getNotAssignedTasks());
 	}
 	
@@ -435,7 +451,8 @@ public class Scheduler {
 	 * @effect The executing unit of the given task is set to the given unit.
 	 *       | task.setExecutingUnit(unit)
 	 */
-	public void assign(Task task, Unit unit) throws IllegalArgumentException {
+	@Model
+	private void assign(Task task, Unit unit) throws IllegalArgumentException {
 		removeFromNotAssignedTasks(task);
 		addToAssignedTasks(task);
 		unit.setTask(task);
@@ -481,9 +498,16 @@ public class Scheduler {
 			throw new IllegalArgumentException();
 		}
 		task.setExecutingUnit(null);
-		task.setPriority(task.getPriority() - 1/4*Math.abs(task.getPriority()));
+		if (task.getPriority() < 10 && task.getPriority() > -10) {
+			task.setPriority(-10);
+		} else {
+			task.setPriority(task.getPriority() - Math.abs(task.getPriority()/4));
+		}
 		removeFromAssignedTasks(task);
 		addToNotAssignedTasks(task);
 	}
-
+	
+	public List<Task> getAllTasksSatisfying(Predicate<Task> condition) {
+		return getAllTasks().stream().filter(condition).collect(Collectors.toList());
+	}
 }

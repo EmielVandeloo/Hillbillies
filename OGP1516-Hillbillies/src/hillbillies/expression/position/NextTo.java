@@ -14,7 +14,6 @@ public class NextTo extends PositionChecker {
 
 	public NextTo(SourceLocation sourceLocation, Expression<Position> positionExpression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, positionExpression);
 	}
 
@@ -22,7 +21,7 @@ public class NextTo extends PositionChecker {
 	public Position evaluate(Program program) {
 		List<Position> allNeighbours = new ArrayList<>();
 		for (Position position : program.getWorld().getAllNeighbours(getPositionExpression().evaluate(program))) {
-			if (program.getUnit().canStandOn(position)) {
+			if (program.getUnit().hasSupport(position)) {
 				allNeighbours.add(position);
 			}
 		}
@@ -36,5 +35,4 @@ public class NextTo extends PositionChecker {
 	public String toString() {
 		return "next to";
 	}
-
 }

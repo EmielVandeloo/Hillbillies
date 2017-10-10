@@ -1,3 +1,0 @@
-name: "goto_any"
-priority : 5
-activities : moveTo (position_of any);

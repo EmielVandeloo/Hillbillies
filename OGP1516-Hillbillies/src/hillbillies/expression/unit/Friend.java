@@ -20,5 +20,4 @@ public class Friend extends Expression<Unit> {
 	public String toString() {
 		return "friend";
 	}
-
 }

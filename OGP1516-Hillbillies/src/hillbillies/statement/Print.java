@@ -36,6 +36,8 @@ public class Print extends Statement {
 						getNestingStatement().setToBeExecuted(false);
 					} catch (NullPointerException e) {}
 				}
+			} else {
+				program.setTimeDepleted(true);
 			}
 		}
 	}
@@ -53,6 +55,11 @@ public class Print extends Statement {
 	@Override
 	public void resetAll() {
 		setToBeExecuted(true);
+	}
+	
+	@Override
+	public boolean isWellFormed() {
+		return true;
 	}
 	
 }

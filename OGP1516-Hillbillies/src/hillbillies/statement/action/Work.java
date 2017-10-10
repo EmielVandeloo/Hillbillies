@@ -28,7 +28,6 @@ public class Work extends Action {
 
 	@Override
 	public void perform(Program program) {
-		System.out.println("Work");
 		if (isToBeExecuted() && !program.hasStopped()) {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
@@ -36,13 +35,13 @@ public class Work extends Action {
 				if (!Position.isAdjacentToOrSame(pos, program.getUnit().getPosition())) {
 					program.interrupt();
 				}
-				System.out.println("Starting to work!");
 				program.getUnit().workAt((int) pos.x(), (int) pos.y(), (int) pos.z());
 				setToBeExecuted(false);
+			} else {
+				program.setTimeDepleted(true);
 			}
 		}
 		if (!program.getUnit().isWorking()) {
-			System.out.println("Finished working!");
 			if (isPartOfQueue()) {
 				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 			} else {

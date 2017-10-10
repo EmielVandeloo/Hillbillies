@@ -48,17 +48,12 @@ import hillbillies.world.Position;
  *      
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
 
 public class Unit extends Entity {
-
-	/**
-	 * Variable registering the name of this unit.
-	 */
-	private String name;
 
 	/**
 	 * Variable registering the minimum value of an attribute (strength, agility, weight, toughness)
@@ -83,6 +78,16 @@ public class Unit extends Entity {
 	 * of each unit.
 	 */
 	private final static int MAX_INITIAL_ATTRIBUTE_VALUE = 100;
+	
+	/**
+	 * Field representing the identification of this entity.
+	 */
+	public static final String ENTITY_ID = "entity:unit";
+	
+	/**
+	 * Variable registering the name of this unit.
+	 */
+	private String name;
 
 	/**
 	 * Variable registering the weight of this unit.
@@ -218,11 +223,6 @@ public class Unit extends Entity {
 	 * Variable referencing a list containing all current attackers of this unit.
 	 */
 	private List<Unit> attackers = new ArrayList<Unit>();
-
-	/**
-	 * Field representing the identification of this entity.
-	 */
-	public static final String ENTITY_ID = "entity:unit";
 	
 	/**
 	 * Variable registering the inventory of this unit.
@@ -238,6 +238,8 @@ public class Unit extends Entity {
 	 * Variable referencing the task of this unit.
 	 */
 	private Task task;
+	
+	private boolean didDefaultBehaviour;
 
 	/**
 	 * Initialize this unit with given name, given strength, given agility, given weight, given toughness,
@@ -1047,18 +1049,19 @@ public class Unit extends Entity {
 	 * 
 	 * @param  position
 	 *         The position to check.
-	 * @return True if and only if the world of this unit has a solid neighbouring
+	 * @return True if and only if the world of this unit has a solid neighboring
 	 *         cube to the given position.
 	 *       | result == getWorld().hasSolidNeighbour(position)
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid position for this unit.
 	 *       | !isValidPosition(position)
 	 */
-	public boolean canStandOn(Position position) throws IllegalArgumentException {
+	@Override
+	public boolean hasSupport(Position position) throws IllegalArgumentException {
 		if (! getWorld().isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		return getWorld().isPassable(position) && getWorld().hasSolidNeighbour(position);
+		return getWorld().hasSolidNeighbour(position) && super.hasSupport(position);
 	}
 
 	/**
@@ -1085,7 +1088,7 @@ public class Unit extends Entity {
 	 */
 	@Raw @Model
 	private void setTargetPosition(Position position) throws IllegalArgumentException {
-		if (position != null && ! canStandOn(position)) {
+		if (position != null && ! hasSupport(position)) {
 			throw new IllegalArgumentException();
 		}
 		this.targetPosition = position;
@@ -1114,7 +1117,7 @@ public class Unit extends Entity {
 	 */
 	@Raw @Model
 	private void setObjectivePosition(Position position) throws IllegalArgumentException {
-		if (position != null && ! canStandOn(position)) {
+		if (position != null && ! hasSupport(position)) {
 			throw new IllegalArgumentException();
 		}
 		this.objectivePosition = position;
@@ -1199,6 +1202,13 @@ public class Unit extends Entity {
 	 *         If this unit's current objective position is effective, the unit
 	 *         walks for the given time period.
 	 *       | ...
+	 *         If this unit has a task to perform, the unit executes the task for the given
+	 *         time period.
+	 *       | ...
+	 *         If there is a task available in this unit's scheduler, the top priority task
+	 *         of the scheduler is assigned to this unit and the unit performs that task for
+	 *         the given time period.
+	 *       | ...
 	 *         If this unit's default behavior is enabled, a random default
 	 *         behavior is chosen.
 	 *       | ...
@@ -1211,7 +1221,6 @@ public class Unit extends Entity {
 	@Override
 	public void advanceTime(double deltaTime) {
 		int div1 = getNbExperiencePoints() / 10;
-		//setWeight(getWeight() + getInventory().getWeight());
 		if (isFalling()) {
 			fallBehavior(deltaTime);
 		} else if (!getWorld().hasSolidNeighbour(getPosition())) {
@@ -1230,10 +1239,8 @@ public class Unit extends Entity {
 			} else if (getObjectivePosition() != null) {
 				walk(deltaTime);
 			} else if (hasTask()) {
-				System.out.println("Perform task (same program)");
 				getProgram().execute(deltaTime);
 			} else if (getScheduler().isTaskAvailable()) {
-				System.out.println("\nInitialise new task from scheduler.");
 				stopDefaultBehaviour();
 				getScheduler().assignTopPriorityTask(this);
 				getProgram().execute(deltaTime);
@@ -1279,7 +1286,7 @@ public class Unit extends Entity {
 	 * @effect If the unit has reached its target, the movement is stopped, this unit's number of
 	 *         experience points is increased, and if the unit has reached its objective position, 
 	 *         the unit's target position and the unit's objective position are set to null. 
-	 *         Else, the unit continues pathing if it can still reach its objective.
+	 *         Else, the unit continues walking if it can still reach its objective.
 	 *       | if (hasReachedTarget())
 	 *       |   then stopMovement()
 	 *       |   then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForStep())
@@ -1401,7 +1408,6 @@ public class Unit extends Entity {
 	public void fallBehavior(double deltaTime) {
 		getAllAttackers().clear();
 		resetAllJobs();
-		stopDefaultBehaviour();
 		setStartPosition(null);
 		setTargetPosition(null);
 		setCurrentSpeed(3);
@@ -1601,8 +1607,8 @@ public class Unit extends Entity {
 	 *	     | else
 	 *		 |   setCurrentSpeed(getWalkingSpeed(getPosition().z(), getTargetPosition().z()));
 	 */
-	@Raw
-	public void moveToAdjacent(Position targetPosition) throws IllegalArgumentException {
+	@Raw @Model
+	private void moveToAdjacent(Position targetPosition) throws IllegalArgumentException {
 		resetAllJobs();
 		startMoving();
 		setStartPosition(getPosition());
@@ -2117,14 +2123,14 @@ public class Unit extends Entity {
 	 *         job time is set to zero, this unit stops working, this unit's work logic is performed,
 	 *         this unit's work position is set to null and the number of experience points is updated.
 	 *       | let
-	 *       |    timeLeft = getJobtime() - (float) deltaTime
+	 *       |   timeLeft = getJobtime() - (float) deltaTime
 	 *       | in
-	 *       |    if (timeLeft <= 0)
-	 *       |      then setJobTime(0)
-	 *       |      then stopWorking()
-	 *       |      then workLogic(position)
-	 *       |      then setWorkPosition(null)
-	 *       |      then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForWork())
+	 *       |   if (timeLeft <= 0)
+	 *       |     then setJobTime(0)
+	 *       |     then stopWorking()
+	 *       |     then workLogic(position)
+	 *       |     then setWorkPosition(null)
+	 *       |     then setNbExperiencePoints(getNbExperiencePoints() + getNbExperiencePointsForWork())
 	 */
 	@Model @Raw
 	private void performWorkAt(double deltaTime, Position position) {
@@ -2152,7 +2158,6 @@ public class Unit extends Entity {
 	 *       | in
 	 * 		 |   if (! getInventory().isEmpty())
 	 * 		 |     then getInventory().dropItem(itemEntity, getWorkPosition(), getWorld())
-	 *       |     then setWeight(getWeight() + itemEntity.getWeight)
 	 * @effect If the unit is currently working on a tile containing
 	 * 		   a workbench and is standing on a boulder and a log,
 	 * 		   the unit will upgrade its capabilities.
@@ -2160,10 +2165,8 @@ public class Unit extends Entity {
 	 * 		 |		(! getWorld().getEntitiesAt(position, Log.ENTITY_ID).isEmpty()) && 
 	 * 		 |		(! getWorld().getEntitiesAt(position, Boulder.ENTITY_ID).isEmpty()))
 	 * 		 |   then
-	 *       |     logs.get(0).setWorld(null)
-	 *       |     boulders.get(0).setWorld(null)
-	 * 		 |     getWorld().removeEntity(logs.get(0))
-	 * 		 |     getWorld().removeEntity(boulders.get(0))
+	 *       |     logs.get(0).despawn()
+	 *       |     boulders.get(0).despawn()
 	 * 		 |     upgrade();
 	 * @effect If there are boulders on the work spot, the unit will pick up a boulder, adding
 	 *         it to it's inventory, removing it from the world and increasing its weight.
@@ -2173,9 +2176,7 @@ public class Unit extends Entity {
 	 * 		 | in
 	 * 		 |   if (! boulders.isEmpty())
 	 * 		 |     then getInventory().addItem(boulder)
-	 *       |     then boulder.setWorld(null)
-	 *       |     then getWorld.removeEntity(boulder)
-	 *       |     then setWeight(getWeight() + boulder.getWeight())
+	 *       |     then boulder.despawn()
 	 * @effect If there are logs on the work spot, the unit will pick up a log, adding it to
 	 *         it's inventory and removing it from the world.
 	 * 		 | let
@@ -2184,8 +2185,7 @@ public class Unit extends Entity {
 	 * 		 | in
 	 * 		 |   if (! logs.isEmpty())
 	 * 		 |     then getInventory().addItem(log);
-	 *       |     then log.setWorld(null)
-	 *       |     then getWorld.removeEntity(log)
+	 *       |     then log.despawn()
 	 * @effect If the work spot is a solid cube, this cube will be broken.
 	 * 		 | if (! getWorld().isPassable(getWorkPosition())
 	 * 		 |   then getWorld().remove(position);
@@ -2193,32 +2193,26 @@ public class Unit extends Entity {
 	private void workLogic(Position position) {
 		ArrayList<Entity> logs = getWorld().getEntitiesAt(position, Log.ENTITY_ID);
 		ArrayList<Entity> boulders = getWorld().getEntitiesAt(position, Boulder.ENTITY_ID);
+		
 		switch (JobSelector.getJob(getWorld(), getPosition(), getWorkPosition(), getInventory())) {
 		case DROP:
 			ItemEntity itemEntity = getInventory().getItem();
 			getInventory().dropItem(itemEntity, getPosition(), getWorld());
-			//setWeight(getWeight() - itemEntity.getWeight());
 			break;
 		case UPGRADE:
-			logs.get(0).setWorld(null);
-			boulders.get(0).setWorld(null);
-			getWorld().removeEntity(logs.get(0));
-			getWorld().removeEntity(boulders.get(0));
+			((ItemEntity) logs.get(0)).despawn();
+			((ItemEntity) boulders.get(0)).despawn();
 			upgrade();
 			break;
 		case PICK_UP_BOULDER:
 			ItemEntity boulder = (Boulder) boulders.get(0);
 			getInventory().addItem(boulder);
-			boulder.setWorld(null);
-			getWorld().removeEntity(boulder);
-			//setWeight(getWeight() + boulder.getWeight());
+			boulder.despawn();
 			break;
 		case PICK_UP_LOG:
 			ItemEntity log = (Log) logs.get(0);
 			getInventory().addItem(log);
-			log.setWorld(null);
-			getWorld().removeEntity(log);
-			//setWeight(getWeight() + log.getWeight());
+			log.despawn();
 			break;
 		case REMOVE_BLOCK:
 			getWorld().remove(position);
@@ -3086,6 +3080,7 @@ public class Unit extends Entity {
 	 */
 	@Model @Raw
 	private void chooseDefaultBehavior() {
+		this.didDefaultBehaviour = true;
 		Random random = new Random();
 		int i = random.nextInt(4);
 		if (i == 0) {
@@ -3384,7 +3379,12 @@ public class Unit extends Entity {
 		return this.task;
 	}
 	
-	// TODO
+	/**
+	 * A method to check whether a unit has a task or not.
+	 * 
+	 * @return True if this unit has a task.
+	 * 		 | result == (getTask() != null)
+	 */
 	public boolean hasTask() {
 		return getTask() != null;
 	}
@@ -3411,7 +3411,6 @@ public class Unit extends Entity {
 	 */
 	public void setTask(Task task) {
 		this.task = task;
-		// TODO schrappen in advancetime
 		setProgram(task == null ? null : new Program(task.getStatement()));
 	}
 	
@@ -3454,32 +3453,64 @@ public class Unit extends Entity {
 		if (program != null) program.setUnit(this);
 	}
 	
-	// TODO
+	/**
+	 * A method to retrieve the scheduler of this unit's faction.
+	 * 
+	 * @return The scheduler of this unit.
+	 * 		 | result == (getFaction().getScheduler())
+	 */
 	public Scheduler getScheduler() {
 		return getFaction().getScheduler();
 	}
 	
+	/**
+	 * A method to finish a task.
+	 * 
+	 * @effect Terminate this unit's task if there is one available.
+	 * 		 | if (getTask() != null)
+	 * 		 |   then getTask().terminate()
+	 * @effect Set the task of this unit to none.
+	 * 		 | setTask(null)
+	 * @effect Set the program of this unit to none.
+	 * 		 | setProgram(null)
+	 */
 	public void finishTask() {
 		if (getTask() != null) {
 			getTask().terminate();
 		}
 		setTask(null);
 		setProgram(null);
-	//	startDefaultBehaviour();
+		this.doesDefaultBehavior = didDefaultBehaviour;
 	}
 	
+	/**
+	 * A method to interrupt a task.
+	 * 
+	 * @effect Transfer this unit's task back to the scheduler 
+	 * 		   if there is one available.
+	 * 		 | if (getTask() != null)
+	 * 		 |   then getScheduler().transferUnfinishedTask(getTask())
+	 * @effect Set the task of this unit to none.
+	 * 		 | setTask(null)
+	 * @effect Set the program of this unit to none.
+	 * 		 | setProgram(null)
+	 */
 	public void interruptTask() {
 		if (getTask() != null) {
 			getScheduler().transferUnfinishedTask(getTask());
 		}
 		setTask(null);
 		setProgram(null);
-	//	startDefaultBehaviour();
+		this.doesDefaultBehavior = didDefaultBehaviour;
 	}
 	
+	/**
+	 * A method to check whether a unit can start a new action or not.
+	 * 
+	 * @return True if this unit is occupied with an action.
+	 * 		 | result == (hasJob() || isMoving())
+	 */
 	public boolean cannotStartAction() {
 		return (hasJob() || isMoving());
 	}
-	
 }
-

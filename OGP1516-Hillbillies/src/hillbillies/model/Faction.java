@@ -12,7 +12,7 @@ import hillbillies.world.Position;
 /**
  * A class of factions.
  * 
- * @invar Each faction can have its world as world.
+ * @invar Each faction has a proper world attached to it.
  * @invar The name of each faction must be a valid name for any
  *        faction.
  * @invar Each faction must have proper units.
@@ -21,13 +21,11 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Faction {
-
-	// FIELDS
 
 	/**
 	 * Variable registering the maximal amount of units allowed in a faction.
@@ -63,8 +61,6 @@ public class Faction {
 	 * Variable registering the scheduler of this faction.
 	 */
 	private Scheduler scheduler;
-
-	// CONSTRUCTOR AND DESTRUCTOR
 
 	/**
 	 * Initialize this new faction as a non-terminated faction with 
@@ -123,10 +119,9 @@ public class Faction {
 			for (Unit unit : units) {
 				unit.terminate();
 			}
+			this.scheduler = null;
 		}
 	}
-
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the name of this faction.
@@ -181,7 +176,7 @@ public class Faction {
 	 *       is attached, the world to which it is attached is set to the given world.
 	 */
 	@Raw
-	public void setWorld(World world) {
+	void setWorld(World world) {
 		if (canHaveAsWorld(world)) {
 			this.world = world;
 		}
@@ -218,8 +213,6 @@ public class Faction {
 				getWorld().getAllFactions().contains(this));
 	}
 
-	// Methods
-
 	/**
 	 * Generate a pseudo-random name.
 	 * 
@@ -236,8 +229,6 @@ public class Faction {
 		name += nouns[random.nextInt(nouns.length)];
 		return name;
 	}
-
-	// UNIT METHODS
 
 	/**
 	 * Check whether this faction has the given unit as one of its
@@ -348,8 +339,6 @@ public class Faction {
 		units.remove(unit);
 	}
 
-	// RETRIEVE
-
 	/**
 	 * Return a random member of this faction.
 	 * 
@@ -427,7 +416,6 @@ public class Faction {
 	public Unit getClosestMember(Unit unit) {
 		Unit closest = null;
 		double distance = Double.POSITIVE_INFINITY;
-
 		for (Unit member : getAllUnits()) {
 			double newDistance = Position.getDistance(unit.getPosition(), member.getPosition());
 			if (newDistance < distance && ! member.equals(unit)) {
@@ -451,16 +439,13 @@ public class Faction {
 		if (factions.size() < 2) {
 			return null;
 		}
-
 		Unit closest = null;
 		double distance = Double.POSITIVE_INFINITY;
-
 		for (Faction faction : factions) {
 			if (faction.getAllUnits().isEmpty()) {continue;}
 			if (! faction.equals(this)) {
 				Unit newUnit =  faction.getClosestMember(unit);
 				double newDistance = Position.getDistance(unit.getPosition(), newUnit.getPosition());
-
 				if (newDistance < distance) {
 					closest = newUnit;
 					distance = newDistance;
@@ -469,8 +454,6 @@ public class Faction {
 		}
 		return closest;
 	}
-
-	// SCHEDULER
 
 	/**
 	 * Return the scheduler of this faction.
@@ -509,5 +492,4 @@ public class Faction {
 			throw new IllegalArgumentException();
 		this.scheduler = scheduler;
 	}
-
 }
