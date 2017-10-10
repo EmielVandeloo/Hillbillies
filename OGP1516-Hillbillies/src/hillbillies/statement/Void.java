@@ -45,4 +45,9 @@ public class Void extends Statement {
 		setToBeExecuted(true);
 	}
 	
+	@Override
+	public boolean isWellFormed() {
+		return true;
+	}
+	
 }

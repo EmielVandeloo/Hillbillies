@@ -77,7 +77,6 @@ public class Program {
 			setTimer(deltaTime);
 			getMainStatement().perform(this);
 			if (! getMainStatement().isToBeExecuted()) {
-				System.out.println("Stop execution program.");
 				finish();
 			}
 		}
@@ -111,7 +110,5 @@ public class Program {
 	public World getWorld() {
 		return getUnit().getWorld();
 	}
-	
-	// TODO Time depleted...
 	
 }

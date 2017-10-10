@@ -14,5 +14,4 @@ public class True extends Expression<Boolean> {
 	public Boolean evaluate(Program program) {
 		return true;
 	}
-
 }

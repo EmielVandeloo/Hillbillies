@@ -14,13 +14,11 @@ import hillbillies.model.World;
  *         
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public abstract class Entity {
-
-	// FIELDS
 	
 	/**
 	 * Field representing the identification of this entity.
@@ -54,8 +52,6 @@ public abstract class Entity {
 	 */
 	private boolean isTerminated;
 
-	// CONSTRUCTORS
-
 	/**
 	 * Initialize this new entity with given world and given position.
 	 * 
@@ -71,9 +67,7 @@ public abstract class Entity {
 	public Entity(World world, Position position) throws IllegalArgumentException {
 		setWorld(world);
 		setPosition(position.getCenterPosition());
-	}	
-	
-	// DESTRUCTOR
+	}
 	
 	/**
 	 * Return whether this entity is terminated.
@@ -101,8 +95,6 @@ public abstract class Entity {
 			formerWorld.removeEntity(this);
 		}
 	}
-	
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the world of this entity.
@@ -222,8 +214,6 @@ public abstract class Entity {
 		this.falling = false;
 	}
 
-	// METHODS
-
 	/**
 	 * Advance the state of this entity by the given time step.
 	 * 
@@ -232,6 +222,22 @@ public abstract class Entity {
 	 *        state.
 	 */
 	public abstract void advanceTime(double deltaTime);
+	
+	/**
+	 * Whether the entity can be on a position or not.
+	 * 
+	 * @param  position
+	 * 		   The position to check.
+	 * @return True if the position is supported.
+	 * @throws IllegalArgumentException
+	 *         The given position is not a valid position for any entity.
+	 */
+	public boolean hasSupport(Position position) throws IllegalArgumentException {
+		if (!isValidPosition(position)) {
+			throw new IllegalArgumentException();
+		}
+		return getWorld().isPassable(position);
+	}
 	
 	/**
 	 * Return the entity ID of an entity.
@@ -253,11 +259,18 @@ public abstract class Entity {
 	 *         currently occupies.
 	 */
 	public void fallBehavior(double deltaTime) {
-		startFalling();
-		updatePosition(deltaTime, World.FALL_VECTOR);
-		if (hasReachedGround()) {
-			stopFalling();
-			setPosition(getPosition().getCenterPosition());
+		if (getPosition() == null || getWorld() == null) {
+			return;
+		}
+		if (! hasSupport(getPosition()) && ! isFalling()) {
+			startFalling();
+		}
+		if (isFalling()) {
+			updatePosition(deltaTime, World.FALL_VECTOR);	
+			if (hasReachedGround()) {
+				stopFalling();
+				setPosition(getPosition().getCenterPosition());
+			}
 		}
 	}
 

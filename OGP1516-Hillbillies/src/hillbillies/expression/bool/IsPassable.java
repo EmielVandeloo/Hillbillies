@@ -10,7 +10,6 @@ public class IsPassable extends PositionChecker {
 
 	public IsPassable(SourceLocation sourceLocation, Expression<Position> positionExpression) 
 			throws IllegalArgumentException {
-		
 		super(sourceLocation, positionExpression);
 	}
 
@@ -23,5 +22,4 @@ public class IsPassable extends PositionChecker {
 	public String toString() {
 		return "is passable: " + getPositionExpression().toString();
 	}
-
 }

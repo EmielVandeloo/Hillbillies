@@ -146,8 +146,8 @@ public class WorldTest {
 	
 	@Test
 	public void removeEntity_PossibleCase() {
-		randomUnit.setWorld(null);
 		world.removeEntity(randomUnit);
+		randomUnit.setWorld(null);
 		assertFalse(world.hasAsEntity(randomUnit));
 	}
 	
@@ -258,12 +258,12 @@ public class WorldTest {
 		assertFalse(world.isValidPosition(new Position(-1,0,0)));
 	}
 	
-	@Test
+	@Test @Deprecated
 	public void existsPathBetween_TrueCase() {
 		assertTrue(world.existsPathBetween(new Position(0,0,0), new Position(2,0,0)));
 	}
 	
-	@Test
+	@Test @Deprecated
 	public void existsPathBetween_FalseCase() {
 		assertFalse(world.existsPathBetween(new Position(0,0,0), new Position(3,3,3)));
 	}

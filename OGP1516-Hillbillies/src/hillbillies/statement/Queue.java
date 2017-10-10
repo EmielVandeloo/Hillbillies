@@ -36,9 +36,6 @@ public class Queue extends Statement {
 			getStatements().get(getIndex()).perform(program);
 			if (getIndex() == getStatements().size()) {
 				setToBeExecuted(false);
-//				try {
-//					getNestingStatement().setToBeExecuted(false);
-//				} catch (NullPointerException exc) {}
 				if (getNestingStatement() instanceof Conditional) {
 					getNestingStatement().setToBeExecuted(false);
 				} else if (getNestingStatement() instanceof Repetitive) {
@@ -83,6 +80,16 @@ public class Queue extends Statement {
 		for (Statement statement : getStatements()) {
 			statement.resetAll();
 		}
+	}
+	
+	@Override
+	public boolean isWellFormed() {
+		for (Statement statement : getStatements()) {
+			if (!statement.isWellFormed()) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 }

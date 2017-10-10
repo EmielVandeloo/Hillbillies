@@ -20,5 +20,4 @@ public class Enemy extends Expression<Unit> {
 	public String toString() {
 		return "enemy";
 	}
-
 }

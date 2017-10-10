@@ -10,11 +10,11 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Log extends ItemEntity {
-	
-	//FIELDS
 	
 	/**
 	 * Field representing the identification of this entity.
@@ -25,8 +25,6 @@ public class Log extends ItemEntity {
 	public String getEntityId() {
 		return ENTITY_ID;
 	}
-	
-	// CONSTRUCTOR
 
 	/**
 	 * Initialize this new log in the given world at the given position.
@@ -42,8 +40,6 @@ public class Log extends ItemEntity {
 		super(world, position);
 	}
 	
-	// METHODS
-	
 	/**
 	 * Drop a log in the given world at the given position.
 	 * 
@@ -56,7 +52,7 @@ public class Log extends ItemEntity {
 	 */
 	public static void drop(World world, Position position) {
 		if (ItemEntity.willDrop()) {
-			world.addEntity(new Log(world, position));
+			new Log(world, position).spawn();;
 		}
 	}
 }

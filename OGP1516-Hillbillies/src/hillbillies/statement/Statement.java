@@ -2,7 +2,6 @@ package hillbillies.statement;
 
 import hillbillies.part3.programs.SourceLocation;
 import hillbillies.program.Program;
-import hillbillies.statement.repetitive.Loop;
 import hillbillies.statement.repetitive.Repetitive;
 
 public abstract class Statement {
@@ -81,30 +80,7 @@ public abstract class Statement {
 		return false;
 	}
 	
-	// TODO Well-formedness of Expressions
-	public boolean isWellFormed() {
-		if (this instanceof Queue) {
-			for (Statement subStatement : ((Queue) this).getStatements()) {
-				if (!subStatement.isWellFormed()){
-					return false;
-				}
-			}
-			return true;
-		} else if (this instanceof Conditional) {
-			return (((Conditional) this).getIfStatement().isWellFormed() && 
-					((Conditional) this).getElseStatement().isWellFormed());
-		} else if (this instanceof Loop) {
-			return ((Loop) this).getBody().isWellFormed();
-		} else if (this instanceof Break) {
-			if (getLoopStatement() instanceof Loop) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return true;
-		}
-	}
+	public abstract boolean isWellFormed();
 		
 	public abstract void perform(Program program);
 	

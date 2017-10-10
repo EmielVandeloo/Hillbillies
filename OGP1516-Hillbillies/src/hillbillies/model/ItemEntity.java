@@ -14,7 +14,7 @@ import hillbillies.world.Position;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
  * 
  * https://github.com/EmielVandeloo/Hillbillies.git
  */
@@ -29,7 +29,7 @@ public abstract class ItemEntity extends Entity {
 	 * A value between 0 and 1 representing the
 	 * chance to drop an item entity.
 	 */
-	public static final double dropChance = 1;
+	public static final double dropChance = 0.25;
 
 	/**
 	 * Variable registering the maximal weight of this item entity.
@@ -45,8 +45,6 @@ public abstract class ItemEntity extends Entity {
 	 * Field representing the identification of this entity.
 	 */
 	public static final String ENTITY_ID = "item_entity";
-
-	// CONSTRUCTORS
 	
 	/**
 	 * Initialize this new item entity with given world, position and weight.
@@ -83,8 +81,6 @@ public abstract class ItemEntity extends Entity {
 		this(world, position, getRandomWeight());
 	}
 	
-	// GETTERS AND SETTERS
-	
 	/**
 	 * Return the weight of this item .
 	 */
@@ -106,8 +102,6 @@ public abstract class ItemEntity extends Entity {
 	public static boolean canHaveAsWeight(int weight) {
 		return (weight >= MIN_WEIGHT) && (weight <= MAX_WEIGHT);
 	}
-
-	// METHODS
 
 	/**
 	 * Return a random weight between the minimal and the maximal value of the weight
@@ -140,29 +134,48 @@ public abstract class ItemEntity extends Entity {
 	 * @throws IllegalArgumentException
 	 *         The given position is not a valid position for any entity.
 	 */
-	public boolean canStandOn(Position position) throws IllegalArgumentException {
+	@Override
+	public boolean hasSupport(Position position) throws IllegalArgumentException {
 		if (!isValidPosition(position)) {
 			throw new IllegalArgumentException();
 		}
-		return getWorld().hasUnderlyingSolid(position) && getWorld().getAt(position).isPassable();
+		return getWorld().hasUnderlyingSolid(position) && super.hasSupport(position);
 	}
-
-	// METHODS
 
 	/**
 	 * Advance the state of this item entity by the given time step.
 	 * 
 	 * @param  deltaTime
 	 *         The time step, in seconds, by which to advance this item entity's state.
-	 * @effect If this item entity is currently falling, its fall behaviour is performed.
+	 * @effect If this item entity is currently falling, its fall behavior is performed.
 	 * @effect Otherwise, if this item entity cannot stand on its current position, its
-	 *         fall behaviour is performed.
+	 *         fall behavior is performed.
+	 * @throws IllegalArgumentException
+	 * 		   The item entity does not have proper world or position.
 	 */
 	public void advanceTime(double deltaTime) {
-		if (isFalling()) {
-			fallBehavior(deltaTime);
-		} else if (!canStandOn(getPosition())) {
-			fallBehavior(deltaTime);
+		fallBehavior(deltaTime);
+	}
+	
+	/**
+	 * Add this item entity to the world.
+	 */
+	public void spawn() throws IllegalArgumentException {
+		if (getWorld() == null) {
+			throw new IllegalArgumentException();
+		} 
+		if (getPosition() == null || ! isValidPosition(getPosition())) {
+			throw new IllegalArgumentException();
 		}
+		getWorld().addEntity(this);
+	}
+	
+	/**
+	 * Remove the item entity from the world.
+	 */
+	public void despawn() {
+		World formerWorld = getWorld();
+		setWorld(null);
+		formerWorld.removeEntity(this);
 	}
 }

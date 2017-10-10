@@ -9,8 +9,7 @@ import hillbillies.program.Program;
 public class IsAlive extends UnitChecker {
 
 	public IsAlive(SourceLocation sourceLocation, Expression<Unit> unitExpression) 
-			throws IllegalArgumentException {
-		
+			throws IllegalArgumentException {	
 		super(sourceLocation, unitExpression);
 	}
 
@@ -23,5 +22,4 @@ public class IsAlive extends UnitChecker {
 	public String toString() {
 		return getUnitExpression().toString() + " is alive";
 	}
-
 }

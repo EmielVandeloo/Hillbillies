@@ -13,11 +13,11 @@ import hillbillies.world.Position;
  *
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Final version Part 2: 10/04/2016
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Inventory {
-
-	// FIELDS
 	
 	/**
 	 * Variable registering the maximal weight of this inventory.
@@ -38,8 +38,6 @@ public class Inventory {
 	 * Variable referencing the items in this inventory.
 	 */
 	private final List<ItemEntity> items = new ArrayList<ItemEntity>();
-
-	// CONSTRUCTOR
 	
 	/**
 	 * Initialize this inventory with given maximal weight and given maximal number of items.
@@ -57,8 +55,8 @@ public class Inventory {
 	 */
 	public Inventory(double maxWeight, int maxNbItems) 
 			throws IllegalArgumentException {
-		this.setMaximalWeight(maxWeight);
-		this.setMaximalItemCount(maxNbItems);
+		setMaximalWeight(maxWeight);
+		setMaximalItemCount(maxNbItems);
 	}
 	
 	/**
@@ -71,8 +69,6 @@ public class Inventory {
 	public Inventory() {
 		this(Double.POSITIVE_INFINITY, Integer.MAX_VALUE);
 	}
-
-	// GETTERS AND SETTERS
 
 	/**
 	 * Return the maximal weight of this inventory.
@@ -161,8 +157,6 @@ public class Inventory {
 			throw new IllegalArgumentException();
 		this.maximalItemCount = maxNbItems;
 	}
-
-	// INVENTORY-METHODS
 
 	/**
 	 * Return all the items associated with this inventory.
@@ -279,8 +273,6 @@ public class Inventory {
 		}
 	}
 
-	// SPECIFIC METHODS
-
 	/**
 	 * A method to retrieve the first item;
 	 * 
@@ -323,8 +315,6 @@ public class Inventory {
 	public boolean isEmpty() {
 		return items.isEmpty();
 	}
-
-	// TERMINATE
 
 	/**
 	 * Drop all items of this inventory at the given position in the given world.

@@ -19,5 +19,4 @@ public class False extends Expression<Boolean> {
 	public String toString() {
 		return "false";
 	}
-
 }

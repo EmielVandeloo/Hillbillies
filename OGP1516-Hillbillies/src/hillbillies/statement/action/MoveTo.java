@@ -33,7 +33,6 @@ public class MoveTo extends Action {
 			if (program.hasTimeForStatement()) {
 				program.decreaseTimerOneUnit();
 				this.targetCube = getExpression().evaluate(program);
-				System.out.println("Starting to move!");
 				try {
 					program.getUnit().moveTo(targetCube);
 					if (!program.getUnit().isMoving()) {
@@ -43,10 +42,11 @@ public class MoveTo extends Action {
 					program.interrupt();
 				}
 				setToBeExecuted(false);	
+			} else {
+				program.setTimeDepleted(true);
 			}
 		}
 		if (program.getUnit().getPosition().equals(targetCube.getCenterPosition())) {
-			System.out.println("Finished moving!");
 			if (isPartOfQueue()) {
 				((Queue) getQueueStatement()).setIndex(((Queue) getQueueStatement()).getIndex()+1);
 			} else {

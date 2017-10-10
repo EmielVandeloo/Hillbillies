@@ -20,5 +20,4 @@ public class Here extends Expression<Position> {
 	public String toString() {
 		return "here";
 	}
-	
 }

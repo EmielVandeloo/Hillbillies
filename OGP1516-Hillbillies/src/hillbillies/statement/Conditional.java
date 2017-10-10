@@ -115,5 +115,19 @@ public class Conditional extends Statement {
 		getIfStatement().resetAll();
 		getElseStatement().resetAll();
 	}
+	
+	@Override
+	public boolean isWellFormed() {
+		if (!getExpression().isWellFormed()) {
+			return false;
+		}
+		if (!getIfStatement().isWellFormed()) {
+			return false;
+		}
+		if (!getElseStatement().isWellFormed()) {
+			return false;
+		}
+		return true;
+	}
 
 }

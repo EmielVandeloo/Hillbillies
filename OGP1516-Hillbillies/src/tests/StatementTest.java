@@ -29,9 +29,7 @@ public class StatementTest {
 	public Facade facade;
 	public TaskFactory factory;
 	public Scheduler scheduler;
-		
 	public SourceLocation src = new SourceLocation(5, 5);
-	
 
 	@Before
 	public void setUp() throws Exception {

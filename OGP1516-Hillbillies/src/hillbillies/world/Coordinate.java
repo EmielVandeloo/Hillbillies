@@ -19,7 +19,9 @@ import be.kuleuven.cs.som.annotate.Raw;
  * 
  * @author  Pieter-Jan Van den Broecke: EltCw
  * 		    Emiel Vandeloo: WtkCw
- * @version Work version: 26/03/2016
+ * @version Final version Part 3: 20/05/2016
+ * 
+ * https://github.com/EmielVandeloo/Hillbillies.git
  */
 public class Coordinate {
 
