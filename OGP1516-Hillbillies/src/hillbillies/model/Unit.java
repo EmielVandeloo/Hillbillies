@@ -3257,7 +3257,7 @@ public class Unit extends Entity {
 				"Agressive ", "Stoic ", "Black ", "Little ", "Greedy ", "Amazing "};
 		name += adjectives[random.nextInt(adjectives.length)];
 		String[] nouns = {"Bob", "Mark", "Thomas", "Leo", "Bart", "Suzanne",
-				"Diana", "Lily", "Anna", "Kate", "PieterJan", "Emiel", "Peter"};
+				"Diana", "Lily", "Anna", "Kate", "PieterJan", "Emiel"};
 		name += nouns[random.nextInt(nouns.length)];
 		return name;
 	}
